@@ -1,0 +1,10 @@
+services:
+  go:
+    container_name: 420cry_api
+    image: 420cry.test/go
+    build:
+      context: ./
+      dockerfile: ./infrastructure/docker/Dockerfile
+    restart: on-failure
+    ports:
+      - "8080:8080"
