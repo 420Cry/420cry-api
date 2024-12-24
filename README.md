@@ -32,4 +32,19 @@ This is a Go-based API server for the 420cry application.
     ```bash
     make dev
     ```
-## Docker
+### With Docker
+1. Shutdown the dev server docker compose for this project.
+    ```bash
+    cd ~/projects/420/app/ 
+    docker compose down
+    ```
+
+2. Build and start application in production mode.
+    ```bash
+    docker compose build
+    ```
+
+3. Start the application in DEV mode.
+    ```bash
+    docker compose up -d
+   ```
