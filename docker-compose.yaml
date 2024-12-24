@@ -8,3 +8,10 @@ services:
     restart: on-failure
     ports:
       - "8080:8080"
+    networks:
+      - 420cry.test
+
+networks:
+  420cry.test:
+    name: 420cry.test
+    external: true
