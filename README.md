@@ -13,10 +13,12 @@ This is a Go-based API server for the 420cry application.
 
     Add the following lines to the file:
     ```bash
-    127.0.0.1 420.api.crypto.test
-    127.0.0.1 420.db.crypto.test
+    127.0.0.1 api.420.crypto.test
     ```
-
+2. **Copy .env.example to .env**:
+    ```bash
+    cp .env.example .env
+    ```
 ## Installation
 
 1. Clone the repository
@@ -32,4 +34,46 @@ This is a Go-based API server for the 420cry application.
     ```bash
     make dev
     ```
-## Docker
+### Lint:
+
+This project uses `golangci-lint`. You can install it using the following commands based on your OS:
+
+#### macOS:
+You can install it with `brew`:
+```bash
+brew install golangci-lint
+```
+
+#### Linux & Windows:
+You can install it with curl:
+```bash
+curl -sSfL https://github.com/golangci/golangci-lint/releases/download/v1.52.0/golangci-lint-1.52.0-linux-amd64.tar.gz | tar -xz -C /tmp
+sudo mv /tmp/golangci-lint-1.52.0-linux-amd64/golangci-lint /usr/local/bin/
+
+```
+
+#### Run Lint:
+You can run the linter with:
+```bash
+make lint
+```
+
+### Test:
+```bash
+make test
+```
+### With Docker
+1. Shutdown the dev server docker compose for this project.
+    ```bash
+    docker compose down
+    ```
+
+2. Build and start application in production mode.
+    ```bash
+    docker compose build
+    ```
+
+3. Start the application in DEV mode.
+    ```bash
+    docker compose up -d
+   ```

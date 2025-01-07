@@ -1,0 +1,30 @@
+name: Docker CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build the Docker image with the Dockerfile in ./infrastructure/docker/Dockerfile
+      - name: Build Docker image
+        run: |
+          docker build \
+            --file ./infrastructure/docker/Dockerfile \
+            --tag 420cry.test/go:latest \
+            .

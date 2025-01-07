@@ -1,0 +1,12 @@
+.idea/
+.github/
+.vscode/
+.gitignore
+.env.example
+
+.dockerignore
+
+infrastructure/docker/Dockerfile
+docker-compose*.y*ml
+
+tests/
