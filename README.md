@@ -15,7 +15,10 @@ This is a Go-based API server for the 420cry application.
     ```bash
     127.0.0.1 api.420.crypto.test
     ```
-
+2. **Copy .env.example to .env**:
+    ```bash
+    cp .env.example .env
+    ```
 ## Installation
 
 1. Clone the repository
@@ -41,7 +44,7 @@ You can install it with `brew`:
 brew install golangci-lint
 ```
 
-### Linux & Win
+#### Linux & Windows:
 You can install it with curl:
 ```bash
 curl -sSfL https://github.com/golangci/golangci-lint/releases/download/v1.52.0/golangci-lint-1.52.0-linux-amd64.tar.gz | tar -xz -C /tmp
@@ -50,7 +53,7 @@ sudo mv /tmp/golangci-lint-1.52.0-linux-amd64/golangci-lint /usr/local/bin/
 ```
 
 #### Run Lint:
-You can install it with `brew`:
+You can run the linter with:
 ```bash
 make lint
 ```

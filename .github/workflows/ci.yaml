@@ -37,9 +37,17 @@ jobs:
       - name: Lint
         run: golangci-lint run
 
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t my-app .
+
   test:
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, docker-build]
     steps:
       - uses: actions/checkout@v4
 
