@@ -17,7 +17,7 @@ func Initialize() {
 	AllowableOrigins = []string{
 		"https://" + cfg.AllowedOrigin.App,
 	}
-	log.Printf("Allowable Origins: %v", AllowableOrigins) // Add logging to verify the origins
+	log.Printf("Allowable Origins: %v", AllowableOrigins)
 }
 
 // CORS Middleware to allow requests from the allowed origins

@@ -16,7 +16,7 @@ func SecurityHeaders(next http.Handler) http.Handler {
 		// CORS Handling - block all requests from unauthorized domains
 		origin := r.Header.Get("Origin")
 		if !isAllowedOrigin(origin) {
-			http.Error(w, "Forbidden", http.StatusForbidden)
+			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			return
 		}
 

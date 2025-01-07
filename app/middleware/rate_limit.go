@@ -22,7 +22,7 @@ func NewRateLimiter(rps rate.Limit, burst int) *RateLimiter {
 func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !rl.limiter.Allow() {
-			http.Error(w, "Too Many Requests", http.StatusTooManyRequests)
+			http.Error(w, http.StatusText(http.StatusTooManyRequests), http.StatusTooManyRequests)
 			return
 		}
 		next.ServeHTTP(w, r)

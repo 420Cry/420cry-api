@@ -19,7 +19,7 @@ func setupCORS() {
 			App: "example.com",
 		},
 	}
-	config.Set(cfg) // Assuming Set method is correctly implemented to apply the config
+	config.Set(cfg)
 	middleware.Initialize()
 }
 
