@@ -1,7 +1,7 @@
 services:
   go:
     container_name: go_api
-    image: 420cry.test/go
+    image: 420.crypto.test/go
     build:
       context: ./
       dockerfile: ./infrastructure/docker/Dockerfile
@@ -16,7 +16,7 @@ services:
 
   nginx:
     container_name: api_web
-    image: 420cry.test/nginx:go
+    image: 420.crypto.test/nginx:go
     depends_on:
       - go
     restart: on-failure
