@@ -9,8 +9,21 @@ import (
 	"github.com/joho/godotenv"
 )
 
+var configInstance *types.Config
+
+func Set(cfg *types.Config) {
+	configInstance = cfg
+}
+
+func Get() *types.Config {
+	return configInstance
+}
+
 func Load() *types.Config {
-	godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		log.Printf("Warning: Error loading .env file: %v", err)
+	}
 
 	apiPortStr := os.Getenv("420_API_PORT")
 	apiPort, err := strconv.Atoi(apiPortStr)
@@ -23,9 +36,9 @@ func Load() *types.Config {
 	log.Printf("Loaded 420_APP: %s", app)
 
 	return &types.Config{
-		API_PORT: apiPort,
-		ALLOWED_ORIGIN: types.AllowedOrigin{
-			APP: app,
+		APIPort: apiPort,
+		AllowedOrigin: types.AllowedOrigin{
+			App: app,
 		},
 	}
 }

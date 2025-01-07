@@ -20,7 +20,7 @@ func SecurityHeaders(next http.Handler) http.Handler {
 			return
 		}
 
-		// Set CORS headers
+		// Set CORS headers for allowed requests
 		w.Header().Set("Access-Control-Allow-Origin", origin)
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
@@ -34,4 +34,19 @@ func SecurityHeaders(next http.Handler) http.Handler {
 		// Handle the request
 		next.ServeHTTP(w, r)
 	})
+}
+
+// handleCORSPreflight responds to preflight OPTIONS requests for CORS
+func handleCORSPreflight(w http.ResponseWriter, r *http.Request) {
+	origin := r.Header.Get("Origin")
+	if !isAllowedOrigin(origin) {
+		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+		return
+	}
+
+	// Set CORS headers for the OPTIONS preflight request
+	w.Header().Set("Access-Control-Allow-Origin", origin)
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	w.WriteHeader(http.StatusOK)
 }

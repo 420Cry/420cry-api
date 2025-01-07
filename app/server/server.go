@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -30,8 +31,16 @@ func main() {
 	)
 
 	// Start the server using the API_PORT from the config
-	log.Printf("Server started on port %d", cfg.API_PORT)
-	err := http.ListenAndServe(":"+strconv.Itoa(cfg.API_PORT), secureRouter)
+	log.Printf("Server started on port %d", cfg.APIPort)
+	server := &http.Server{
+		Addr:         ":" + strconv.Itoa(cfg.APIPort),
+		Handler:      secureRouter,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  15 * time.Second,
+	}
+
+	err := server.ListenAndServe()
 	if err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}

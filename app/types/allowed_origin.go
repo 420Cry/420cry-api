@@ -1,5 +1,5 @@
 package types
 
 type AllowedOrigin struct {
-	APP string
+	App string
 }

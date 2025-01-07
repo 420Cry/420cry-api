@@ -17,6 +17,10 @@ clean:
 install:
 	go mod tidy
 
+# Lint
+lint:
+	golangci-lint run
+
 # Test the Go application
 test:
 	go test ./tests/...

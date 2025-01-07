@@ -1,0 +1,14 @@
+linters:
+  enable:
+    - revive
+    - errcheck
+    - staticcheck
+    - unused
+    - gocyclo
+    - gosec
+    - stylecheck
+
+issues:
+  exclude:
+    - "Error return value is not checked"
+    - "should have comment or be unexported"
