@@ -14,7 +14,7 @@ RUN go mod tidy
 COPY . .
 
 # Build the Go app
-RUN go build -o 420cry-api cmd/server/main.go
+RUN go build -o 420cry-api app/server/server.go
 
 # Start a new stage from a smaller image to minimize the size
 FROM alpine:latest

@@ -13,8 +13,8 @@ This is a Go-based API server for the 420cry application.
 
     Add the following lines to the file:
     ```bash
-    127.0.0.1 420.api.crypto.test
-    127.0.0.1 420.db.crypto.test
+    127.0.0.1 api.420.crypto.test
+    127.0.0.1 db.420.crypto.test
     ```
 
 ## Installation
