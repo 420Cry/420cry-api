@@ -25,7 +25,8 @@ go.work.sum
 .env
 
 #Binary file
-420-api
+api
+go.sum
 
 # IDEA project files
 .idea

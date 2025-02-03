@@ -30,7 +30,11 @@ This is a Go-based API server for the 420cry application.
     ```bash
     make build
     ```
-4. Run the server:
+4. Migration:
+    ```bash
+    make migrate
+    ```
+5. Run the server:
     ```bash
     make dev
     ```
