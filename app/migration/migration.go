@@ -1,8 +1,8 @@
 package main
 
 import (
-	database "api/app/database"
-	types "api/app/types/users"
+	database "cry-api/app/database"
+	types "cry-api/app/types/users"
 	"log"
 )
 

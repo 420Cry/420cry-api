@@ -1,7 +1,7 @@
 package config
 
 import (
-	types "api/app/types/env"
+	types "cry-api/app/types/env"
 	"log"
 	"os"
 	"strconv"

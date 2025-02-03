@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	routes "api/app/api/routes/users"
-	"api/app/config"
-	"api/app/database"
+	routes "cry-api/app/api/routes/users"
+	"cry-api/app/config"
+	"cry-api/app/database"
 
 	"github.com/gorilla/mux"
 )

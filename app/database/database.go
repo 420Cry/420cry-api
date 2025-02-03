@@ -1,7 +1,7 @@
 package database
 
 import (
-	"api/app/config"
+	"cry-api/app/config"
 	"fmt"
 	"log"
 	"strconv"

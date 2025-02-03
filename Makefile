@@ -1,5 +1,5 @@
 # Go binary name
-BINARY_NAME=api
+BINARY_NAME=cry-api
 
 # Build the Go application
 build:
