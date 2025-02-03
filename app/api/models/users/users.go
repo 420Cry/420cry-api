@@ -40,7 +40,7 @@ func VerifyUser(db *gorm.DB, uuid string, token string) error {
 	}
 
 	user.IsVerified = true
-	user.SignupToken = "" // Clear the token after verification
+	user.SignupToken = ""
 	db.Save(&user)
 	return nil
 }

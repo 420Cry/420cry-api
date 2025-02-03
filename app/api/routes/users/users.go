@@ -20,7 +20,7 @@ func Users(r *mux.Router, db *gorm.DB) {
 
 		// Decode JSON request body into user struct
 		if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			http.Error(w, "Invalid JSON format", http.StatusBadRequest)
 			return
 		}
 
@@ -30,7 +30,15 @@ func Users(r *mux.Router, db *gorm.DB) {
 		// Create user in DB
 		createdUser, err := controllers.CreateUser(db, user)
 		if err != nil {
-			http.Error(w, "Error creating user", http.StatusInternalServerError)
+			// Handle specific errors and return more detailed messages
+			switch {
+			case err.Error() == "duplicate username or UUID":
+				http.Error(w, "Username or UUID already exists", http.StatusConflict)
+			case err.Error() == "failed to generate signup token":
+				http.Error(w, "Error generating signup token", http.StatusInternalServerError)
+			default:
+				http.Error(w, "Internal server error", http.StatusInternalServerError)
+			}
 			return
 		}
 
