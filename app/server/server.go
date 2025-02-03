@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	routes "cry-api/app/api/routes/users"
+	api "cry-api/app/api/routes"
 	"cry-api/app/config"
 	"cry-api/app/database"
 
@@ -25,8 +25,8 @@ func main() {
 	// Set up the router
 	r := mux.NewRouter()
 
-	// Pass the underlying *gorm.DB to the Users route using GetDB()
-	routes.Users(r, dbConn.GetDB())
+	// Register all routes dynamically
+	api.RegisterAllRoutes(r, dbConn.GetDB())
 
 	// Log when the server is starting
 	log.Println("Server started on port " + strconv.Itoa(cfg.APIPort))

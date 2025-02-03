@@ -12,19 +12,8 @@ import (
 	types "cry-api/app/types/users"
 )
 
-// TestRoute sets up a simple test endpoint
-func TestRoute(r *mux.Router) {
-	r.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
-		if _, err := w.Write([]byte("Hello, World!")); err != nil {
-			http.Error(w, "Unable to write response", http.StatusInternalServerError)
-		}
-	}).Methods("GET")
-}
-
 // Users sets up the user-related routes
 func Users(r *mux.Router, db *gorm.DB) {
-	TestRoute(r)
-
 	// Create User
 	r.HandleFunc("/create-user", func(w http.ResponseWriter, r *http.Request) {
 		var user types.User
