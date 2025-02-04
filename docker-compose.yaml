@@ -10,6 +10,7 @@ services:
       - 420cry-db
     networks:
       - internal
+      - 420cry.test
     volumes:
       - .:/app
     env_file:
@@ -23,6 +24,7 @@ services:
     restart: on-failure
     networks:
       - internal
+      - 420cry.test
 
   420cry-db:
     container_name: db.420.crypto.test
@@ -32,6 +34,7 @@ services:
       - "3306:3306"
     networks:
       - internal
+      - 420cry.test
     volumes:
       - mysql-data:/var/lib/mysql
     environment:
@@ -50,6 +53,9 @@ services:
 networks:
   internal:
     name: api_internal
+  420cry.test:
+    name: 420cry.test
+    external: true
 
 volumes:
   mysql-data:
