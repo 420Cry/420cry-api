@@ -5,14 +5,16 @@ import (
 	types "cry-api/app/types/database"
 	"fmt"
 	"log"
-	"strconv"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-// NewDatabase function to initialize a new database connection
+// NewDatabase initializes a new database connection
 func NewDatabase(dsn string) (*types.Database, error) {
+	// Log the DSN for debugging purposes
+	log.Println("Database DSN:", dsn)
+
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to the database: %v", err)
@@ -35,15 +37,13 @@ func NewDatabase(dsn string) (*types.Database, error) {
 	return &types.Database{DB: db}, nil
 }
 
-// GetDBConnection function to load configuration and return a database connection
+// GetDBConnection loads configuration and returns a database connection
 func GetDBConnection() (*types.Database, error) {
 	cfg := config.Get()
 
 	// Database connection string
-	dbAddress := cfg.DB
-	dbPort := cfg.DBPort
-	dbTable := cfg.DBTable
-	dsn := "root:@tcp(" + dbAddress + ":" + strconv.Itoa(dbPort) + ")/" + dbTable + "?charset=utf8&parseTime=True&loc=Local"
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		cfg.DBUserName, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBDatabase)
 
 	// Get the database connection
 	dbConn, err := NewDatabase(dsn)

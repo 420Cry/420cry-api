@@ -6,9 +6,10 @@ services:
       context: ./
       dockerfile: ./infrastructure/docker/Dockerfile
     restart: on-failure
+    depends_on:
+      - 420cry-db
     networks:
       - internal
-      - 420cry.test
     volumes:
       - .:/app
     env_file:
@@ -22,13 +23,34 @@ services:
     restart: on-failure
     networks:
       - internal
-      - 420cry.test
+
+  420cry-db:
+    container_name: db.420.crypto.test
+    image: mysql:8
+    restart: on-failure
+    ports:
+      - "3306:3306"
+    networks:
+      - internal
     volumes:
-      - .:/app
+      - mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: 420cry-user
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 5s
 
 networks:
   internal:
     name: api_internal
-  420cry.test:
-    name: 420cry.test
-    external: true
+
+volumes:
+  mysql-data:
+    driver: local

@@ -1,9 +1,11 @@
 package types
 
 type EnvConfig struct {
-	APIPort int
-	App     string
-	DB      string
-	DBTable string
-	DBPort  int
+	APIPort    int
+	App        string
+	DBHost     string
+	DBPort     int
+	DBDatabase string
+	DBUserName string
+	DBPassword string
 }
