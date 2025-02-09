@@ -8,5 +8,6 @@ import (
 )
 
 func RegisterAllRoutes(r *mux.Router, db *gorm.DB) {
-	routes.Users(r, db)
+	usersRouter := r.PathPrefix("/users").Subrouter()
+	routes.Users(usersRouter, db)
 }

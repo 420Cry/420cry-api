@@ -1,68 +1,16 @@
 package models
 
-import (
-	types "cry-api/app/types/users"
-	"fmt"
-	"time"
+import "time"
 
-	"gorm.io/gorm"
-)
-
-// CreateUser creates a new user in the database
-func CreateUser(db *gorm.DB, user types.User) types.User {
-	db.Create(&user)
-	return user
-}
-
-// GetAllUsers retrieves all users from the database
-func GetAllUsers(db *gorm.DB) []types.User {
-	var users []types.User
-	db.Find(&users)
-	return users
-}
-
-// GetUserByID retrieves a user by ID
-func GetUserByID(db *gorm.DB, id int) (types.User, error) {
-	var user types.User
-	result := db.First(&user, id)
-	if result.Error != nil {
-		return types.User{}, result.Error
-	}
-	return user, nil
-}
-
-// VerifyUser updates the user's verification status
-func VerifyUser(db *gorm.DB, uuid string, token string) error {
-	var user types.User
-	result := db.Where("uuid = ? AND signup_token = ?", uuid, token).First(&user)
-	if result.Error != nil {
-		return fmt.Errorf("invalid token or user not found")
-	}
-
-	user.IsVerified = true
-	user.SignupToken = ""
-	db.Save(&user)
-	return nil
-}
-
-// UpdateUser updates an existing user
-func UpdateUser(db *gorm.DB, id int, updatedUser types.User) (types.User, error) {
-	var user types.User
-	result := db.First(&user, id)
-	if result.Error != nil {
-		return types.User{}, result.Error
-	}
-
-	updatedUser.UpdatedAt = time.Now()
-	db.Model(&user).Updates(updatedUser)
-	return updatedUser, nil
-}
-
-// DeleteUser removes a user by ID
-func DeleteUser(db *gorm.DB, id int) error {
-	result := db.Delete(&types.User{}, id)
-	if result.RowsAffected == 0 {
-		return fmt.Errorf("user not found")
-	}
-	return nil
+type User struct {
+	ID         int       `json:"id" gorm:"primaryKey;autoIncrement"`
+	UUID       string    `json:"uuid" gorm:"unique;not null"`
+	Username   string    `json:"username" gorm:"unique;not null"`
+	Email      string    `json:"email" gorm:"unique;not null"`
+	Fullname   string    `json:"fullname"`
+	Password   string    `json:"-" gorm:"not null"`
+	Token      string    `json:"token,omitempty" gorm:"unique"`
+	IsVerified bool      `json:"is_verified" gorm:"not null;default:false"`
+	CreatedAt  time.Time `json:"created_at" gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP"`
+	UpdatedAt  time.Time `json:"updated_at" gorm:"type:timestamp;default:NULL;autoUpdateTime"`
 }
