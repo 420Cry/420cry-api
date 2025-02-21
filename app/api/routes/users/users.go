@@ -26,7 +26,7 @@ func Users(r *mux.Router, db *gorm.DB) {
 		log.Printf("Received user: %+v", user)
 
 		// Create user in DB
-		createdUser, err := controllers.CreateUser(db, user)
+		_, err := controllers.CreateUser(db, user)
 		if err != nil {
 			log.Printf("Error creating user: %v", err)
 			errorMessage := err.Error()
@@ -48,8 +48,8 @@ func Users(r *mux.Router, db *gorm.DB) {
 			}
 		}
 
-		// Return only the token in JSON response
-		response := map[string]string{"token": createdUser.Token}
+		// Respond with success message without the token
+		response := map[string]string{"message": "User created successfully"}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		if err := json.NewEncoder(w).Encode(response); err != nil {
