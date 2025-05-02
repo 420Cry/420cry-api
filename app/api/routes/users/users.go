@@ -60,7 +60,9 @@ func Users(r *mux.Router, db *gorm.DB) {
 
 	// Test route for /users/test
 	r.HandleFunc("/test", func(w http.ResponseWriter, _ *http.Request) {
-		if _, err := w.Write([]byte("Test route is working")); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		response := map[string]bool{"loggedIn": false} // Simulate a logged-in user
+		if err := json.NewEncoder(w).Encode(response); err != nil {
 			http.Error(w, fmt.Sprintf("Failed to write response: %v", err), http.StatusInternalServerError)
 			return
 		}
