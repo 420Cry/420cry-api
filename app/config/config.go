@@ -45,22 +45,11 @@ func Load() *types.EnvConfig {
 	if err != nil || dbPort == 0 {
 		dbPort = 3306
 	}
-	log.Printf("Loaded DB_PORT: %d", dbPort)
-
 	app := os.Getenv("420_APP")
-	log.Printf("Loaded 420_APP: %s", app)
-
 	dbHost := os.Getenv("DB_HOST")
-	log.Printf("Loaded DB_HOST: %s", dbHost)
-
 	db := os.Getenv("DB_DATABASE")
-	log.Printf("Loaded DB_DATABASE: %s", db)
-
 	mysqlUser := os.Getenv("DB_USERNAME")
-	log.Printf("Loaded DB_USERNAME: %s", mysqlUser)
-
 	dbPassword := os.Getenv("DB_PASSWORD")
-	log.Printf("Loaded DB_PASSWORD: %s", dbPassword)
 
 	configInstance = &types.EnvConfig{
 		APIPort:    apiPort,
