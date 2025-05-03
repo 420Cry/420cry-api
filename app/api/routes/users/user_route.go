@@ -1,6 +1,9 @@
-package routes
+package userroute
 
 import (
+	UserApplication "cry-api/app/application/users"
+	UserCore "cry-api/app/core/users"
+	UserDomain "cry-api/app/domain/users"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -8,15 +11,18 @@ import (
 
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
-
-	controllers "cry-api/app/api/controllers/users"
-	models "cry-api/app/api/models/users"
 )
 
 // Users sets up the user-related routes with the /users prefix
 func Users(r *mux.Router, db *gorm.DB) {
+	// Create infrastructure layer repository
+	userRepo := UserCore.NewGormUserRepository(db)
+	// Create application service
+	userService := UserApplication.NewUserService(userRepo)
+
+	// Route for creating a new user
 	r.HandleFunc("/signup", func(w http.ResponseWriter, r *http.Request) {
-		var user models.User
+		var user UserDomain.User
 
 		// Decode JSON request body into user struct
 		if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
@@ -25,8 +31,8 @@ func Users(r *mux.Router, db *gorm.DB) {
 		}
 		log.Printf("Received user: %+v", user)
 
-		// Create user in DB
-		_, err := controllers.CreateUser(db, user)
+		// Call the application service to create the user
+		createdUser, err := userService.CreateUser(user.Username, user.Email, user.Password)
 		if err != nil {
 			log.Printf("Error creating user: %v", err)
 			errorMessage := err.Error()
@@ -48,8 +54,8 @@ func Users(r *mux.Router, db *gorm.DB) {
 			}
 		}
 
-		// Respond with success message without the token
-		response := map[string]string{"message": "User created successfully"}
+		// Respond with success message, excluding the token in the response
+		response := map[string]string{"message": "User created successfully", "uuid": createdUser.UUID}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		if err := json.NewEncoder(w).Encode(response); err != nil {

@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	api "cry-api/app/api/routes"
+	"cry-api/app/api"
 	"cry-api/app/config"
 	"cry-api/app/database"
 

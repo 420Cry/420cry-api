@@ -1,7 +1,7 @@
 package api
 
 import (
-	routes "cry-api/app/api/routes/users"
+	UserRoute "cry-api/app/api/routes/users"
 
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
@@ -9,5 +9,5 @@ import (
 
 func RegisterAllRoutes(r *mux.Router, db *gorm.DB) {
 	usersRouter := r.PathPrefix("/users").Subrouter()
-	routes.Users(usersRouter, db)
+	UserRoute.Users(usersRouter, db)
 }

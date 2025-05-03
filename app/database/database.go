@@ -1,7 +1,7 @@
 package database
 
 import (
-	"cry-api/app/config"
+	Config "cry-api/app/config"
 	types "cry-api/app/types/database"
 	"fmt"
 	"log"
@@ -39,7 +39,7 @@ func NewDatabase(dsn string) (*types.Database, error) {
 
 // GetDBConnection loads configuration and returns a database connection
 func GetDBConnection() (*types.Database, error) {
-	cfg := config.Get()
+	cfg := Config.Get()
 
 	// Database connection string
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
