@@ -12,9 +12,6 @@ import (
 
 // NewDatabase initializes a new database connection
 func NewDatabase(dsn string) (*types.Database, error) {
-	// Log the DSN for debugging purposes
-	log.Println("Database DSN:", dsn)
-
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to the database: %v", err)
