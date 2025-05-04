@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	types "cry-api/app/types/env"
 
@@ -36,6 +37,11 @@ func Load() *types.EnvConfig {
 	if err := godotenv.Load(); err != nil {
 		log.Printf("Warning: Error loading .env file: %v", err)
 	}
+	//CryAppUrl
+	cryAppURL := os.Getenv("CRY_APP_URL")
+	if !strings.HasPrefix(cryAppURL, "http://") && !strings.HasPrefix(cryAppURL, "https://") {
+		cryAppURL = "https://" + cryAppURL
+	}
 
 	// Load API Port with a fallback value
 	apiPort := getEnvAsInt("API_PORT", 8080)
@@ -57,6 +63,7 @@ func Load() *types.EnvConfig {
 
 	// Set the config instance
 	configInstance = &types.EnvConfig{
+		CryAppURL:    cryAppURL,
 		APIPort:      apiPort,
 		DBHost:       dbHost,
 		DBPort:       dbPort,

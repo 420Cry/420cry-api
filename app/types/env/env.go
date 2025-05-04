@@ -6,6 +6,7 @@ type SMTPConfig struct {
 }
 
 type EnvConfig struct {
+	CryAppURL    string
 	APIPort      int
 	DBHost       string
 	DBPort       int

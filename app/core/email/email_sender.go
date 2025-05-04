@@ -2,7 +2,9 @@ package core
 
 import (
 	EmailDomain "cry-api/app/domain/email"
+	"fmt"
 	"log"
+	"net/smtp"
 )
 
 // SMTPEmailSender represents the structure for sending emails via SMTP
@@ -19,20 +21,21 @@ func NewSMTPEmailSender(smtpHost, smtpPort string) *SMTPEmailSender {
 	}
 }
 
-// Send sends the email
+// Send sends the email using the SMTP protocol
 func (s *SMTPEmailSender) Send(email EmailDomain.EmailMessage) error {
-	// Set logging to include timestamp and source file for better debugging
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	// Log email details
-	log.Printf("Sending email to: %s\n", email.To)
-	log.Printf("Sending email from: %s\n", email.From)
-	log.Printf("Subject: %s\n", email.Subject)
-	log.Printf("Body: %s\n", email.Body)
+	to := []string{email.To}
+	msg := []byte(fmt.Sprintf("Subject: %s\r\nFrom: %s\r\nTo: %s\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n%s",
+		email.Subject, email.From, email.To, email.Body))
 
-	// Simulate email sending (actual logic to send the email can go here)
+	addr := fmt.Sprintf("%s:%s", s.smtpHost, s.smtpPort)
+	err := smtp.SendMail(addr, nil, email.From, to, msg)
+	if err != nil {
+		log.Printf("Failed to send email: %v", err)
+		return err
+	}
+
 	log.Printf("Email sent to: %s successfully", email.To)
-
-	// Return success
 	return nil
 }
