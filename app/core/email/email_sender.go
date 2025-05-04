@@ -27,7 +27,7 @@ func (s *SMTPEmailSender) Send(email EmailDomain.EmailMessage) error {
 
 	to := []string{email.To}
 	msg := []byte(fmt.Sprintf("Subject: %s\r\nFrom: %s\r\nTo: %s\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n%s",
-		email.Subject, email.From, email.To, email.Body))
+		sanitizeInput(email.Subject), sanitizeInput(email.From), sanitizeInput(email.To), sanitizeInput(email.Body)))
 
 	addr := fmt.Sprintf("%s:%s", s.smtpHost, s.smtpPort)
 	err := smtp.SendMail(addr, nil, email.From, to, msg)

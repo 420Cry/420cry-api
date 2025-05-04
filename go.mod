@@ -3,6 +3,7 @@ module cry-api
 go 1.23.5
 
 require (
+	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/gorilla/mux v1.8.1
 	github.com/joho/godotenv v1.5.1
 	gorm.io/driver/mysql v1.5.7
