@@ -75,6 +75,7 @@ func (service *UserService) CheckVerificationToken(token string) (*UserDomain.Us
 	// Update the user's verification status and remove tokens
 	user.IsVerified = true
 	user.VerificationTokens = ""
+	user.Token = ""
 
 	// Save the updated user to the repository
 	err = service.userRepo.Save(user)
