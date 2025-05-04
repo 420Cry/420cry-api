@@ -21,8 +21,8 @@ func NewEmailService(emailSender EmailSender) *EmailService {
 }
 
 // SendVerifyAccountEmail creates an email and sends it
-func (service *EmailService) SendVerifyAccountEmail(to, from, userName, verificationLink string) error {
-	email, err := EmailDomain.CreateVerifyAccountEmail(to, from, userName, verificationLink)
+func (service *EmailService) SendVerifyAccountEmail(to, from, userName, verificationLink, verificationTokens string) error {
+	email, err := EmailDomain.CreateVerifyAccountEmail(to, from, userName, verificationLink, verificationTokens)
 	if err != nil {
 		log.Printf("Error creating email template: %v", err)
 		return err

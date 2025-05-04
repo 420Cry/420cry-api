@@ -60,7 +60,7 @@ func (h *UserHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call the application service to create the user
-	createdUser, token, err := h.userService.CreateUser(user.Username, user.Email, user.Password)
+	createdUser, token, err := h.userService.CreateUser(user.Fullname, user.Username, user.Email, user.Password)
 	if err != nil {
 		handleError(w, err.Error(), mapUserCreationErrorToStatusCode(err.Error()))
 		return
@@ -68,8 +68,9 @@ func (h *UserHandler) Signup(w http.ResponseWriter, r *http.Request) {
 
 	// Trigger sending the verification email asynchronously
 	go func() {
-		verificationLink := fmt.Sprintf(cfg.CryAppURL+"/auth/verify?token=%s", token)
-		err := h.emailService.SendVerifyAccountEmail(createdUser.Email, cfg.NoReplyEmail, createdUser.Username, verificationLink)
+		verificationLink := fmt.Sprintf(cfg.CryAppURL+"/auth/signup/verify?token=%s", token)
+		verificationTokens := createdUser.VerificationTokens
+		err := h.emailService.SendVerifyAccountEmail(createdUser.Email, cfg.NoReplyEmail, createdUser.Username, verificationLink, verificationTokens)
 		if err != nil {
 			log.Printf("Failed to send verification email to %s: %v", createdUser.Email, err)
 		} else {

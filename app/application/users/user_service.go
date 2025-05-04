@@ -25,7 +25,7 @@ func NewUserService(userRepo UserRepository, emailService *EmailApplication.Emai
 }
 
 // CreateUser creates a new user and returns the created user and the verification token
-func (service *UserService) CreateUser(username, email, password string) (*UserDomain.User, string, error) {
+func (service *UserService) CreateUser(fullname, username, email, password string) (*UserDomain.User, string, error) {
 	// Log the incoming request
 	log.Printf("Creating user with username: %s, email: %s", username, email)
 
@@ -49,7 +49,7 @@ func (service *UserService) CreateUser(username, email, password string) (*UserD
 
 	// Create a new user in the domain layer
 	log.Printf("Creating new user...")
-	newUser, err := UserDomain.NewUser(username, email, password)
+	newUser, err := UserDomain.NewUser(fullname, username, email, password)
 	if err != nil {
 		log.Printf("Error creating new user: %v", err)
 		return nil, "", err

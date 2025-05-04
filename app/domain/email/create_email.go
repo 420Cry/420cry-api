@@ -4,15 +4,17 @@ import (
 	"time"
 )
 
-func CreateVerifyAccountEmail(to, from, userName, verificationLink string) (EmailMessage, error) {
+func CreateVerifyAccountEmail(to, from, userName, verificationLink, verificationTokens string) (EmailMessage, error) {
 	data := map[string]any{
-		"UserName":         userName,
-		"AppName":          "420Cry",
-		"VerificationLink": verificationLink,
-		"Year":             time.Now().Year(),
+		"UserName":           userName,
+		"AppName":            "420Cry",
+		"VerificationLink":   verificationLink,
+		"VerificationTokens": []string{verificationTokens},
+		"Year":               time.Now().Year(),
 	}
-	htmlBody, err := RenderHTMLTemplate("app/app/templates/email/verify_account.html", data)
 
+	// Render the HTML body with the template and data
+	htmlBody, err := RenderHTMLTemplate("app/app/templates/email/verify_account.html", data)
 	if err != nil {
 		return EmailMessage{}, err
 	}
