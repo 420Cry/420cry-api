@@ -12,6 +12,7 @@ type UserRepository interface {
 	Save(user *UserDomain.User) error
 	FindByUsernameOrEmail(username, email string) (*UserDomain.User, error)
 	FindByVerificationToken(token string) (*UserDomain.User, error)
+	FindByAccountVerificationToken(token string) (*UserDomain.User, error)
 }
 
 // UserService provides operations related to users
@@ -58,8 +59,8 @@ func (service *UserService) CreateUser(fullname, username, email, password strin
 	return newUser, newUser.Token, nil
 }
 
-// CheckVerificationToken checks if the provided verification token is valid
-func (service *UserService) CheckVerificationToken(token string) (*UserDomain.User, error) {
+// CheckEmailVerificationToken checks if the provided verification token is valid
+func (service *UserService) CheckEmailVerificationToken(token string) (*UserDomain.User, error) {
 	// Find the user associated with the token
 	user, err := service.userRepo.FindByVerificationToken(token)
 	if err != nil {
@@ -82,7 +83,19 @@ func (service *UserService) CheckVerificationToken(token string) (*UserDomain.Us
 		log.Printf("Error updating user verification status: %v", err)
 		return nil, err
 	}
+	return user, nil
+}
 
-	// Return the user associated with the token
+// CheckAccountVerificationToken checks if the provided account token is valid
+func (service *UserService) CheckAccountVerificationToken(token string) (*UserDomain.User, error) {
+	user, err := service.userRepo.FindByAccountVerificationToken(token)
+	if err != nil {
+		log.Printf("Error finding user by account token: %v", err)
+		return nil, err
+	}
+	if user == nil {
+		log.Printf("No user found for token: %s", token)
+		return nil, fmt.Errorf("invalid account token")
+	}
 	return user, nil
 }

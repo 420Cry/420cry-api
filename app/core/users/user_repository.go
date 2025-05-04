@@ -2,6 +2,8 @@ package core
 
 import (
 	UserDomain "cry-api/app/domain/users"
+	"fmt"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -51,5 +53,28 @@ func (repo *GormUserRepository) FindByVerificationToken(token string) (*UserDoma
 		}
 		return nil, err
 	}
+	// Check if the created_at is older than 24 hours
+	if time.Since(user.CreatedAt) > 24*time.Hour {
+		return nil, fmt.Errorf("account verification token is invalid or expired")
+	}
+	return &user, nil
+}
+
+// FindByAccountVerificationToken retrieves a user by their account verification token
+func (repo *GormUserRepository) FindByAccountVerificationToken(token string) (*UserDomain.User, error) {
+	var user UserDomain.User
+	err := repo.db.Where("token = ?", token).First(&user).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	// Check if the created_at is older than 24 hours
+	if time.Since(user.CreatedAt) > 24*time.Hour {
+		return nil, fmt.Errorf("account verification token is invalid or expired")
+	}
+
 	return &user, nil
 }

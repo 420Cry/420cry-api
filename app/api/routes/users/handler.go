@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -48,9 +49,8 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 
 	go h.sendVerificationEmail(createdUser, token, cfg)
 
-	RespondJSON(w, http.StatusCreated, map[string]string{
-		"message": "User created successfully",
-		"uuid":    createdUser.UUID,
+	RespondJSON(w, http.StatusCreated, map[string]bool{
+		"success": true,
 	})
 }
 
@@ -64,7 +64,7 @@ func (h *Handler) sendVerificationEmail(user *UserDomain.User, token string, cfg
 	}
 }
 
-func (h *Handler) VerificationTokenCheck(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) VerifyEmailToken(w http.ResponseWriter, r *http.Request) {
 	var req UserTypes.VerificationTokenCheckRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		RespondError(w, http.StatusBadRequest, "Invalid request body")
@@ -76,7 +76,7 @@ func (h *Handler) VerificationTokenCheck(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	user, err := h.userService.CheckVerificationToken(req.Token)
+	user, err := h.userService.CheckEmailVerificationToken(req.Token)
 	if err != nil || user == nil {
 		RespondError(w, http.StatusBadRequest, "Token is invalid or expired")
 		return
@@ -87,4 +87,34 @@ func (h *Handler) VerificationTokenCheck(w http.ResponseWriter, r *http.Request)
 
 func (h *Handler) Test(w http.ResponseWriter, _ *http.Request) {
 	RespondJSON(w, http.StatusOK, map[string]bool{"loggedIn": false})
+}
+
+func (h *Handler) VerificationAccountToken(w http.ResponseWriter, r *http.Request) {
+	var req UserTypes.VerificationTokenCheckRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		RespondError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if req.Token == "" {
+		RespondError(w, http.StatusBadRequest, "Token is required")
+		return
+	}
+
+	// Retrieve the user using the provided token
+	user, err := h.userService.CheckAccountVerificationToken(req.Token)
+	if err != nil || user == nil {
+		RespondError(w, http.StatusBadRequest, "Token is invalid or expired")
+		return
+	}
+
+	// Check if the token matches and the created date is within the last 24 hours
+	timeLimit := time.Now().Add(-24 * time.Hour)
+	if user.Token != req.Token || user.CreatedAt.Before(timeLimit) {
+		RespondError(w, http.StatusBadRequest, "Token is invalid or expired")
+		return
+	}
+
+	// If token is valid and within the 24-hour window
+	RespondJSON(w, http.StatusOK, map[string]bool{"valid": true})
 }

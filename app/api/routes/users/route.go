@@ -12,6 +12,7 @@ func RegisterRoutes(r *mux.Router, db *gorm.DB) {
 	handler := NewHandler(db, cfg)
 
 	r.HandleFunc("/signup", handler.Signup).Methods("POST")
-	r.HandleFunc("/verify-email-token", handler.VerificationTokenCheck).Methods("GET")
+	r.HandleFunc("/verify-email-token", handler.VerifyEmailToken).Methods("GET")
+	r.HandleFunc("/verify-account-token", handler.VerificationAccountToken).Methods("POST")
 	r.HandleFunc("/test", handler.Test).Methods("GET")
 }
