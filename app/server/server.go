@@ -24,9 +24,10 @@ func main() {
 
 	// Set up the router
 	r := mux.NewRouter()
+	db := dbConn.GetDB()
 
 	// Register all routes dynamically
-	api.RegisterAllRoutes(r, dbConn.GetDB())
+	api.RegisterAllRoutes(r, db)
 
 	// Wrap router with CORS middleware
 	corsRouter := enableCORS(r)

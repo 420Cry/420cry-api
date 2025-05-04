@@ -1,7 +1,10 @@
-package userroute
+package routes
 
 import (
+	EmailApplication "cry-api/app/application/email"
 	UserApplication "cry-api/app/application/users"
+	"cry-api/app/config"
+	EmailCore "cry-api/app/core/email"
 	UserCore "cry-api/app/core/users"
 	UserDomain "cry-api/app/domain/users"
 	"encoding/json"
@@ -15,10 +18,12 @@ import (
 
 // Users sets up the user-related routes with the /users prefix
 func Users(r *mux.Router, db *gorm.DB) {
-	// Create infrastructure layer repository
+	// Create core layer repository
 	userRepo := UserCore.NewGormUserRepository(db)
-	// Create application service
-	userService := UserApplication.NewUserService(userRepo)
+	cfg := config.Get()
+	emailSender := EmailCore.NewSMTPEmailSender(cfg.SMTPConfig.Host, cfg.SMTPConfig.Port)
+	emailService := EmailApplication.NewEmailService(emailSender)
+	userService := UserApplication.NewUserService(userRepo, emailService)
 
 	// Route for creating a new user
 	r.HandleFunc("/signup", func(w http.ResponseWriter, r *http.Request) {
@@ -32,7 +37,7 @@ func Users(r *mux.Router, db *gorm.DB) {
 		log.Printf("Received user: %+v", user)
 
 		// Call the application service to create the user
-		createdUser, err := userService.CreateUser(user.Username, user.Email, user.Password)
+		createdUser, token, err := userService.CreateUser(user.Username, user.Email, user.Password)
 		if err != nil {
 			log.Printf("Error creating user: %v", err)
 			errorMessage := err.Error()
@@ -54,6 +59,16 @@ func Users(r *mux.Router, db *gorm.DB) {
 			}
 		}
 
+		// Trigger sending the verification email
+		go func() {
+			verificationLink := fmt.Sprintf("https://example.com/verify?token=%s", token)
+			err := emailService.SendVerifyAccountEmail(createdUser.Email, cfg.NoReplyEmail, createdUser.Username, verificationLink)
+			if err != nil {
+				log.Printf("Failed to send verification email to %s: %v", createdUser.Email, err)
+			} else {
+				log.Printf("Verification email sent to %s", createdUser.Email)
+			}
+		}()
 		// Respond with success message, excluding the token in the response
 		response := map[string]string{"message": "User created successfully", "uuid": createdUser.UUID}
 		w.Header().Set("Content-Type", "application/json")

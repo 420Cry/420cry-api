@@ -22,9 +22,6 @@ FROM alpine:latest
 # Install necessary dependencies (ca-certificates for HTTPS requests)
 RUN apk --no-cache add ca-certificates
 
-# Set the Current Working Directory inside the container
-WORKDIR /root/
-
 # Copy the binary from the builder image
 COPY --from=builder /app/420cry-api .
 

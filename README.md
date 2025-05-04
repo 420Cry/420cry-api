@@ -119,6 +119,43 @@ make test
    CREATE DATABASE `420cry-db`;
    ```
 
+## MailHog
+You can access MailHog at 
+```bash
+    http://localhost:8025/#
+```
+
+## Project Structure
+
+This project follows a Domain-Driven Design (DDD) approach, with a well-defined folder structure to separate concerns and ensure clarity in the codebase. Below is a breakdown of the project structure:
+
+### 1. **api**  
+Contains the API-related components, including routes, controllers, and any logic related to the HTTP API. This folder is responsible for exposing the domain logic through the server interface.
+
+### 2. **application**  
+Contains application services and orchestrates the interaction between the domain layer and the external world. This is where business logic is executed, like sending emails or processing user actions.
+
+### 3. **core**  
+Contains the foundational code of the application, including utilities, helpers, and common services that are used across other parts of the application.
+
+### 4. **domain**  
+The domain layer represents the heart of the business logic and contains entities, value objects, aggregates, and domain services. This is where the core business rules and logic reside.
+
+### 5. **server**  
+This folder contains the configuration and setup for running the server, including setting up the routes, middleware, and server initialization.
+
+### 6. **database**  
+Contains database-related code, including migrations, schema definitions, and database models. It is responsible for managing data persistence.
+
+### 7. **migration**  
+Contains database migration files, which are used to manage changes to the database schema over time.
+
+### 8. **templates**  
+Contains the HTML or email templates used in the application, like the verification email templates.
+
+### 9. **types**  
+Contains type definitions for the application, such as custom types used in the domain or application layer.
+
 ## Frequently asked questions
 ### How can I see which application uses a port?
 You can easily check this with the command below.

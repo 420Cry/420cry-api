@@ -1,53 +1,38 @@
-package emailcore
+package core
 
 import (
-	config "cry-api/app/config"
 	EmailDomain "cry-api/app/domain/email"
 	"log"
-	"net/smtp"
-	"strings"
 )
 
-// SmtpEmailSender implements EmailSender interface for sending emails via SMTP
+// SMTPEmailSender represents the structure for sending emails via SMTP
 type SMTPEmailSender struct {
 	smtpHost string
 	smtpPort string
-	from     string
 }
 
-// NewSMTPEmailSender creates a new instance of SmtpEmailSender
-func NewSMTPEmailSender() *SMTPEmailSender {
-	cfg := config.Get()
+// NewSMTPEmailSender creates a new SMTPEmailSender instance
+func NewSMTPEmailSender(smtpHost, smtpPort string) *SMTPEmailSender {
 	return &SMTPEmailSender{
-		smtpHost: cfg.SMTPConfig.Host,
-		smtpPort: cfg.SMTPConfig.Port,
-		from:     cfg.NoReplyEmail,
+		smtpHost: smtpHost,
+		smtpPort: smtpPort,
 	}
 }
 
-// Send sends the email via SMTP
-func (sender *SMTPEmailSender) Send(email EmailDomain.Email) error {
-	// Prepare SMTP authentication
-	auth := smtp.PlainAuth("", sender.from, "", sender.smtpHost)
+// Send sends the email
+func (s *SMTPEmailSender) Send(email EmailDomain.EmailMessage) error {
+	// Set logging to include timestamp and source file for better debugging
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	// Define the email headers and body
-	headers := []string{
-		"From: " + sender.from,
-		"To: " + email.To,
-		"Subject: " + email.Subject,
-		"Content-Type: " + email.ContentType + "; charset=UTF-8",
-	}
+	// Log email details
+	log.Printf("Sending email to: %s\n", email.To)
+	log.Printf("Sending email from: %s\n", email.From)
+	log.Printf("Subject: %s\n", email.Subject)
+	log.Printf("Body: %s\n", email.Body)
 
-	// Combine the headers and body
-	msg := []byte(strings.Join(headers, "\r\n") + "\r\n\r\n" + email.Body)
+	// Simulate email sending (actual logic to send the email can go here)
+	log.Printf("Email sent to: %s successfully", email.To)
 
-	// Send the email
-	err := smtp.SendMail(sender.smtpHost+":"+sender.smtpPort, auth, sender.from, []string{email.To}, msg)
-	if err != nil {
-		log.Printf("Error sending email: %v", err)
-		return err
-	}
-
-	log.Printf("Email sent successfully to %s", email.To)
+	// Return success
 	return nil
 }

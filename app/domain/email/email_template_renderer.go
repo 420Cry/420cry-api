@@ -1,4 +1,4 @@
-package emaildomain
+package domain
 
 import (
 	"bytes"

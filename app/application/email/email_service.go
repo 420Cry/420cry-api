@@ -1,4 +1,4 @@
-package emailapllication
+package application
 
 import (
 	EmailDomain "cry-api/app/domain/email"
@@ -12,7 +12,7 @@ type EmailService struct {
 
 // EmailSender is an interface for sending emails
 type EmailSender interface {
-	Send(email EmailDomain.Email) error
+	Send(email EmailDomain.EmailMessage) error
 }
 
 // NewEmailService creates a new instance of EmailService
@@ -21,14 +21,14 @@ func NewEmailService(emailSender EmailSender) *EmailService {
 }
 
 // SendVerifyAccountEmail creates an email and sends it
-func (service *EmailService) SendVerifyAccountEmail(to, userName, verificationLink string) error {
-	email, err := EmailDomain.CreateVerifyAccountEmail(to, userName, verificationLink)
+func (service *EmailService) SendVerifyAccountEmail(to, from, userName, verificationLink string) error {
+	email, err := EmailDomain.CreateVerifyAccountEmail(to, from, userName, verificationLink)
 	if err != nil {
 		log.Printf("Error creating email template: %v", err)
 		return err
 	}
 
-	// Send the email via the infrastructure layer
+	// Send the email via the core layer
 	err = service.emailSender.Send(email)
 	if err != nil {
 		log.Printf("Error sending email: %v", err)

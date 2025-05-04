@@ -1,4 +1,4 @@
-package usercore
+package core
 
 import (
 	UserDomain "cry-api/app/domain/users"
