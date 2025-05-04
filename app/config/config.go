@@ -38,13 +38,11 @@ func Load() *types.EnvConfig {
 	}
 
 	// Load API Port with a fallback value
-	apiPort := getEnvAsInt("420_API_PORT", 8080)
+	apiPort := getEnvAsInt("API_PORT", 8080)
 
 	// Load DB Port with a fallback value
 	dbPort := getEnvAsInt("DB_PORT", 3306)
 
-	// Load other environment variables
-	app := os.Getenv("420_APP")
 	dbHost := os.Getenv("DB_HOST")
 	db := os.Getenv("DB_DATABASE")
 	mysqlUser := os.Getenv("DB_USERNAME")
@@ -60,7 +58,6 @@ func Load() *types.EnvConfig {
 	// Set the config instance
 	configInstance = &types.EnvConfig{
 		APIPort:      apiPort,
-		App:          app,
 		DBHost:       dbHost,
 		DBPort:       dbPort,
 		DBDatabase:   db,

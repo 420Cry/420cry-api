@@ -7,7 +7,6 @@ type SMTPConfig struct {
 
 type EnvConfig struct {
 	APIPort      int
-	App          string
 	DBHost       string
 	DBPort       int
 	DBDatabase   string
