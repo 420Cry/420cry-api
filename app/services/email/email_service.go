@@ -2,6 +2,7 @@ package services
 
 import (
 	EmailDomain "cry-api/app/domain/email"
+	"cry-api/app/utils"
 	"log"
 )
 
@@ -23,9 +24,9 @@ func NewEmailService(emailSender EmailSender) *EmailService {
 // SendVerifyAccountEmail creates an email and sends it
 func (service *EmailService) SendVerifyAccountEmail(to, from, userName, verificationLink, verificationTokens string) error {
 	// Sanitize inputs
-	to = sanitizeInput(to)
-	userName = sanitizeInput(userName)
-	verificationLink = sanitizeInput(verificationLink)
+	to = utils.SanitizeInput(to)
+	userName = utils.SanitizeInput(userName)
+	verificationLink = utils.SanitizeInput(verificationLink)
 
 	email, err := EmailDomain.CreateVerifyAccountEmail(to, from, userName, verificationLink, verificationTokens)
 	if err != nil {
