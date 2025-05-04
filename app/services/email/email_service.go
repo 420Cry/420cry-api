@@ -1,4 +1,4 @@
-package application
+package services
 
 import (
 	EmailDomain "cry-api/app/domain/email"

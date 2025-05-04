@@ -132,11 +132,11 @@ This project follows a Domain-Driven Design (DDD) approach, with a well-defined 
 ### 1. **api**  
 Contains the API-related components, including routes, controllers, and any logic related to the HTTP API. This folder is responsible for exposing the domain logic through the server interface.
 
-### 2. **application**  
-Contains application services and orchestrates the interaction between the domain layer and the external world. This is where business logic is executed, like sending emails or processing user actions.
+### 2. **services**  
+Contains services and orchestrates the interaction between the domain layer and the external world. This is where business logic is executed, like sending emails or processing user actions.
 
 ### 3. **core**  
-Contains the foundational code of the application, including utilities, helpers, and common services that are used across other parts of the application.
+Contains the foundational code of the services, including utilities, helpers, and common services that are used across other parts of the services.
 
 ### 4. **domain**  
 The domain layer represents the heart of the business logic and contains entities, value objects, aggregates, and domain services. This is where the core business rules and logic reside.
@@ -151,10 +151,10 @@ Contains database-related code, including migrations, schema definitions, and da
 Contains database migration files, which are used to manage changes to the database schema over time.
 
 ### 8. **templates**  
-Contains the HTML or email templates used in the application, like the verification email templates.
+Contains the HTML or email templates used in the services, like the verification email templates.
 
 ### 9. **types**  
-Contains type definitions for the application, such as custom types used in the domain or application layer.
+Contains type definitions.
 
 ## Frequently asked questions
 ### How can I see which application uses a port?
