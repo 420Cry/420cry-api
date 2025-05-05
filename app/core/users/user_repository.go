@@ -76,5 +76,10 @@ func (repo *GormUserRepository) FindByAccountVerificationToken(token string) (*U
 		return nil, fmt.Errorf("account verification token is invalid or expired")
 	}
 
+	// Check if user is already verified
+	if user.IsVerified {
+		return nil, fmt.Errorf("account already verified")
+	}
+
 	return &user, nil
 }
