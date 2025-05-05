@@ -1,5 +1,5 @@
 # Go binary name
-BINARY_NAME=420-api
+BINARY_NAME=cry-api
 
 # Build the Go application
 build:
@@ -28,3 +28,7 @@ test:
 # Run the server with the binary
 dev: build
 	./$(BINARY_NAME)
+
+# Run the migration script
+migrate:
+	go run app/migration/migration.go
