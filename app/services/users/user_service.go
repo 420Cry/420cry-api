@@ -94,6 +94,28 @@ func (service *UserService) handleExistingUser(existingUser *UserDomain.User, us
 	return nil, nil
 }
 
+// CheckUserByBothTokens checks if the provided verification token is valid
+func (service *UserService) CheckUserByBothTokens(token string, verificationToken string) (*UserDomain.User, error) {
+	// Find user by token
+	user, err := service.userRepo.FindByVerificationToken(verificationToken)
+	if err != nil {
+		return nil, err
+	}
+
+	// If no user found
+	if user == nil {
+		return nil, fmt.Errorf("invalid verification token")
+	}
+
+	// Check if the URL token matches
+	if user.Token != token {
+		return nil, fmt.Errorf("token does not match")
+	}
+
+	// Return user and no error if both tokens are valid
+	return user, nil
+}
+
 // CheckEmailVerificationToken checks if the provided verification token is valid
 func (service *UserService) CheckEmailVerificationToken(token string) (*UserDomain.User, error) {
 	// Find the user associated with the token

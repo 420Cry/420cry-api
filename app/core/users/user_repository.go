@@ -55,7 +55,23 @@ func (repo *GormUserRepository) FindByVerificationToken(token string) (*UserDoma
 		}
 		return nil, err
 	}
-	if time.Since(user.CreatedAt) > 24*time.Hour {
+	if time.Since(user.VerificationTokenCreatedAt) > 24*time.Hour {
+		return nil, fmt.Errorf("account verification token is invalid or expired")
+	}
+	return &user, nil
+}
+
+// FindByUserToken retrieves a user by their verification token
+func (repo *GormUserRepository) FindByUserToken(token string) (*UserDomain.User, error) {
+	var user UserDomain.User
+	err := repo.db.Where("verification_tokens = ?", token).First(&user).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	if time.Since(user.VerificationTokenCreatedAt) > 24*time.Hour {
 		return nil, fmt.Errorf("account verification token is invalid or expired")
 	}
 	return &user, nil
@@ -79,16 +95,5 @@ func (repo *GormUserRepository) FindByAccountVerificationToken(token string) (*U
 		}
 		return nil, err
 	}
-
-	// Check if the created_at is older than 24 hours
-	if time.Since(user.CreatedAt) > 24*time.Hour {
-		return nil, fmt.Errorf("account verification token is invalid or expired")
-	}
-
-	// Check if user is already verified
-	if user.IsVerified {
-		return nil, fmt.Errorf("account already verified")
-	}
-
 	return &user, nil
 }
