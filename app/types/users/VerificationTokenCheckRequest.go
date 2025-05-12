@@ -1,5 +1,6 @@
 package types
 
 type VerificationTokenCheckRequest struct {
-	Token string `json:"token"`
+	UserToken   string `json:"userToken"`
+	VerifyToken string `json:"verifyToken"`
 }

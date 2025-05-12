@@ -71,14 +71,20 @@ func (h *Handler) VerifyEmailToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Token == "" {
-		RespondError(w, http.StatusBadRequest, "Token is required")
+	if req.UserToken == "" {
+		RespondError(w, http.StatusBadRequest, "User verification token is required")
 		return
 	}
 
-	user, err := h.userService.CheckEmailVerificationToken(req.Token)
+	if req.VerifyToken == "" {
+		RespondError(w, http.StatusBadRequest, "VerifyToken is required")
+		return
+	}
+
+	// Now verify both token + OTP
+	user, err := h.userService.CheckUserByBothTokens(req.UserToken, req.VerifyToken)
 	if err != nil || user == nil {
-		RespondError(w, http.StatusBadRequest, "Token is invalid or expired")
+		RespondError(w, http.StatusBadRequest, "Token or OTP is invalid or expired")
 		return
 	}
 
@@ -89,20 +95,21 @@ func (h *Handler) Test(w http.ResponseWriter, _ *http.Request) {
 	RespondJSON(w, http.StatusOK, map[string]bool{"loggedIn": false})
 }
 
-func (h *Handler) VerificationAccountToken(w http.ResponseWriter, r *http.Request) {
-	var req UserTypes.VerificationTokenCheckRequest
+func (h *Handler) VerifyAccountToken(w http.ResponseWriter, r *http.Request) {
+	var req map[string]string
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		RespondError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
-	if req.Token == "" {
+	token := req["token"]
+
+	if token == "" {
 		RespondError(w, http.StatusBadRequest, "Token is required")
 		return
 	}
-
 	// Retrieve the user using the provided token
-	user, err := h.userService.CheckAccountVerificationToken(req.Token)
+	user, err := h.userService.CheckAccountVerificationToken(token)
 	if err != nil || user == nil {
 		RespondError(w, http.StatusBadRequest, "Token is invalid or expired")
 		return
@@ -110,7 +117,7 @@ func (h *Handler) VerificationAccountToken(w http.ResponseWriter, r *http.Reques
 
 	// Check if the token matches and the created date is within the last 24 hours
 	timeLimit := time.Now().Add(-24 * time.Hour)
-	if user.Token != req.Token || user.CreatedAt.Before(timeLimit) {
+	if user.Token != token || user.VerificationTokenCreatedAt.Before(timeLimit) {
 		RespondError(w, http.StatusBadRequest, "Token is invalid or expired")
 		return
 	}
