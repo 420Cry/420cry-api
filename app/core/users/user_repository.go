@@ -13,6 +13,8 @@ type UserRepository interface {
 	Save(user *UserDomain.User) error
 	FindByUsernameOrEmail(username, email string) (*UserDomain.User, error)
 	FindByVerificationToken(token string) (*UserDomain.User, error)
+	FindByAccountVerificationToken(token string) (*UserDomain.User, error)
+	Delete(userID int) error
 }
 
 // GormUserRepository implements the UserRepository interface for GORM
@@ -53,11 +55,18 @@ func (repo *GormUserRepository) FindByVerificationToken(token string) (*UserDoma
 		}
 		return nil, err
 	}
-	// Check if the created_at is older than 24 hours
 	if time.Since(user.CreatedAt) > 24*time.Hour {
 		return nil, fmt.Errorf("account verification token is invalid or expired")
 	}
 	return &user, nil
+}
+
+// Delete removes the user from the database (hard delete)
+func (repo *GormUserRepository) Delete(userID int) error {
+	if err := repo.db.Delete(&UserDomain.User{}, userID).Error; err != nil {
+		return fmt.Errorf("failed to delete user: %v", err)
+	}
+	return nil
 }
 
 // FindByAccountVerificationToken retrieves a user by their account verification token

@@ -42,7 +42,6 @@ func GetDBConnection() (*types.Database, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		cfg.DBUserName, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBDatabase)
 
-	log.Printf("Connecting to database at %s:%d, database: %s", cfg.DBHost, cfg.DBPort, cfg.DBDatabase)
 	// Get the database connection
 	dbConn, err := NewDatabase(dsn)
 	if err != nil {

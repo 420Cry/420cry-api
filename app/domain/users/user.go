@@ -11,17 +11,18 @@ import (
 )
 
 type User struct {
-	ID                 int       `json:"id"`
-	UUID               string    `json:"uuid" gorm:"unique;not null"`
-	Username           string    `json:"username" gorm:"unique;not null"`
-	Email              string    `json:"email" gorm:"unique;not null"`
-	Fullname           string    `json:"fullname"`
-	Password           string    `json:"-" gorm:"not null"`
-	Token              string    `json:"token,omitempty" gorm:"unique"`
-	VerificationTokens string    `json:"verification_tokens,omitempty" gorm:"size:6"`
-	IsVerified         bool      `json:"is_verified" gorm:"not null;default:false"`
-	CreatedAt          time.Time `json:"created_at" gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP"`
-	UpdatedAt          time.Time `json:"updated_at" gorm:"type:timestamp;default:NULL;autoUpdateTime"`
+	ID                         int       `json:"id"`
+	UUID                       string    `json:"uuid" gorm:"unique;not null"`
+	Username                   string    `json:"username" gorm:"unique;not null"`
+	Email                      string    `json:"email" gorm:"unique;not null"`
+	Fullname                   string    `json:"fullname"`
+	Password                   string    `json:"-" gorm:"not null"`
+	Token                      string    `json:"token,omitempty" gorm:"unique"`
+	VerificationTokens         string    `json:"verification_tokens,omitempty" gorm:"size:6"`
+	VerificationTokenCreatedAt time.Time `json:"verification_token_created_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
+	IsVerified                 bool      `json:"is_verified" gorm:"not null;default:false"`
+	CreatedAt                  time.Time `json:"created_at" gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP"`
+	UpdatedAt                  time.Time `json:"updated_at" gorm:"type:timestamp;default:NULL;autoUpdateTime"`
 }
 
 // NewUser creates a new User entity with hashed password
@@ -44,15 +45,16 @@ func NewUser(fullname, username, email, password string) (*User, error) {
 	}
 
 	user := &User{
-		UUID:               uuid,
-		Username:           username,
-		Fullname:           fullname,
-		Email:              email,
-		Password:           hashedPassword,
-		Token:              signupToken,
-		VerificationTokens: verificationToken,
-		IsVerified:         false,
-		CreatedAt:          time.Now(),
+		UUID:                       uuid,
+		Username:                   username,
+		Fullname:                   fullname,
+		Email:                      email,
+		Password:                   hashedPassword,
+		Token:                      signupToken,
+		VerificationTokens:         verificationToken,
+		VerificationTokenCreatedAt: time.Now(),
+		IsVerified:                 false,
+		CreatedAt:                  time.Now(),
 	}
 
 	return user, nil
