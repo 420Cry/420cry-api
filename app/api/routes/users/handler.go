@@ -16,6 +16,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -96,8 +97,39 @@ func (h *Handler) VerifyEmailToken(w http.ResponseWriter, r *http.Request) {
 	RespondJSON(w, http.StatusOK, map[string]bool{"verified": user.IsVerified})
 }
 
-func (h *Handler) Test(w http.ResponseWriter, _ *http.Request) {
-	RespondJSON(w, http.StatusOK, map[string]bool{"loggedIn": false})
+func (h *Handler) AuthStatus(w http.ResponseWriter, r *http.Request) {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		RespondJSON(w, http.StatusOK, map[string]bool{"loggedIn": false})
+		return
+	}
+
+	parts := strings.SplitN(authHeader, " ", 2)
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		RespondJSON(w, http.StatusOK, map[string]bool{"loggedIn": false})
+		return
+	}
+
+	token := parts[1]
+
+	user, jwtToken, err := h.userService.GetUserFromToken(token)
+	if err != nil || user == nil {
+		RespondJSON(w, http.StatusOK, map[string]bool{"loggedIn": false})
+		return
+	}
+
+	response := UserTypes.UserResponse{
+		JWT:      jwtToken,
+		UUID:     user.UUID,
+		Fullname: user.Fullname,
+		Email:    user.Email,
+		Username: user.Username,
+	}
+
+	RespondJSON(w, http.StatusOK, map[string]any{
+		"loggedIn": true,
+		"user":     response,
+	})
 }
 
 func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {

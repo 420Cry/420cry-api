@@ -1,12 +1,12 @@
 package services
 
 import (
+	JWT "cry-api/app/core/jwt"
 	core "cry-api/app/core/users"
 	UserDomain "cry-api/app/domain/users"
 	EmailServices "cry-api/app/services/email"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 )
 
@@ -31,9 +31,6 @@ func NewUserService(userRepo core.UserRepository, emailService *EmailServices.Em
 }
 
 func (service *UserService) CreateUser(fullname, username, email, password string) (*UserDomain.User, string, error) {
-	// ⚠️ Debug log — REMOVE in production!
-	log.Println("🔐 Incoming password:", password)
-
 	// Check if the user already exists
 	existingUser, err := service.userRepo.FindByUsernameOrEmail(username, email)
 	if err != nil {
@@ -188,4 +185,18 @@ func (service *UserService) VerifyUserWithTokens(token string, verificationToken
 	}
 
 	return user, nil
+}
+
+func (service *UserService) GetUserFromToken(tokenString string) (*UserDomain.User, string, error) {
+	claims, err := JWT.ValidateJWT(tokenString)
+	if err != nil {
+		return nil, "", err
+	}
+
+	user, err := service.userRepo.FindByUUID(claims.UUID)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return user, tokenString, nil
 }

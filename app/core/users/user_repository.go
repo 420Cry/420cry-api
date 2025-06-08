@@ -17,6 +17,8 @@ type UserRepository interface {
 	FindByVerificationToken(token string) (*UserDomain.User, error)
 	FindByAccountVerificationToken(token string) (*UserDomain.User, error)
 	Delete(userID int) error
+	FindByUUID(uuid string) (*UserDomain.User, error)
+	FindByUserToken(token string) (*UserDomain.User, error)
 }
 
 // GormUserRepository implements the UserRepository interface for GORM
@@ -116,6 +118,19 @@ func (repo *GormUserRepository) Delete(userID int) error {
 func (repo *GormUserRepository) FindByAccountVerificationToken(token string) (*UserDomain.User, error) {
 	var user UserDomain.User
 	err := repo.db.Where("token = ?", token).First(&user).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+// FindByUUID retrieves a user by their UUID
+func (repo *GormUserRepository) FindByUUID(uuid string) (*UserDomain.User, error) {
+	var user UserDomain.User
+	err := repo.db.Where("uuid = ?", uuid).First(&user).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
