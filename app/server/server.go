@@ -16,8 +16,9 @@ import (
 func main() {
 	// Load the configuration settings
 	cfg := config.Get()
-	dbConn, err := database.GetDBConnection()
+	origin := cfg.CryAppURL
 
+	dbConn, err := database.GetDBConnection()
 	if err != nil {
 		log.Fatal("Database connection failed: ", err)
 	}
@@ -30,7 +31,7 @@ func main() {
 	api.RegisterAllRoutes(r, db)
 
 	// Wrap router with CORS middleware
-	corsRouter := enableCORS(r)
+	corsRouter := enableCORS(r, origin)
 
 	// Log when the server is starting
 	log.Println("Server started on port " + strconv.Itoa(cfg.APIPort))
@@ -48,16 +49,28 @@ func main() {
 	}
 }
 
-// CORS middleware to allow all origins
-func enableCORS(next http.Handler) http.Handler {
+// CORS middleware to allow only a specific origin
+func enableCORS(next http.Handler, allowedOrigin string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
+		origin := r.Header.Get("Origin")
+		log.Println("Incoming Origin:", origin)
+		log.Println("Allowed Origin:", allowedOrigin)
+
+		if origin == allowedOrigin {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+			if r.Method == http.MethodOptions {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+
+			next.ServeHTTP(w, r)
 			return
 		}
-		next.ServeHTTP(w, r)
+
+		http.Error(w, "CORS origin denied", http.StatusForbidden)
 	})
 }
