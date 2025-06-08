@@ -1,8 +1,10 @@
 package users
 
 import (
+	"bytes"
 	"cry-api/app/config"
 	EmailCore "cry-api/app/core/email"
+	JWT "cry-api/app/core/jwt"
 	UserCore "cry-api/app/core/users"
 	UserDomain "cry-api/app/domain/users"
 	EmailServices "cry-api/app/services/email"
@@ -11,6 +13,7 @@ import (
 	UserTypes "cry-api/app/types/users"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -33,28 +36,41 @@ func NewHandler(db *gorm.DB, cfg *EnvTypes.EnvConfig) *Handler {
 }
 
 func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
-	var user UserDomain.User
 	cfg := config.Get()
 
-	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+	// Read raw body for logging
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		RespondError(w, http.StatusInternalServerError, "Failed to read request body")
+		return
+	}
+
+	// Restore body so it can be decoded
+	r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+	// Decode into input struct
+	var input UserTypes.UserSignupRequest
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		RespondError(w, http.StatusBadRequest, "Invalid JSON format")
 		return
 	}
 
-	createdUser, token, err := h.userService.CreateUser(user.Fullname, user.Username, user.Email, user.Password)
+	// Call your service with fields (service will call NewUser and hash password)
+	createdUser, token, err := h.userService.CreateUser(input.Fullname, input.Username, input.Email, input.Password)
 	if err != nil {
 		RespondError(w, mapUserCreationErrorToStatusCode(err.Error()), err.Error())
 		return
 	}
 
-	go h.sendVerificationEmail(createdUser, token, cfg)
+	// Send verification email asynchronously
+	go h.SendVerificationEmail(createdUser, token, cfg)
 
 	RespondJSON(w, http.StatusCreated, map[string]bool{
 		"success": true,
 	})
 }
 
-func (h *Handler) sendVerificationEmail(user *UserDomain.User, token string, cfg *EnvTypes.EnvConfig) {
+func (h *Handler) SendVerificationEmail(user *UserDomain.User, token string, cfg *EnvTypes.EnvConfig) {
 	verificationLink := fmt.Sprintf("%s/auth/signup/verify?token=%s", cfg.CryAppURL, token)
 	err := h.emailService.SendVerifyAccountEmail(user.Email, cfg.NoReplyEmail, user.Username, verificationLink, user.VerificationTokens)
 	if err != nil {
@@ -71,20 +87,9 @@ func (h *Handler) VerifyEmailToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.UserToken == "" {
-		RespondError(w, http.StatusBadRequest, "User verification token is required")
-		return
-	}
-
-	if req.VerifyToken == "" {
-		RespondError(w, http.StatusBadRequest, "VerifyToken is required")
-		return
-	}
-
-	// Now verify both token + OTP
-	user, err := h.userService.CheckUserByBothTokens(req.UserToken, req.VerifyToken)
-	if err != nil || user == nil {
-		RespondError(w, http.StatusBadRequest, "Token or OTP is invalid or expired")
+	user, err := h.userService.VerifyUserWithTokens(req.UserToken, req.VerifyToken)
+	if err != nil {
+		RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -95,19 +100,51 @@ func (h *Handler) Test(w http.ResponseWriter, _ *http.Request) {
 	RespondJSON(w, http.StatusOK, map[string]bool{"loggedIn": false})
 }
 
+func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
+	log.Println("[DEBUG] Received SignIn request")
+
+	var req struct {
+		UserName string `json:"username"`
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		RespondError(w, http.StatusBadRequest, "Invalid JSON format")
+		return
+	}
+
+	user, err := h.userService.AuthenticateUser(req.UserName, req.Password)
+	if err != nil {
+		RespondError(w, http.StatusUnauthorized, "Invalid email or password")
+		return
+	}
+
+	token, err := JWT.GenerateJWT(user.UUID, user.Email)
+	if err != nil {
+		RespondError(w, http.StatusInternalServerError, "Failed to generate token")
+		return
+	}
+
+	// Return full user object with token
+	response := map[string]any{
+		"user": map[string]interface{}{
+			"jwt":      token,
+			"uuid":     user.UUID,
+			"fullname": user.Fullname,
+			"email":    user.Email,
+			"username": user.Username,
+		},
+	}
+
+	RespondJSON(w, http.StatusOK, response)
+}
+
 func (h *Handler) VerifyAccountToken(w http.ResponseWriter, r *http.Request) {
 	var req map[string]string
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		RespondError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
-
 	token := req["token"]
-
-	if token == "" {
-		RespondError(w, http.StatusBadRequest, "Token is required")
-		return
-	}
 	// Retrieve the user using the provided token
 	user, err := h.userService.CheckAccountVerificationToken(token)
 	if err != nil || user == nil {

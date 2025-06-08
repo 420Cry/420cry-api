@@ -53,9 +53,6 @@ func main() {
 func enableCORS(next http.Handler, allowedOrigin string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
-		log.Println("Incoming Origin:", origin)
-		log.Println("Allowed Origin:", allowedOrigin)
-
 		if origin == allowedOrigin {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
@@ -71,6 +68,6 @@ func enableCORS(next http.Handler, allowedOrigin string) http.Handler {
 			return
 		}
 
-		http.Error(w, "CORS origin denied", http.StatusForbidden)
+		http.Error(w, "", http.StatusForbidden)
 	})
 }

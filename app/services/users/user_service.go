@@ -4,7 +4,9 @@ import (
 	core "cry-api/app/core/users"
 	UserDomain "cry-api/app/domain/users"
 	EmailServices "cry-api/app/services/email"
+	"errors"
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -29,6 +31,9 @@ func NewUserService(userRepo core.UserRepository, emailService *EmailServices.Em
 }
 
 func (service *UserService) CreateUser(fullname, username, email, password string) (*UserDomain.User, string, error) {
+	// ⚠️ Debug log — REMOVE in production!
+	log.Println("🔐 Incoming password:", password)
+
 	// Check if the user already exists
 	existingUser, err := service.userRepo.FindByUsernameOrEmail(username, email)
 	if err != nil {
@@ -37,26 +42,20 @@ func (service *UserService) CreateUser(fullname, username, email, password strin
 
 	// Handle existing user case (unverified or verified)
 	if existingUser != nil {
-		// If unverified + expired token → handle it (refresh token)
 		refreshed, err := service.handleExistingUser(existingUser, username, email)
 		if err != nil {
 			return nil, "", err
 		}
 		if refreshed != nil {
-			// We refreshed token — return this user, don't create new user
 			return refreshed, refreshed.VerificationTokens, nil
 		}
-
-		// If verified, handleExistingUser already threw error → we don't reach here
 	}
 
-	// Proceed to create the new user (because no existing user at all)
 	newUser, err := UserDomain.NewUser(fullname, username, email, password)
 	if err != nil {
 		return nil, "", err
 	}
 
-	// Save the new user to the repository
 	err = service.userRepo.Save(newUser)
 	if err != nil {
 		return nil, "", err
@@ -149,5 +148,44 @@ func (service *UserService) CheckAccountVerificationToken(token string) (*UserDo
 	if user == nil {
 		return nil, fmt.Errorf("invalid account token")
 	}
+	return user, nil
+}
+
+func (service *UserService) AuthenticateUser(username string, password string) (*UserDomain.User, error) {
+	user, err := service.userRepo.FindByUsername(username)
+	if err != nil {
+		return nil, err
+	}
+
+	if user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	if err := user.CheckPassword(password); err != nil {
+		return nil, errors.New("invalid password")
+	}
+
+	if !user.IsVerified {
+		return nil, errors.New("user not verified")
+	}
+
+	return user, nil
+}
+
+// VerifyUserWithTokens validates the token + OTP and marks the user as verified
+func (service *UserService) VerifyUserWithTokens(token string, verificationToken string) (*UserDomain.User, error) {
+	user, err := service.CheckUserByBothTokens(token, verificationToken)
+	if err != nil {
+		return nil, err
+	}
+
+	user.IsVerified = true
+	user.VerificationTokens = ""
+	user.Token = ""
+
+	if err := service.userRepo.Save(user); err != nil {
+		return nil, fmt.Errorf("failed to update user verification status: %w", err)
+	}
+
 	return user, nil
 }

@@ -97,3 +97,9 @@ func GenerateVerificationToken() (string, error) {
 
 	return string(token), nil
 }
+
+// CheckPassword compares the stored hashed password with the plain password
+func (u *User) CheckPassword(plainPassword string) error {
+	fmt.Println("plainPassword:", string(plainPassword))
+	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(plainPassword))
+}

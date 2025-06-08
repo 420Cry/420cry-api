@@ -12,6 +12,8 @@ import (
 type UserRepository interface {
 	Save(user *UserDomain.User) error
 	FindByUsernameOrEmail(username, email string) (*UserDomain.User, error)
+	FindByUsername(username string) (*UserDomain.User, error)
+	FindByEmail(username string) (*UserDomain.User, error)
 	FindByVerificationToken(token string) (*UserDomain.User, error)
 	FindByAccountVerificationToken(token string) (*UserDomain.User, error)
 	Delete(userID int) error
@@ -33,9 +35,34 @@ func (repo *GormUserRepository) Save(user *UserDomain.User) error {
 }
 
 // FindByUsernameOrEmail retrieves a user by their username or email
-func (repo *GormUserRepository) FindByUsernameOrEmail(username, email string) (*UserDomain.User, error) {
+func (repo *GormUserRepository) FindByUsernameOrEmail(username string, email string) (*UserDomain.User, error) {
 	var user UserDomain.User
 	err := repo.db.Where("username = ?", username).Or("email = ?", email).First(&user).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+// FindByUsername retrieves a user by their username
+func (repo *GormUserRepository) FindByUsername(username string) (*UserDomain.User, error) {
+	var user UserDomain.User
+	err := repo.db.Where("username = ?", username).First(&user).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (repo *GormUserRepository) FindByEmail(email string) (*UserDomain.User, error) {
+	var user UserDomain.User
+	err := repo.db.Where("email = ?", email).First(&user).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
