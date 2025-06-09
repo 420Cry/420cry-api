@@ -1,7 +1,6 @@
 package services
 
 import (
-	JWT "cry-api/app/core/jwt"
 	core "cry-api/app/core/users"
 	UserDomain "cry-api/app/domain/users"
 	EmailServices "cry-api/app/services/email"
@@ -185,18 +184,4 @@ func (service *UserService) VerifyUserWithTokens(token string, verificationToken
 	}
 
 	return user, nil
-}
-
-func (service *UserService) GetUserFromToken(tokenString string) (*UserDomain.User, string, error) {
-	claims, err := JWT.ValidateJWT(tokenString)
-	if err != nil {
-		return nil, "", err
-	}
-
-	user, err := service.userRepo.FindByUUID(claims.UUID)
-	if err != nil {
-		return nil, "", err
-	}
-
-	return user, tokenString, nil
 }
