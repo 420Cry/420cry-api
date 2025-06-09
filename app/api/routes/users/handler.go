@@ -133,8 +133,6 @@ func (h *Handler) AuthStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
-	log.Println("[DEBUG] Received SignIn request")
-
 	var req struct {
 		UserName string `json:"username"`
 		Password string `json:"password"`

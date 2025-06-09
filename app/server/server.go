@@ -33,9 +33,6 @@ func main() {
 	// Wrap router with CORS middleware
 	corsRouter := enableCORS(r, origin)
 
-	// Log when the server is starting
-	log.Println("Server started on port " + strconv.Itoa(cfg.APIPort))
-
 	// Define the HTTP server
 	server := &http.Server{
 		Addr:              ":" + strconv.Itoa(cfg.APIPort),

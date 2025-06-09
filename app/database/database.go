@@ -4,7 +4,6 @@ import (
 	Config "cry-api/app/config"
 	types "cry-api/app/types/database"
 	"fmt"
-	"log"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -27,9 +26,6 @@ func NewDatabase(dsn string) (*types.Database, error) {
 	if err := sqlDB.Ping(); err != nil {
 		return nil, fmt.Errorf("failed to ping database: %v", err)
 	}
-
-	// Log success
-	log.Println("Successfully connected to the database!")
 
 	return &types.Database{DB: db}, nil
 }
