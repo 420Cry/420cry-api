@@ -44,3 +44,13 @@ func (service *EmailService) SendVerifyAccountEmail(to, from, userName, verifica
 	log.Printf("Email sent successfully to %s", email.To)
 	return nil
 }
+
+func (service *EmailService) SendResetPasswordEmail(to, from, userName, resetPasswordLink string) error {
+	to = utils.SanitizeInput(to)
+	userName = utils.SanitizeInput(userName)
+	resetPasswordLink = utils.SanitizeInput(resetPasswordLink)
+
+	// Creating email template
+
+	return nil
+}

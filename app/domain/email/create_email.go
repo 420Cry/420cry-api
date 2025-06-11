@@ -21,3 +21,14 @@ func CreateVerifyAccountEmail(to, from, userName, verificationLink, verification
 
 	return NewEmailMessage(to, from, "Verify Your Account", htmlBody), nil
 }
+
+// func CreateResetPasswordRequestEmail(to, from, userName, resetPasswordLink, resetPasswordToken string) (EmailMessage, error) {
+// 	data := map[string]any{
+// 		"UserName":          userName,
+// 		"AppName":           "420Cry",
+// 		"ResetPasswordLink": resetPasswordLink,
+// 		"Year":              time.Now().Year(),
+// 	}
+
+
+// }

@@ -9,6 +9,7 @@ import (
 	UserServices "cry-api/app/services/users"
 	EnvTypes "cry-api/app/types/env"
 	UserTypes "cry-api/app/types/users"
+	"cry-api/app/utils"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -117,4 +118,55 @@ func (h *Handler) VerificationAccountToken(w http.ResponseWriter, r *http.Reques
 
 	// If token is valid and within the 24-hour window
 	RespondJSON(w, http.StatusOK, map[string]bool{"valid": true})
+}
+
+func (h *Handler) HandlePasswordRequest(w http.ResponseWriter, r *http.Request) {
+	// Check if user exists (Thinking of splitting into 2 middlewares)
+	var req UserTypes.VerificationResetPasswordRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		RespondError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if req.Email == "" {
+		RespondError(w, http.StatusBadRequest, "Email is required")
+		return
+	}
+
+	user, err := h.userService.CheckIfUserExists(req.Email)
+
+	if err != nil || user == nil {
+		RespondJSON(w, http.StatusOK, map[string]bool{"success": true})
+		return
+	}
+
+	// Generate random token for email sender
+	cfg := config.Get()
+	resetPasswordToken, err := utils.GenerateRandomToken()
+
+	if err != nil {
+		RespondError(w, http.StatusInternalServerError, "Cannot generate this token")
+		return
+	}
+
+	// Send the email
+	go h.sendVerificationEmail(user, resetPasswordToken, cfg)
+
+	// Response with status
+	RespondJSON(w, http.StatusOK, map[string]bool{"success": true})
+}
+
+func (h *Handler) SendResetPasswordEmail(user *UserDomain.User, token string, cfg *EnvTypes.EnvConfig) error {
+	resetPasswordLink := fmt.Sprintf("%s/auth/reset-password/%s", cfg.CryAppURL, token)
+
+	err := h.emailService.SendResetPasswordEmail(user.Email, cfg.NoReplyEmail, user.Username, resetPasswordLink)
+
+	if err != nil {
+		log.Printf("Error sending email")
+	} else {
+		log.Printf("Complete sending email")
+	}
+
+	return nil
 }
