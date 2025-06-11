@@ -2,11 +2,12 @@
 package core
 
 import (
-	EmailDomain "cry-api/app/domain/email"
-	"cry-api/app/utils"
 	"fmt"
 	"log"
 	"net/smtp"
+
+	EmailDomain "cry-api/app/domain/email"
+	"cry-api/app/utils"
 )
 
 // SMTPEmailSender represents the structure for sending emails via SMTP

@@ -1,6 +1,12 @@
 package users
 
 import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+	"time"
+
 	"cry-api/app/config"
 	EmailCore "cry-api/app/core/email"
 	UserCore "cry-api/app/core/users"
@@ -9,11 +15,6 @@ import (
 	UserServices "cry-api/app/services/users"
 	EnvTypes "cry-api/app/types/env"
 	UserTypes "cry-api/app/types/users"
-	"encoding/json"
-	"fmt"
-	"log"
-	"net/http"
-	"time"
 
 	"gorm.io/gorm"
 )

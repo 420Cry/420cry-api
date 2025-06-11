@@ -2,10 +2,11 @@
 package services
 
 import (
-	UserDomain "cry-api/app/domain/users"
-	EmailServices "cry-api/app/services/email"
 	"fmt"
 	"log"
+
+	UserDomain "cry-api/app/domain/users"
+	EmailServices "cry-api/app/services/email"
 )
 
 // UserRepository defines the methods needed for user persistence

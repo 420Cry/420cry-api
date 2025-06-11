@@ -2,9 +2,10 @@
 package services
 
 import (
+	"log"
+
 	EmailDomain "cry-api/app/domain/email"
 	"cry-api/app/utils"
-	"log"
 )
 
 // EmailService provides operations for sending emails

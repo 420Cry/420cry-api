@@ -18,7 +18,6 @@ func main() {
 	// Load the configuration settings
 	cfg := config.Get()
 	dbConn, err := database.GetDBConnection()
-
 	if err != nil {
 		log.Fatal("Database connection failed: ", err)
 	}

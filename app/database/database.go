@@ -4,10 +4,11 @@
 package database
 
 import (
-	Config "cry-api/app/config"
-	types "cry-api/app/types/database"
 	"fmt"
 	"log"
+
+	Config "cry-api/app/config"
+	types "cry-api/app/types/database"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
