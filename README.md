@@ -62,7 +62,7 @@ You can run the linter with:
 ```bash
 make lint
 ```
-To automatically format your code (like eslint --fix in JS/TS), run:
+This command applies gofumpt and goimports to fix formatting and organize imports.
 ```bash
 make lint-fix
 ```
@@ -70,8 +70,6 @@ make lint-fix
 ```bash
 make test
 ```
-This command applies gofumpt and goimports to fix formatting and organize imports.
-
 ## ⚠️ Ensure Go Tools Are in Your PATH (MAC OS)
 
 If you encounter a "command not found" error when running `make lint-fix`, it's likely because your Go-installed binaries are not in your system `PATH`.
