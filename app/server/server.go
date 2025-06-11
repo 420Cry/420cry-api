@@ -1,3 +1,4 @@
+// server main. this should be refactored
 package main
 
 import (

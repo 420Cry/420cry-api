@@ -1,3 +1,4 @@
+// Package core provides core functionalities for users.
 package core
 
 import (
@@ -60,7 +61,8 @@ func (repo *GormUserRepository) FindByVerificationToken(token string) (*UserDoma
 	return &user, nil
 }
 
-// FindByAccountVerificationToken retrieves a user by their account verification token
+// FindByAccountVerificationToken retrieves a user by their account verification token (THIS IS OPT AND LOGIC IS CURRENTLY INCORRECT)
+// THIS WILL BE REFACTORED IN CRY-55.
 func (repo *GormUserRepository) FindByAccountVerificationToken(token string) (*UserDomain.User, error) {
 	var user UserDomain.User
 	err := repo.db.Where("token = ?", token).First(&user).Error

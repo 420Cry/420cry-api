@@ -1,3 +1,4 @@
+// Package domain contains the core business logic and entities for the application.
 package domain
 
 import (
@@ -10,6 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// User represents a user entity in the system
 type User struct {
 	ID                 int       `json:"id"`
 	UUID               string    `json:"uuid" gorm:"unique;not null"`
@@ -18,7 +20,7 @@ type User struct {
 	Fullname           string    `json:"fullname"`
 	Password           string    `json:"-" gorm:"not null"`
 	Token              string    `json:"token,omitempty" gorm:"unique"`
-	VerificationTokens string    `json:"verification_tokens,omitempty" gorm:"size:6"`
+	VerificationTokens string    `json:"verification_tokens,omitempty" gorm:"size:6"` // OPT 6 digits. This shoyld be refactered to OPT
 	IsVerified         bool      `json:"is_verified" gorm:"not null;default:false"`
 	CreatedAt          time.Time `json:"created_at" gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP"`
 	UpdatedAt          time.Time `json:"updated_at" gorm:"type:timestamp;default:NULL;autoUpdateTime"`

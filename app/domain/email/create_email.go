@@ -1,9 +1,11 @@
+// Package domain contains business logic and domain models for the application.
 package domain
 
 import (
 	"time"
 )
 
+// CreateVerifyAccountEmail generates an email message for account verification.
 func CreateVerifyAccountEmail(to, from, userName, verificationLink, verificationTokens string) (EmailMessage, error) {
 	data := map[string]any{
 		"UserName":           userName,

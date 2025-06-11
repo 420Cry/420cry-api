@@ -1,5 +1,6 @@
 package domain
 
+// EmailMessage represents an email message with its components.
 type EmailMessage struct {
 	To          string
 	From        string

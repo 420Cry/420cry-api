@@ -1,3 +1,4 @@
+// Package services provides business logic for handling email operations.
 package services
 
 import (
