@@ -1,9 +1,10 @@
 package core
 
 import (
-	UserDomain "cry-api/app/domain/users"
 	"fmt"
 	"time"
+
+	UserDomain "cry-api/app/domain/users"
 
 	"gorm.io/gorm"
 )

@@ -62,11 +62,28 @@ You can run the linter with:
 ```bash
 make lint
 ```
-
+This command applies gofumpt and goimports to fix formatting and organize imports.
+```bash
+make lint-fix
+```
 ### Test:
 ```bash
 make test
 ```
+## ⚠️ Ensure Go Tools Are in Your PATH (MAC OS)
+
+If you encounter a "command not found" error when running `make lint-fix`, it's likely because your Go-installed binaries are not in your system `PATH`.
+
+Add this to your shell profile (`~/.zshrc`, `~/.bashrc`, or `~/.bash_profile`):
+
+```bash
+export PATH="$PATH:$(go env GOPATH)/bin"
+```
+Then reload your shell:
+```bash
+source ~/.zshrc  # or source ~/.bashrc
+```
+
 ### With Docker
 1. Shutdown the dev server docker compose for this project.
     ```bash
