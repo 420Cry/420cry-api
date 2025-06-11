@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// RegisterRoutes registers the user-related HTTP routes with the provided router.
 func RegisterRoutes(r *mux.Router, db *gorm.DB) {
 	cfg := config.Get()
 	handler := NewHandler(db, cfg)
