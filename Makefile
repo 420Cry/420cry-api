@@ -1,6 +1,8 @@
 # Go binary name
 BINARY_NAME=cry-api
 
+.PHONY: build run clean install lint test dev migrate lint-fix
+
 # Build the Go application
 build:
 	go build -o $(BINARY_NAME) app/server/server.go
@@ -20,6 +22,11 @@ install:
 # Lint
 lint:
 	golangci-lint run
+
+# Lint fix
+lint-fix:
+	gofumpt -w .
+	goimports -w .
 
 # Test the Go application
 test:
