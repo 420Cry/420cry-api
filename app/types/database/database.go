@@ -1,3 +1,6 @@
+// Package types provides database types and utilities.
+//
+// DB TYPE. NO IDEA WHY I HAVE GETDB AND AUTOMICRATE HERE, BUT THIS WILL BE REFACED LATER IN CRY-55
 package types
 
 import "gorm.io/gorm"

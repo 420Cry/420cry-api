@@ -1,3 +1,4 @@
+// MAIN FOR MIGRATION
 package main
 
 import (

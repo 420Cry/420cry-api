@@ -1,3 +1,4 @@
+// server main. this should be refactored
 package main
 
 import (
@@ -17,7 +18,6 @@ func main() {
 	// Load the configuration settings
 	cfg := config.Get()
 	origin := cfg.CryAppURL
-
 	dbConn, err := database.GetDBConnection()
 	if err != nil {
 		log.Fatal("Database connection failed: ", err)

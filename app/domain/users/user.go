@@ -1,3 +1,4 @@
+// Package domain contains the core business logic and entities for the application.
 package domain
 
 import (
@@ -10,6 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// User represents a user entity in the system
 type User struct {
 	ID                         int       `json:"id"`
 	UUID                       string    `json:"uuid" gorm:"unique;not null"`
