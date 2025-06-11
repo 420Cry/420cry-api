@@ -46,9 +46,9 @@ func (service *EmailService) SendVerifyAccountEmail(to, from, userName, verifica
 }
 
 func (service *EmailService) SendResetPasswordEmail(to, from, userName, resetPasswordLink string) error {
-	to = utils.SanitizeInput(to)
-	userName = utils.SanitizeInput(userName)
-	resetPasswordLink = utils.SanitizeInput(resetPasswordLink)
+	// to = utils.SanitizeInput(to)
+	// userName = utils.SanitizeInput(userName)
+	// resetPasswordLink = utils.SanitizeInput(resetPasswordLink)
 
 	// Creating email template
 
