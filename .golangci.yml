@@ -9,7 +9,7 @@ linters:
     - gocyclo
     - gosec
 
-issues:
+run:
   exclude:
     - "Error return value is not checked"
     - "should have comment or be unexported"
