@@ -31,6 +31,10 @@ func NewUserService(userRepo core.UserRepository, emailService *EmailServices.Em
 	return &UserService{userRepo: userRepo, emailService: emailService}
 }
 
+// CreateUser creates a new user with the provided fullname, username, email, and password.
+// If a user with the given username or email already exists, it handles the existing user case,
+// potentially refreshing the user if needed. Returns the created or refreshed user, a verification token,
+// and an error if any occurred during the process.
 func (service *UserService) CreateUser(fullname, username, email, password string) (*UserDomain.User, string, error) {
 	// Check if the user already exists
 	existingUser, err := service.userRepo.FindByUsernameOrEmail(username, email)
@@ -149,6 +153,9 @@ func (service *UserService) CheckAccountVerificationToken(token string) (*UserDo
 	return user, nil
 }
 
+// AuthenticateUser attempts to authenticate a user with the provided username and password.
+// It returns the authenticated user if the credentials are valid and the user is verified.
+// If the user is not found, the password is invalid, or the user is not verified, an error is returned.
 func (service *UserService) AuthenticateUser(username string, password string) (*UserDomain.User, error) {
 	user, err := service.userRepo.FindByUsername(username)
 	if err != nil {

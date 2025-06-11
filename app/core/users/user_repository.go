@@ -64,6 +64,9 @@ func (repo *GormUserRepository) FindByUsername(username string) (*UserDomain.Use
 	return &user, nil
 }
 
+// FindByEmail retrieves a user from the database by their email address.
+// It returns a pointer to the User if found, or nil if no user exists with the given email.
+// If an error occurs during the query (other than record not found), it returns the error.
 func (repo *GormUserRepository) FindByEmail(email string) (*UserDomain.User, error) {
 	var user UserDomain.User
 	err := repo.db.Where("email = ?", email).First(&user).Error

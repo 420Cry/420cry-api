@@ -1,3 +1,4 @@
+// Package jwtcore provides core JWT functions.
 package jwtcore
 
 import (
@@ -9,6 +10,9 @@ import (
 
 var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
 
+// CustomClaims defines the custom JWT claims used for authentication,
+// embedding standard registered claims along with user-specific fields
+// such as UUID and Email.
 type CustomClaims struct {
 	UUID  string `json:"uuid"`
 	Email string `json:"email"`

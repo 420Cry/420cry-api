@@ -90,9 +90,22 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// SendVerificationEmail sends a verification email to the newly registered user.
+// It constructs a verification link using the application's URL and the provided token,
+// then calls the email service to send the verification email. Any errors encountered
+// during the sending process are logged.
 func (h *Handler) SendVerificationEmail(user *UserDomain.User, token string, cfg *EnvTypes.EnvConfig) {
+	// Construct the verification link for the user to verify their account
 	verificationLink := fmt.Sprintf("%s/auth/signup/verify?token=%s", cfg.CryAppURL, token)
-	err := h.emailService.SendVerifyAccountEmail(user.Email, cfg.NoReplyEmail, user.Username, verificationLink, user.VerificationTokens)
+
+	// Attempt to send the verification email
+	err := h.emailService.SendVerifyAccountEmail(
+		user.Email,
+		cfg.NoReplyEmail,
+		user.Username,
+		verificationLink,
+		user.VerificationTokens,
+	)
 	if err != nil {
 		log.Printf("Failed to send verification email to %s: %v", user.Email, err)
 	} else {
@@ -119,7 +132,7 @@ func (h *Handler) VerifyEmailToken(w http.ResponseWriter, r *http.Request) {
 	RespondJSON(w, http.StatusOK, map[string]bool{"verified": user.IsVerified})
 }
 
-
+// SignIn method. auth + JWT
 func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		UserName string `json:"username"`
@@ -157,6 +170,9 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	RespondJSON(w, http.StatusOK, response)
 }
 
+// VerifyAccountToken checks if the provided account verification token is valid and not expired.
+// It expects a JSON body with a "token" field, retrieves the user associated with the token,
+// and ensures the token matches and was created within the last 24 hours.
 func (h *Handler) VerifyAccountToken(w http.ResponseWriter, r *http.Request) {
 	var req map[string]string
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
