@@ -38,13 +38,11 @@ jobs:
         with:
           go-version: '1.23'
 
-      - name: Install golangci-lint v2
-        uses: golangci/golangci-lint-action@v4
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v8
         with:
-          version: 'latest'
-
-      - name: Run lint
-        run: make lint
+          version: v2.1.6
+          args: run ./...
 
   test:
     runs-on: ubuntu-latest
