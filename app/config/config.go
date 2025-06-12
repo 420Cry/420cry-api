@@ -1,3 +1,4 @@
+// Package config provides functionality for loading and managing application configuration from environment variables.
 package config
 
 import (
@@ -11,8 +12,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var configInstance *types.EnvConfig
-var configLoaded = false
+var (
+	configInstance *types.EnvConfig
+	configLoaded   = false
+)
 
 // Set allows setting the config instance manually
 func Set(cfg *types.EnvConfig) {
@@ -37,7 +40,7 @@ func Load() *types.EnvConfig {
 	if err := godotenv.Load(); err != nil {
 		log.Printf("Warning: Error loading .env file: %v", err)
 	}
-	//CryAppUrl
+	// CryAppUrl
 	cryAppURL := os.Getenv("CRY_APP_URL")
 	if !strings.HasPrefix(cryAppURL, "http://") && !strings.HasPrefix(cryAppURL, "https://") {
 		cryAppURL = "https://" + cryAppURL

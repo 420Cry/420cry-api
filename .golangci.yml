@@ -1,4 +1,5 @@
-version: 2
+version: "2"
+
 linters:
   enable:
     - revive
@@ -7,8 +8,3 @@ linters:
     - unused
     - gocyclo
     - gosec
-
-issues:
-  exclude:
-    - "Error return value is not checked"
-    - "should have comment or be unexported"

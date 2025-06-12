@@ -1,10 +1,14 @@
+// Package database provides functionality for initializing and managing the application's database connection
+// using GORM and MySQL. It includes functions to create a new database connection and retrieve a configured
+// database instance based on application settings.
 package database
 
 import (
-	Config "cry-api/app/config"
-	types "cry-api/app/types/database"
 	"fmt"
 	"log"
+
+	Config "cry-api/app/config"
+	types "cry-api/app/types/database"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
