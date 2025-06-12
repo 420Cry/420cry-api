@@ -159,8 +159,11 @@ func (h *Handler) VerificationAccountToken(w http.ResponseWriter, r *http.Reques
 	RespondJSON(w, http.StatusOK, map[string]bool{"valid": true})
 }
 
-func (h *Handler) HandlePasswordRequest(w http.ResponseWriter, r *http.Request) {
-	// Check if user exists (Thinking of splitting into 2 middlewares)
+/*
+	HandleResetPasswordRequest sends the email to user for changing password by receiving user email and check if user exists to handle accordingly
+*/
+func (h *Handler) HandleResetPasswordRequest(w http.ResponseWriter, r *http.Request) {
+	// Check if user exists (TODO: Thinking of splitting into 2 middlewares)
 	var req UserTypes.VerificationResetPasswordRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -196,16 +199,17 @@ func (h *Handler) HandlePasswordRequest(w http.ResponseWriter, r *http.Request) 
 	RespondJSON(w, http.StatusOK, map[string]bool{"success": true})
 }
 
-func (h *Handler) SendResetPasswordEmail(user *UserDomain.User, token string, cfg *EnvTypes.EnvConfig) error {
-	resetPasswordLink := fmt.Sprintf("%s/auth/reset-password/%s", cfg.CryAppURL, token)
+/* SendResetPasswordEmail sends the email to user. It constructs the resetPasswordLink and uses emailService to asynchronously send the reset password email  */
+// func (h *Handler) SendResetPasswordEmail(user *UserDomain.User, token string, cfg *EnvTypes.EnvConfig) error {
+// 	resetPasswordLink := fmt.Sprintf("%s/auth/reset-password/%s", cfg.CryAppURL, token)
 
-	err := h.emailService.SendResetPasswordEmail(user.Email, cfg.NoReplyEmail, user.Username, resetPasswordLink)
+// 	err := h.emailService.SendResetPasswordEmail(user.Email, cfg.NoReplyEmail, user.Username, resetPasswordLink)
 
-	if err != nil {
-		log.Printf("Error sending email")
-	} else {
-		log.Printf("Complete sending email")
-	}
+// 	if err != nil {
+// 		log.Printf("Error sending email")
+// 	} else {
+// 		log.Printf("Complete sending email")
+// 	}
 
-	return nil
-}
+// 	return nil
+// }

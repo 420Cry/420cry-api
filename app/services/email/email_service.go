@@ -3,7 +3,6 @@ package services
 
 import (
 	"log"
-
 	EmailDomain "cry-api/app/domain/email"
 	"cry-api/app/utils"
 )
@@ -47,12 +46,12 @@ func (service *EmailService) SendVerifyAccountEmail(to, from, userName, verifica
 	return nil
 }
 
-func (service *EmailService) SendResetPasswordEmail(to, from, userName, resetPasswordLink string) error {
-	// to = utils.SanitizeInput(to)
-	// userName = utils.SanitizeInput(userName)
-	// resetPasswordLink = utils.SanitizeInput(resetPasswordLink)
+// func (service *EmailService) SendResetPasswordEmail(to, from, userName, resetPasswordLink string) error {
+// 	to = utils.SanitizeInput(to)
+// 	userName = utils.SanitizeInput(userName)
+// 	resetPasswordLink = utils.SanitizeInput(resetPasswordLink)
 
-	// Creating email template
+// 	Creating email template
 
-	return nil
-}
+// 	return nil
+// }

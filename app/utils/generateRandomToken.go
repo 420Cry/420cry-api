@@ -6,6 +6,7 @@ import (
 	"fmt"
 )
 
+/* GenerateRandomToken (Currently using for generate reset password link params*/
 func GenerateRandomToken() (string, error) {
 	tokenLength := 16
 
@@ -18,4 +19,3 @@ func GenerateRandomToken() (string, error) {
 	token := hex.EncodeToString(b)
 	return token, nil
 }
-
