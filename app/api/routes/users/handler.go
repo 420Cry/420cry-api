@@ -160,7 +160,7 @@ func (h *Handler) VerificationAccountToken(w http.ResponseWriter, r *http.Reques
 }
 
 /*
-	HandleResetPasswordRequest sends the email to user for changing password by receiving user email and check if user exists to handle accordingly
+HandleResetPasswordRequest sends the email to user for changing password by receiving user email and check if user exists to handle accordingly
 */
 func (h *Handler) HandleResetPasswordRequest(w http.ResponseWriter, r *http.Request) {
 	// Check if user exists (TODO: Thinking of splitting into 2 middlewares)
@@ -179,6 +179,7 @@ func (h *Handler) HandleResetPasswordRequest(w http.ResponseWriter, r *http.Requ
 	user, err := h.userService.CheckIfUserExists(req.Email)
 
 	if err != nil || user == nil {
+		log.Printf("Cannot find the user with the email: %s", req.Email)
 		RespondJSON(w, http.StatusOK, map[string]bool{"success": true})
 		return
 	}
@@ -191,25 +192,25 @@ func (h *Handler) HandleResetPasswordRequest(w http.ResponseWriter, r *http.Requ
 		RespondError(w, http.StatusInternalServerError, "Cannot generate this token")
 		return
 	}
+	fmt.Println("Sending the password")
 
 	// Send the email
-	go h.sendVerificationEmail(user, resetPasswordToken, cfg)
+	go h.SendResetPasswordEmail(user, resetPasswordToken, cfg)
 
 	// Response with status
 	RespondJSON(w, http.StatusOK, map[string]bool{"success": true})
 }
 
 /* SendResetPasswordEmail sends the email to user. It constructs the resetPasswordLink and uses emailService to asynchronously send the reset password email  */
-// func (h *Handler) SendResetPasswordEmail(user *UserDomain.User, token string, cfg *EnvTypes.EnvConfig) error {
-// 	resetPasswordLink := fmt.Sprintf("%s/auth/reset-password/%s", cfg.CryAppURL, token)
+func (h *Handler) SendResetPasswordEmail(user *UserDomain.User, token string, cfg *EnvTypes.EnvConfig) {
+	resetPasswordLink := fmt.Sprintf("%s/auth/reset-password/%s", cfg.CryAppURL, token)
 
-// 	err := h.emailService.SendResetPasswordEmail(user.Email, cfg.NoReplyEmail, user.Username, resetPasswordLink)
+	err := h.emailService.SendResetPasswordEmail(user.Email, cfg.NoReplyEmail, user.Username, resetPasswordLink)
 
-// 	if err != nil {
-// 		log.Printf("Error sending email")
-// 	} else {
-// 		log.Printf("Complete sending email")
-// 	}
+	if err != nil {
+		log.Printf("Error sending email")
+	} else {
+		log.Printf("Complete sending email")
+	}
 
-// 	return nil
-// }
+}

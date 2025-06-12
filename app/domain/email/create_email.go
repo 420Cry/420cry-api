@@ -24,13 +24,20 @@ func CreateVerifyAccountEmail(to, from, userName, verificationLink, verification
 	return NewEmailMessage(to, from, "Verify Your Account", htmlBody), nil
 }
 
-// func CreateResetPasswordRequestEmail(to, from, userName, resetPasswordLink, resetPasswordToken string) (EmailMessage, error) {
-// 	data := map[string]any{
-// 		"UserName":          userName,
-// 		"AppName":           "420Cry",
-// 		"ResetPasswordLink": resetPasswordLink,
-// 		"Year":              time.Now().Year(),
-// 	}
+// CreateResetPasswordRequestEmail generates the email message for reset password 
+func CreateResetPasswordRequestEmail(to, from, userName, resetPasswordLink string) (EmailMessage, error) {
+	data := map[string]any{
+		"UserName":          userName,
+		"AppName":           "420Cry",
+		"ResetPasswordLink": resetPasswordLink,
+		"Year":              time.Now().Year(),
+	}
 
+	htmlBody, err := RenderHTMLTemplate("app/app/templates/email/reset_password.html", data)
+	if err != nil {
+		return EmailMessage{}, err
+	}
 
-// }
+	return NewEmailMessage(to, from, "Reset Your Password", htmlBody), nil
+
+}
