@@ -14,6 +14,8 @@ import (
 // UserRepository defines the methods needed for user persistence
 type UserRepository interface {
 	Save(user *UserDomain.User) error
+	FindByUUID(uuid string) (*UserDomain.User, error)
+	FindByEmail(email string) (*UserDomain.User, error)
 	FindByUsernameOrEmail(username, email string) (*UserDomain.User, error)
 	FindByVerificationToken(token string) (*UserDomain.User, error)
 	FindByAccountVerificationToken(token string) (*UserDomain.User, error)
@@ -33,11 +35,11 @@ type UserServiceInterface interface {
 // UserService provides operations related to users
 type UserService struct {
 	userRepo     core.UserRepository
-	emailService *EmailServices.EmailService
+	emailService EmailServices.EmailServiceInterface
 }
 
 // NewUserService creates a new UserService instance
-func NewUserService(userRepo core.UserRepository, emailService *EmailServices.EmailService) *UserService {
+func NewUserService(userRepo core.UserRepository, emailService EmailServices.EmailServiceInterface) *UserService {
 	return &UserService{userRepo: userRepo, emailService: emailService}
 }
 
