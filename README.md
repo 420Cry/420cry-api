@@ -49,12 +49,15 @@ You can install it with `brew`:
 brew install golangci-lint
 ```
 
-#### Linux & Windows:
-You can install it with curl:
+#### Windows:
+You can install go and golangci-lint with choco:
 ```bash
-curl -sSfL https://github.com/golangci/golangci-lint/releases/download/v1.52.0/golangci-lint-1.52.0-linux-amd64.tar.gz | tar -xz -C /tmp
-sudo mv /tmp/golangci-lint-1.52.0-linux-amd64/golangci-lint /usr/local/bin/
+choco install go golangci-lint
+```
 
+## ⚠️ Installing `make` on Windows (Required for Makefile scripts)
+```bash
+choco install make
 ```
 
 #### Run Lint:
@@ -63,6 +66,15 @@ You can run the linter with:
 make lint
 ```
 This command applies gofumpt and goimports to fix formatting and organize imports.
+You need to have both gofumpt and goimports installed and available in your system's PATH.
+Install them with:
+
+```bash
+go install mvdan.cc/gofumpt@latest
+go install golang.org/x/tools/cmd/goimports@latest
+```
+
+After that you can run
 ```bash
 make lint-fix
 ```
