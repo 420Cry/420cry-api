@@ -22,7 +22,7 @@ func TestVerifyEmailToken_Success(t *testing.T) {
 		UserService: mockUserService,
 	}
 
-	reqBody := UserTypes.VerificationTokenCheckRequest{
+	reqBody := UserTypes.IVerificationTokenCheckRequest{
 		UserToken:   "user-token-123",
 		VerifyToken: "verify-token-abc",
 	}
@@ -88,7 +88,7 @@ func TestVerifyEmailToken_VerificationFails(t *testing.T) {
 		UserService: mockUserService,
 	}
 
-	reqBody := UserTypes.VerificationTokenCheckRequest{
+	reqBody := UserTypes.IVerificationTokenCheckRequest{
 		UserToken:   "user-token-123",
 		VerifyToken: "verify-token-abc",
 	}

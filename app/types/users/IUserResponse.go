@@ -1,7 +1,7 @@
 package types
 
-// UserResponse represents the response payload containing user authentication and profile information.
-type UserResponse struct {
+// IUserResponse represents the response payload containing user authentication and profile information.
+type IUserResponse struct {
 	JWT      string `json:"jwt"`
 	UUID     string `json:"uuid"`
 	Fullname string `json:"fullname"`

@@ -69,7 +69,7 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 	r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
 	// Decode into input struct
-	var input UserTypes.UserSignupRequest
+	var input UserTypes.IUserSignupRequest
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		RespondError(w, http.StatusBadRequest, "Invalid JSON format")
 		return
@@ -107,7 +107,7 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 VerifyEmailToken checks the validity of the email verification token. (This function is used to verify the email address of a user during the signup process.)
 */
 func (h *Handler) VerifyEmailToken(w http.ResponseWriter, r *http.Request) {
-	var req UserTypes.VerificationTokenCheckRequest
+	var req UserTypes.IVerificationTokenCheckRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		RespondError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -124,17 +124,14 @@ func (h *Handler) VerifyEmailToken(w http.ResponseWriter, r *http.Request) {
 
 // SignIn method. auth + JWT
 func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		UserName string `json:"username"`
-		Password string `json:"password"`
-	}
+	var req UserTypes.IUserSigninRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		RespondError(w, http.StatusBadRequest, "Invalid JSON format")
 		return
 	}
 
-	user, err := h.UserService.AuthenticateUser(req.UserName, req.Password)
+	user, err := h.UserService.AuthenticateUser(req.Username, req.Password)
 	if err != nil {
 		RespondError(w, http.StatusUnauthorized, "Invalid email or password")
 		return
@@ -164,7 +161,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 // It expects a JSON body with a "token" field, retrieves the user associated with the token,
 // and ensures the token matches and was created within the last 24 hours.
 func (h *Handler) VerifyAccountToken(w http.ResponseWriter, r *http.Request) {
-	var req UserTypes.UserVerifyAccountTokenRequest
+	var req UserTypes.IUserVerifyAccountTokenRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		RespondError(w, http.StatusBadRequest, "Invalid request body")
 		return

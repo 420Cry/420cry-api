@@ -26,7 +26,7 @@ func TestSignup_Success(t *testing.T) {
 		EmailService: mockEmailService,
 	}
 
-	input := UserTypes.UserSignupRequest{
+	input := UserTypes.IUserSignupRequest{
 		Fullname: "John Doe",
 		Username: "johndoe",
 		Email:    "john@example.com",
@@ -122,7 +122,7 @@ func TestSignup_UserCreationFails(t *testing.T) {
 		EmailService: mockEmailService,
 	}
 
-	input := UserTypes.UserSignupRequest{
+	input := UserTypes.IUserSignupRequest{
 		Fullname: "Jane Doe",
 		Username: "janedoe",
 		Email:    "jane@example.com",
