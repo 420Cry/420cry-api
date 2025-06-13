@@ -1,3 +1,4 @@
+// Package user_routes_test provides tests for user routes.
 package user_routes_test
 
 import (
@@ -15,49 +16,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
-
-type MockUserService struct {
-	mock.Mock
-}
-
-func (m *MockUserService) CreateUser(fullname, username, email, password string) (*UserDomain.User, string, error) {
-	args := m.Called(fullname, username, email, password)
-	return args.Get(0).(*UserDomain.User), args.String(1), args.Error(2)
-}
-
-func (m *MockUserService) CheckUserByBothTokens(token string, verificationToken string) (*UserDomain.User, error) {
-	args := m.Called(token, verificationToken)
-	return args.Get(0).(*UserDomain.User), args.Error(1)
-}
-
-func (m *MockUserService) CheckEmailVerificationToken(token string) (*UserDomain.User, error) {
-	args := m.Called(token)
-	return args.Get(0).(*UserDomain.User), args.Error(1)
-}
-
-func (m *MockUserService) CheckAccountVerificationToken(token string) (*UserDomain.User, error) {
-	args := m.Called(token)
-	return args.Get(0).(*UserDomain.User), args.Error(1)
-}
-
-func (m *MockUserService) AuthenticateUser(username string, password string) (*UserDomain.User, error) {
-	args := m.Called(username, password)
-	return args.Get(0).(*UserDomain.User), args.Error(1)
-}
-
-func (m *MockUserService) VerifyUserWithTokens(token string, verificationToken string) (*UserDomain.User, error) {
-	args := m.Called(token, verificationToken)
-	return args.Get(0).(*UserDomain.User), args.Error(1)
-}
-
-type MockEmailService struct {
-	mock.Mock
-}
-
-func (m *MockEmailService) SendVerifyAccountEmail(to, from, username, link, token string) error {
-	args := m.Called(to, from, username, link, token)
-	return args.Error(0)
-}
 
 func TestSignup_Success(t *testing.T) {
 	mockUserService := new(MockUserService)
