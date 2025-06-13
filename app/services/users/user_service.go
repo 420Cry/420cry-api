@@ -101,3 +101,19 @@ func (service *UserService) CheckAccountVerificationToken(token string) (*UserDo
 	}
 	return user, nil
 }
+
+/* CheckIfUserExists checks the user information by email address and return accordinglyy*/
+func (service *UserService) CheckIfUserExists(email string) (*UserDomain.User, error) {
+	user, err := service.userRepo.FindByUsernameOrEmail("", email)
+	if err != nil {
+		log.Printf("Error finding the user for this email")
+		return nil, err
+	}
+
+	if user == nil {
+		log.Printf("No user found using this email: %s", email)
+		return nil, err
+	}
+
+	return user, nil
+}

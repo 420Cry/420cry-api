@@ -2,10 +2,9 @@
 package services
 
 import (
-	"log"
-
 	EmailDomain "cry-api/app/domain/email"
 	"cry-api/app/utils"
+	"log"
 )
 
 // EmailService provides operations for sending emails
@@ -41,6 +40,30 @@ func (service *EmailService) SendVerifyAccountEmail(to, from, userName, verifica
 	if err != nil {
 		log.Printf("Error sending email: %v", err)
 		return err
+	}
+
+	log.Printf("Email sent successfully to %s", email.To)
+	return nil
+}
+
+// SendResetPasswordEmail creates the reset password email and send to the user
+func (service *EmailService) SendResetPasswordEmail(to, from, userName, resetPasswordLink string) error {
+	to = utils.SanitizeInput(to)
+	userName = utils.SanitizeInput(userName)
+	resetPasswordLink = utils.SanitizeInput(resetPasswordLink)
+
+	// Creating email template
+	email, err := EmailDomain.CreateResetPasswordRequestEmail(to, from, userName, resetPasswordLink)
+
+	if err != nil {
+		log.Printf("Error creating email template: %v", err)
+	}
+
+	// Sending the email
+	err = service.emailSender.Send(email)
+
+	if err != nil {
+		log.Printf("error sending the email: %v", err)
 	}
 
 	log.Printf("Email sent successfully to %s", email.To)

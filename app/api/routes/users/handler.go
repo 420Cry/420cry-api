@@ -15,6 +15,7 @@ import (
 	UserServices "cry-api/app/services/users"
 	EnvTypes "cry-api/app/types/env"
 	UserTypes "cry-api/app/types/users"
+	"cry-api/app/utils"
 
 	"gorm.io/gorm"
 )
@@ -156,4 +157,60 @@ func (h *Handler) VerificationAccountToken(w http.ResponseWriter, r *http.Reques
 
 	// If token is valid and within the 24-hour window
 	RespondJSON(w, http.StatusOK, map[string]bool{"valid": true})
+}
+
+/*
+HandleResetPasswordRequest sends the email to user for changing password by receiving user email and check if user exists to handle accordingly
+*/
+func (h *Handler) HandleResetPasswordRequest(w http.ResponseWriter, r *http.Request) {
+	// Check if user exists (TODO: Thinking of splitting into 2 middlewares)
+	var req UserTypes.VerificationResetPasswordRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		RespondError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if req.Email == "" {
+		RespondError(w, http.StatusBadRequest, "Email is required")
+		return
+	}
+
+	user, err := h.userService.CheckIfUserExists(req.Email)
+
+	if err != nil || user == nil {
+		log.Printf("Cannot find the user with the email: %s", req.Email)
+		RespondJSON(w, http.StatusOK, map[string]bool{"success": true})
+		return
+	}
+
+	// Generate random token for email sender
+	cfg := config.Get()
+	resetPasswordToken, err := utils.GenerateRandomToken()
+
+	if err != nil {
+		RespondError(w, http.StatusInternalServerError, "Cannot generate this token")
+		return
+	}
+	fmt.Println("Sending the password")
+
+	// Send the email
+	go h.SendResetPasswordEmail(user, resetPasswordToken, cfg)
+
+	// Response with status
+	RespondJSON(w, http.StatusOK, map[string]bool{"success": true})
+}
+
+/* SendResetPasswordEmail sends the email to user. It constructs the resetPasswordLink and uses emailService to asynchronously send the reset password email  */
+func (h *Handler) SendResetPasswordEmail(user *UserDomain.User, token string, cfg *EnvTypes.EnvConfig) {
+	resetPasswordLink := fmt.Sprintf("%s/auth/reset-password/%s", cfg.CryAppURL, token)
+
+	err := h.emailService.SendResetPasswordEmail(user.Email, cfg.NoReplyEmail, user.Username, resetPasswordLink)
+
+	if err != nil {
+		log.Printf("Error sending email")
+	} else {
+		log.Printf("Complete sending email")
+	}
+
 }
