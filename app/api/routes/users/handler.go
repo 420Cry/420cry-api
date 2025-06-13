@@ -137,16 +137,15 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := JWT.GenerateJWT(user.UUID, user.Email)
+	jwt, err := JWT.GenerateJWT(user.UUID, user.Email)
 	if err != nil {
 		RespondError(w, http.StatusInternalServerError, "Failed to generate token")
 		return
 	}
 
-	// Return full user object with token
 	response := map[string]any{
-		"user": map[string]interface{}{
-			"jwt":      token,
+		"jwt": jwt,
+		"user": map[string]any{
 			"uuid":     user.UUID,
 			"fullname": user.Fullname,
 			"email":    user.Email,
