@@ -6,6 +6,11 @@ import (
 	"cry-api/app/utils"
 )
 
+// EmailServiceInterface provides all EmailService methods
+type EmailServiceInterface interface {
+	SendVerifyAccountEmail(to, from, username, link, token string) error
+}
+
 // EmailService provides operations for sending emails
 type EmailService struct {
 	emailSender EmailSender

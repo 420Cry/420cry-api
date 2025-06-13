@@ -20,6 +20,16 @@ type UserRepository interface {
 	Delete(userID int) error
 }
 
+// UserServiceInterface provides all UserService methods
+type UserServiceInterface interface {
+	CreateUser(fullname, username, email, password string) (*UserDomain.User, string, error)
+	CheckUserByBothTokens(token string, verificationToken string) (*UserDomain.User, error)
+	CheckEmailVerificationToken(token string) (*UserDomain.User, error)
+	CheckAccountVerificationToken(token string) (*UserDomain.User, error)
+	AuthenticateUser(username string, password string) (*UserDomain.User, error)
+	VerifyUserWithTokens(token string, verificationToken string) (*UserDomain.User, error)
+}
+
 // UserService provides operations related to users
 type UserService struct {
 	userRepo     core.UserRepository

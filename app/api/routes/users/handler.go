@@ -24,8 +24,8 @@ import (
 
 // Handler handles HTTP requests related to user operations
 type Handler struct {
-	userService  *UserServices.UserService
-	emailService *EmailServices.EmailService
+	UserService  UserServices.UserServiceInterface
+	EmailService EmailServices.EmailServiceInterface
 }
 
 /*
@@ -46,7 +46,7 @@ func NewHandler(db *gorm.DB, cfg *EnvTypes.EnvConfig) *Handler {
 	emailService := EmailServices.NewEmailService(emailSender)
 	userService := UserServices.NewUserService(userRepo, emailService)
 
-	return &Handler{userService: userService, emailService: emailService}
+	return &Handler{UserService: userService, EmailService: emailService}
 }
 
 /*
@@ -76,7 +76,7 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call your service with fields (service will call NewUser and hash password)
-	createdUser, token, err := h.userService.CreateUser(input.Fullname, input.Username, input.Email, input.Password)
+	createdUser, token, err := h.UserService.CreateUser(input.Fullname, input.Username, input.Email, input.Password)
 	if err != nil {
 		RespondError(w, mapUserCreationErrorToStatusCode(err.Error()), err.Error())
 		return
@@ -99,7 +99,7 @@ func (h *Handler) SendVerificationEmail(user *UserDomain.User, token string, cfg
 	verificationLink := fmt.Sprintf("%s/auth/signup/verify?token=%s", cfg.CryAppURL, token)
 
 	// Attempt to send the verification email
-	err := h.emailService.SendVerifyAccountEmail(
+	err := h.EmailService.SendVerifyAccountEmail(
 		user.Email,
 		cfg.NoReplyEmail,
 		user.Username,
@@ -123,7 +123,7 @@ func (h *Handler) VerifyEmailToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userService.VerifyUserWithTokens(req.UserToken, req.VerifyToken)
+	user, err := h.UserService.VerifyUserWithTokens(req.UserToken, req.VerifyToken)
 	if err != nil {
 		RespondError(w, http.StatusBadRequest, err.Error())
 		return
@@ -144,7 +144,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userService.AuthenticateUser(req.UserName, req.Password)
+	user, err := h.UserService.AuthenticateUser(req.UserName, req.Password)
 	if err != nil {
 		RespondError(w, http.StatusUnauthorized, "Invalid email or password")
 		return
@@ -181,7 +181,7 @@ func (h *Handler) VerifyAccountToken(w http.ResponseWriter, r *http.Request) {
 	}
 	token := req["token"]
 	// Retrieve the user using the provided token
-	user, err := h.userService.CheckAccountVerificationToken(token)
+	user, err := h.UserService.CheckAccountVerificationToken(token)
 	if err != nil || user == nil {
 		RespondError(w, http.StatusBadRequest, "Token is invalid or expired")
 		return
