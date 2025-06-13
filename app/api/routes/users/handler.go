@@ -164,26 +164,31 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 // It expects a JSON body with a "token" field, retrieves the user associated with the token,
 // and ensures the token matches and was created within the last 24 hours.
 func (h *Handler) VerifyAccountToken(w http.ResponseWriter, r *http.Request) {
-	var req map[string]string
+	var req UserTypes.UserVerifyAccountTokenRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		RespondError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
-	token := req["token"]
-	// Retrieve the user using the provided token
+
+	fmt.Printf("VerifyAccountToken request: %+v\n", req)
+
+	token := req.Token
+	if token == "" {
+		RespondError(w, http.StatusBadRequest, "Token is required")
+		return
+	}
+
 	user, err := h.UserService.CheckAccountVerificationToken(token)
 	if err != nil || user == nil {
 		RespondError(w, http.StatusBadRequest, "Token is invalid or expired")
 		return
 	}
 
-	// Check if the token matches and the created date is within the last 24 hours
 	timeLimit := time.Now().Add(-24 * time.Hour)
 	if user.Token == nil || *user.Token != token || user.VerificationTokenCreatedAt.Before(timeLimit) {
 		RespondError(w, http.StatusBadRequest, "Token is invalid or expired")
 		return
 	}
 
-	// If token is valid and within the 24-hour window
 	RespondJSON(w, http.StatusOK, map[string]bool{"valid": true})
 }
