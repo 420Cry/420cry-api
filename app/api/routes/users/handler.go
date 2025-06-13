@@ -75,42 +75,32 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Call your service with fields (service will call NewUser and hash password)
+	// Create user and get verification token
 	createdUser, token, err := h.UserService.CreateUser(input.Fullname, input.Username, input.Email, input.Password)
 	if err != nil {
 		RespondError(w, mapUserCreationErrorToStatusCode(err.Error()), err.Error())
 		return
 	}
 
-	// Send verification email asynchronously
-	go h.SendVerificationEmail(createdUser, token, cfg)
+	// Send verification email asynchronously (merged logic here)
+	go func(user *UserDomain.User, token string, cfg *EnvTypes.EnvConfig) {
+		verificationLink := fmt.Sprintf("%s/auth/signup/verify?token=%s", cfg.CryAppURL, token)
 
-	RespondJSON(w, http.StatusCreated, map[string]bool{
-		"success": true,
-	})
-}
+		err := h.EmailService.SendVerifyAccountEmail(
+			user.Email,
+			cfg.NoReplyEmail,
+			user.Username,
+			verificationLink,
+			user.VerificationTokens,
+		)
+		if err != nil {
+			log.Printf("Failed to send verification email to %s: %v", user.Email, err)
+		} else {
+			log.Printf("Verification email sent to %s", user.Email)
+		}
+	}(createdUser, token, cfg)
 
-// SendVerificationEmail sends a verification email to the newly registered user.
-// It constructs a verification link using the application's URL and the provided token,
-// then calls the email service to send the verification email. Any errors encountered
-// during the sending process are logged.
-func (h *Handler) SendVerificationEmail(user *UserDomain.User, token string, cfg *EnvTypes.EnvConfig) {
-	// Construct the verification link for the user to verify their account
-	verificationLink := fmt.Sprintf("%s/auth/signup/verify?token=%s", cfg.CryAppURL, token)
-
-	// Attempt to send the verification email
-	err := h.EmailService.SendVerifyAccountEmail(
-		user.Email,
-		cfg.NoReplyEmail,
-		user.Username,
-		verificationLink,
-		user.VerificationTokens,
-	)
-	if err != nil {
-		log.Printf("Failed to send verification email to %s: %v", user.Email, err)
-	} else {
-		log.Printf("Verification email sent to %s", user.Email)
-	}
+	RespondJSON(w, http.StatusCreated, map[string]bool{"success": true})
 }
 
 /*

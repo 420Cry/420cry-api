@@ -58,6 +58,7 @@ func (m *MockEmailService) SendVerifyAccountEmail(to, from, username, link, toke
 	args := m.Called(to, from, username, link, token)
 	return args.Error(0)
 }
+
 func TestSignup_Success(t *testing.T) {
 	mockUserService := new(MockUserService)
 	mockEmailService := new(MockEmailService)
@@ -67,7 +68,6 @@ func TestSignup_Success(t *testing.T) {
 		EmailService: mockEmailService,
 	}
 
-	// Dummy input
 	input := UserTypes.UserSignupRequest{
 		Fullname: "John Doe",
 		Username: "johndoe",
@@ -82,6 +82,9 @@ func TestSignup_Success(t *testing.T) {
 		VerificationTokens: "verify123",
 	}
 
+	// Channel to signal SendVerifyAccountEmail was called
+	done := make(chan struct{})
+
 	// Setup mock expectations
 	mockUserService.
 		On("CreateUser", input.Fullname, input.Username, input.Email, input.Password).
@@ -95,17 +98,25 @@ func TestSignup_Success(t *testing.T) {
 			mock.Anything,
 			mock.Anything,
 		).
-		Return(nil)
+		Return(nil).
+		Run(func(_ mock.Arguments) {
+			close(done)
+		})
 
 	req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewReader(bodyBytes))
 	w := httptest.NewRecorder()
 
 	handler.Signup(w, req)
 
+	// Wait for email sending to be called (since it's async)
+	<-done
+
 	res := w.Result()
-	if err := res.Body.Close(); err != nil {
-		t.Fatalf("failed to close response body: %v", err)
-	}
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			t.Fatalf("failed to close response body: %v", err)
+		}
+	}()
 
 	assert.Equal(t, http.StatusCreated, res.StatusCode)
 
