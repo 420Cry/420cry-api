@@ -179,7 +179,7 @@ func (h *Handler) VerifyAccountToken(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the token matches and the created date is within the last 24 hours
 	timeLimit := time.Now().Add(-24 * time.Hour)
-	if user.Token != token || user.VerificationTokenCreatedAt.Before(timeLimit) {
+	if user.Token == nil || *user.Token != token || user.VerificationTokenCreatedAt.Before(timeLimit) {
 		RespondError(w, http.StatusBadRequest, "Token is invalid or expired")
 		return
 	}

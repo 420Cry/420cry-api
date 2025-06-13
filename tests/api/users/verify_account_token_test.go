@@ -23,7 +23,7 @@ func TestVerifyAccountToken_Success(t *testing.T) {
 
 	token := "valid-token-123"
 	user := &UserDomain.User{
-		Token:                      token,
+		Token:                      &token,
 		VerificationTokenCreatedAt: time.Now(),
 	}
 
@@ -117,8 +117,9 @@ func TestVerifyAccountToken_TokenMismatchOrExpired(t *testing.T) {
 
 	token := "valid-token-123"
 	// Token in user is different or created too far in the past
+	differentToken := "different-token"
 	user := &UserDomain.User{
-		Token:                      "different-token",
+		Token:                      &differentToken,
 		VerificationTokenCreatedAt: time.Now().Add(-25 * time.Hour),
 	}
 

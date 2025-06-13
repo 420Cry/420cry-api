@@ -19,7 +19,7 @@ type User struct {
 	Email                      string    `json:"email" gorm:"unique;not null"`
 	Fullname                   string    `json:"fullname"`
 	Password                   string    `json:"-" gorm:"not null"`
-	Token                      string    `json:"token,omitempty" gorm:"unique"`
+	Token                      *string   `json:"token,omitempty" gorm:"unique"`
 	VerificationTokens         string    `json:"verification_tokens,omitempty" gorm:"size:6"`
 	VerificationTokenCreatedAt time.Time `json:"verification_token_created_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
 	IsVerified                 bool      `json:"is_verified" gorm:"not null;default:false"`
@@ -52,7 +52,7 @@ func NewUser(fullname, username, email, password string) (*User, error) {
 		Fullname:                   fullname,
 		Email:                      email,
 		Password:                   hashedPassword,
-		Token:                      signupToken,
+		Token:                      &signupToken,
 		VerificationTokens:         verificationToken,
 		VerificationTokenCreatedAt: time.Now(),
 		IsVerified:                 false,

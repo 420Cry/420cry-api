@@ -75,7 +75,13 @@ func (service *UserService) CreateUser(fullname, username, email, password strin
 		return nil, "", err
 	}
 
-	return newUser, newUser.Token, nil
+	var token string
+	if newUser.Token != nil {
+		token = *newUser.Token
+	} else {
+		token = ""
+	}
+	return newUser, token, nil
 }
 
 // handleExistingUser checks if the existing user is unverified and handles accordingly
@@ -121,7 +127,7 @@ func (service *UserService) CheckUserByBothTokens(token string, verificationToke
 	}
 
 	// Check if the URL token matches
-	if user.Token != token {
+	if user.Token == nil || *user.Token != token {
 		return nil, fmt.Errorf("token does not match")
 	}
 
@@ -198,7 +204,7 @@ func (service *UserService) VerifyUserWithTokens(token string, verificationToken
 
 	user.IsVerified = true
 	user.VerificationTokens = ""
-	user.Token = ""
+	user.Token = nil
 
 	if err := service.userRepo.Save(user); err != nil {
 		return nil, fmt.Errorf("failed to update user verification status: %w", err)
