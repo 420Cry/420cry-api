@@ -37,7 +37,5 @@ func (s *SMTPEmailSender) Send(email EmailDomain.EmailMessage) error {
 		log.Printf("Failed to send email: %v", err)
 		return err
 	}
-
-	log.Printf("Email sent to: %s successfully", email.To)
 	return nil
 }

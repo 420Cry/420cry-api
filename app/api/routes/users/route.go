@@ -14,6 +14,6 @@ func RegisterRoutes(r *mux.Router, db *gorm.DB) {
 
 	r.HandleFunc("/signup", handler.Signup).Methods("POST")
 	r.HandleFunc("/verify-email-token", handler.VerifyEmailToken).Methods("POST")
-	r.HandleFunc("/verify-account-token", handler.VerificationAccountToken).Methods("POST")
-	r.HandleFunc("/test", handler.Test).Methods("GET")
+	r.HandleFunc("/verify-account-token", handler.VerifyAccountToken).Methods("POST")
+	r.HandleFunc("/signin", handler.SignIn).Methods("POST")
 }
