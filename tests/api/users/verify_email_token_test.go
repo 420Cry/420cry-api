@@ -1,5 +1,4 @@
-// Package user_routes_test provides tests for user routes.
-package user_routes_test
+package tests
 
 import (
 	"bytes"
@@ -11,6 +10,7 @@ import (
 	users "cry-api/app/api/routes/users"
 	UserDomain "cry-api/app/domain/users"
 	UserTypes "cry-api/app/types/users"
+	TestUtils "cry-api/app/utils/tests"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -39,12 +39,13 @@ func TestVerifyEmailToken_Success(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/verify-email-token", bytes.NewReader(bodyBytes))
 	w := httptest.NewRecorder()
 
-	handler.VerifyEmailToken(w, req)
+	c := TestUtils.GetGinContext(w, req)
+	handler.VerifyEmailToken(c)
 
 	res := w.Result()
-	if err := res.Body.Close(); err != nil {
-		t.Fatalf("failed to close response body: %v", err)
-	}
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	assert.Equal(t, http.StatusOK, res.StatusCode)
 
@@ -66,12 +67,13 @@ func TestVerifyEmailToken_InvalidJSON(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/verify-email-token", bytes.NewReader([]byte(`{invalid-json}`)))
 	w := httptest.NewRecorder()
 
-	handler.VerifyEmailToken(w, req)
+	c := TestUtils.GetGinContext(w, req)
+	handler.VerifyEmailToken(c)
 
 	res := w.Result()
-	if err := res.Body.Close(); err != nil {
-		t.Fatalf("failed to close response body: %v", err)
-	}
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 
@@ -101,12 +103,13 @@ func TestVerifyEmailToken_VerificationFails(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/verify-email-token", bytes.NewReader(bodyBytes))
 	w := httptest.NewRecorder()
 
-	handler.VerifyEmailToken(w, req)
+	c := TestUtils.GetGinContext(w, req)
+	handler.VerifyEmailToken(c)
 
 	res := w.Result()
-	if err := res.Body.Close(); err != nil {
-		t.Fatalf("failed to close response body: %v", err)
-	}
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 

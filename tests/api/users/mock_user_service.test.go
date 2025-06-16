@@ -1,5 +1,5 @@
-// Package user_routes_test provides tests for user routes.
-package user_routes_test
+// Package tests provides tests for user routes.
+package tests
 
 import (
 	UserDomain "cry-api/app/domain/users"

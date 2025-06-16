@@ -1,15 +1,14 @@
-// Package api provides the main entry point for registering all API routes.
+// Package api provides route registration and API endpoint setup for the application.
 package api
 
 import (
 	users "cry-api/app/api/routes/users"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-// RegisterAllRoutes sets up all API routes under /users using the provided router and database.
-func RegisterAllRoutes(r *mux.Router, db *gorm.DB) {
-	usersRouter := r.PathPrefix("/users").Subrouter()
-	users.RegisterRoutes(usersRouter, db)
+// RegisterAllRoutes sets up all API routes using Gin.
+func RegisterAllRoutes(r *gin.Engine, db *gorm.DB) {
+	users.RegisterRoutes(r.Group("/users"), db)
 }

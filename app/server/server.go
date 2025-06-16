@@ -1,72 +1,52 @@
-// server main. this should be refactored
+// Package main provides server configuration and start up logic
 package main
 
 import (
 	"log"
-	"net/http"
 	"strconv"
 	"time"
 
 	"cry-api/app/api"
 	"cry-api/app/config"
 	"cry-api/app/database"
+	Env "cry-api/app/types/env"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	// Load the configuration settings
 	cfg := config.Get()
-	origin := cfg.CryAppURL
+
 	dbConn, err := database.GetDBConnection()
 	if err != nil {
 		log.Fatal("Database connection failed: ", err)
 	}
-
-	// Set up the router
-	r := mux.NewRouter()
 	db := dbConn.GetDB()
 
-	// Register all routes dynamically
-	api.RegisterAllRoutes(r, db)
+	router := gin.Default()
 
-	// Wrap router with CORS middleware
-	corsRouter := enableCORS(r, origin)
+	router.Use(SetupCORS(cfg))
 
-	// Define the HTTP server
-	server := &http.Server{
-		Addr:              ":" + strconv.Itoa(cfg.APIPort),
-		Handler:           corsRouter,
-		ReadHeaderTimeout: 5 * time.Second,
-	}
+	api.RegisterAllRoutes(router, db)
 
-	// Start the server and check for errors
-	if err := server.ListenAndServe(); err != nil {
-		log.Fatalf("Server failed to start: %v", err)
+	if err := router.Run(":" + strconv.Itoa(cfg.APIPort)); err != nil {
+		log.Fatal("Failed to run server: ", err)
 	}
 }
 
-// CORS middleware to allow only a specific origin
-func enableCORS(next http.Handler, allowedOrigin string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		origin := r.Header.Get("Origin")
-		if origin == "" || origin == allowedOrigin {
-			if origin != "" {
-				w.Header().Set("Access-Control-Allow-Origin", origin)
-				w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-				w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-				w.Header().Set("Access-Control-Allow-Credentials", "true")
-			}
+// SetupCORS funcs provides config and setups CORS
+func SetupCORS(cfg *Env.EnvConfig) gin.HandlerFunc {
+	return cors.New(cors.Config{
+		AllowOrigins:     []string{cfg.CryAppURL},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
 
-			if r.Method == http.MethodOptions {
-				w.WriteHeader(http.StatusOK)
-				return
-			}
-
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		http.Error(w, "", http.StatusForbidden)
+		AllowOriginFunc: func(origin string) bool {
+			return origin == "" || origin == cfg.CryAppURL
+		},
 	})
 }
