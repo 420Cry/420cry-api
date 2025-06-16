@@ -47,13 +47,3 @@ func (m *MockUserService) VerifyUserWithTokens(token string, verificationToken s
 	args := m.Called(token, verificationToken)
 	return args.Get(0).(*UserDomain.User), args.Error(1)
 }
-
-// handleExistingUser mocks the internal handleExistingUser method.
-func (m *MockUserService) handleExistingUser(existingUser *UserDomain.User, username, email string) (*UserDomain.User, error) {
-	args := m.Called(existingUser, username, email)
-	userArg := args.Get(0)
-	if userArg == nil {
-		return nil, args.Error(1)
-	}
-	return userArg.(*UserDomain.User), args.Error(1)
-}

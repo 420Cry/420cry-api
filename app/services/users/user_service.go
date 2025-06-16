@@ -11,16 +11,19 @@ import (
 	EmailServices "cry-api/app/services/email"
 )
 
-// userRepo stays typed to core.UserRepository interface
+// UserService provides methods for managing user-related operations,
+// including interactions with the user repository and email services.
 type UserService struct {
 	userRepo     UserCore.UserRepository
 	emailService EmailServices.EmailServiceInterface
 }
 
+// NewUserService creates &UserService
 func NewUserService(userRepo UserCore.UserRepository, emailService EmailServices.EmailServiceInterface) *UserService {
 	return &UserService{userRepo: userRepo, emailService: emailService}
 }
 
+// UserServiceInterface provides methods of UserService
 type UserServiceInterface interface {
 	CreateUser(fullname, username, email, password string) (*UserDomain.User, string, error)
 	AuthenticateUser(username, password string) (*UserDomain.User, error)

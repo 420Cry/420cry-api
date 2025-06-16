@@ -1,4 +1,4 @@
-// Package core provides core functionalities for email.
+// Package emailcore provides core functionalities for email.
 package emailcore
 
 import (
