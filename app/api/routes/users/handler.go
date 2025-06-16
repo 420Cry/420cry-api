@@ -133,7 +133,7 @@ func (h *Handler) SignIn(c *gin.Context) {
 			"fullname":     user.Fullname,
 			"email":        user.Email,
 			"username":     user.Username,
-			"TwoFAEnabled": user.TwoFAEnabled,
+			"twoFAEnabled": user.TwoFAEnabled,
 		},
 	})
 }
