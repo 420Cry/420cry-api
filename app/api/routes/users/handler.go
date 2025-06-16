@@ -9,8 +9,8 @@ import (
 	"cry-api/app/config"
 	EmailCore "cry-api/app/core/email"
 	JWT "cry-api/app/core/jwt"
-	UserCore "cry-api/app/core/users"
 	UserDomain "cry-api/app/domain/users"
+	UserPersistence "cry-api/app/persistence/users"
 	EmailServices "cry-api/app/services/email"
 	UserServices "cry-api/app/services/users"
 	EnvTypes "cry-api/app/types/env"
@@ -39,7 +39,7 @@ Returns:
   - A pointer to the initialized Handler.
 */
 func NewHandler(db *gorm.DB, cfg *EnvTypes.EnvConfig) *Handler {
-	userRepo := UserCore.NewGormUserRepository(db)
+	userRepo := UserPersistence.NewGormUserRepository(db)
 	emailSender := EmailCore.NewSMTPEmailSender(cfg.SMTPConfig.Host, cfg.SMTPConfig.Port)
 	emailService := EmailServices.NewEmailService(emailSender)
 	userService := UserServices.NewUserService(userRepo, emailService)
