@@ -25,6 +25,8 @@ type User struct {
 	IsVerified                 bool      `json:"is_verified" gorm:"not null;default:false"`
 	CreatedAt                  time.Time `json:"created_at" gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP"`
 	UpdatedAt                  time.Time `json:"updated_at" gorm:"type:timestamp;default:NULL;autoUpdateTime"`
+	TwoFASecret                *string   `db:"two_fa_secret"`
+	TwoFAEnabled               bool      `db:"two_fa_enabled"`
 }
 
 // NewUser creates a new User entity with hashed password
@@ -56,6 +58,8 @@ func NewUser(fullname, username, email, password string) (*User, error) {
 		VerificationTokens:         verificationToken,
 		VerificationTokenCreatedAt: time.Now(),
 		IsVerified:                 false,
+		TwoFASecret:                nil,
+		TwoFAEnabled:               false,
 		CreatedAt:                  time.Now(),
 	}
 

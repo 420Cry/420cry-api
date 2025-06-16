@@ -119,7 +119,8 @@ func (h *Handler) SignIn(c *gin.Context) {
 		return
 	}
 
-	jwt, err := JWT.GenerateJWT(user.UUID, user.Email)
+	jwt, err := JWT.GenerateJWT(user.UUID, user.Email, user.TwoFAEnabled)
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
@@ -128,10 +129,11 @@ func (h *Handler) SignIn(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"jwt": jwt,
 		"user": gin.H{
-			"uuid":     user.UUID,
-			"fullname": user.Fullname,
-			"email":    user.Email,
-			"username": user.Username,
+			"uuid":         user.UUID,
+			"fullname":     user.Fullname,
+			"email":        user.Email,
+			"username":     user.Username,
+			"TwoFAEnabled": user.TwoFAEnabled,
 		},
 	})
 }
