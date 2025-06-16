@@ -1,148 +1,35 @@
-// Package core provides core functionalities for users.
-package core
+// Package usercore package provide interface of UserRepository
+package usercore
 
-import (
-	"fmt"
-	"time"
+import UserDomain "cry-api/app/domain/users"
 
-	UserDomain "cry-api/app/domain/users"
-
-	"gorm.io/gorm"
-)
-
-// UserRepository defines the methods needed for user persistence
+// UserRepository defines the contract for user persistence and retrieval operations.
+// It provides methods to save, find, and delete users using various identifiers such as UUID, email, username, and tokens.
 type UserRepository interface {
+	// Save persists a user to the repository.
 	Save(user *UserDomain.User) error
-	FindByUsernameOrEmail(username, email string) (*UserDomain.User, error)
-	FindByUsername(username string) (*UserDomain.User, error)
-	FindByEmail(username string) (*UserDomain.User, error)
-	FindByVerificationToken(token string) (*UserDomain.User, error)
-	FindByAccountVerificationToken(token string) (*UserDomain.User, error)
-	Delete(userID int) error
+
+	// FindByUUID retrieves a user by their UUID.
 	FindByUUID(uuid string) (*UserDomain.User, error)
+
+	// FindByEmail retrieves a user by their email address.
+	FindByEmail(email string) (*UserDomain.User, error)
+
+	// FindByUsernameOrEmail retrieves a user by their username or email.
+	FindByUsernameOrEmail(username, email string) (*UserDomain.User, error)
+
+	// FindByVerificationToken retrieves a user by their verification token.
+	FindByVerificationToken(token string) (*UserDomain.User, error)
+
+	// FindByAccountVerificationToken retrieves a user by their account verification token.
+	FindByAccountVerificationToken(token string) (*UserDomain.User, error)
+
+	// FindByUsername retrieves a user by their username.
+	FindByUsername(username string) (*UserDomain.User, error)
+
+	// FindByUserToken retrieves a user by their user token.
 	FindByUserToken(token string) (*UserDomain.User, error)
-}
 
-// GormUserRepository implements the UserRepository interface for GORM
-type GormUserRepository struct {
-	db *gorm.DB
-}
-
-// NewGormUserRepository creates a new GormUserRepository instance
-func NewGormUserRepository(db *gorm.DB) *GormUserRepository {
-	return &GormUserRepository{db: db}
-}
-
-// Save persists the user in the database
-func (repo *GormUserRepository) Save(user *UserDomain.User) error {
-	return repo.db.Save(user).Error
-}
-
-// FindByUsernameOrEmail retrieves a user by their username or email
-func (repo *GormUserRepository) FindByUsernameOrEmail(username string, email string) (*UserDomain.User, error) {
-	var user UserDomain.User
-	err := repo.db.Where("username = ?", username).Or("email = ?", email).First(&user).Error
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &user, nil
-}
-
-// FindByUsername retrieves a user by their username
-func (repo *GormUserRepository) FindByUsername(username string) (*UserDomain.User, error) {
-	var user UserDomain.User
-	err := repo.db.Where("username = ?", username).First(&user).Error
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &user, nil
-}
-
-// FindByEmail retrieves a user from the database by their email address.
-// It returns a pointer to the User if found, or nil if no user exists with the given email.
-// If an error occurs during the query (other than record not found), it returns the error.
-func (repo *GormUserRepository) FindByEmail(email string) (*UserDomain.User, error) {
-	var user UserDomain.User
-	err := repo.db.Where("email = ?", email).First(&user).Error
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &user, nil
-}
-
-// FindByVerificationToken retrieves a user by their verification token
-func (repo *GormUserRepository) FindByVerificationToken(token string) (*UserDomain.User, error) {
-	var user UserDomain.User
-	err := repo.db.Where("verification_tokens = ?", token).First(&user).Error
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
-		return nil, err
-	}
-	if time.Since(user.VerificationTokenCreatedAt) > 24*time.Hour {
-		return nil, fmt.Errorf("account verification token is invalid or expired")
-	}
-	return &user, nil
-}
-
-// FindByUserToken retrieves a user by their verification token
-// FindByAccountVerificationToken retrieves a user by their account verification token (THIS IS OPT AND LOGIC IS CURRENTLY INCORRECT)
-// THIS WILL BE REFACTORED IN CRY-55.
-func (repo *GormUserRepository) FindByUserToken(token string) (*UserDomain.User, error) {
-	var user UserDomain.User
-	err := repo.db.Where("verification_tokens = ?", token).First(&user).Error
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
-		return nil, err
-	}
-	if time.Since(user.VerificationTokenCreatedAt) > 24*time.Hour {
-		return nil, fmt.Errorf("account verification token is invalid or expired")
-	}
-	return &user, nil
-}
-
-// Delete removes the user from the database (hard delete)
-func (repo *GormUserRepository) Delete(userID int) error {
-	if err := repo.db.Delete(&UserDomain.User{}, userID).Error; err != nil {
-		return fmt.Errorf("failed to delete user: %v", err)
-	}
-	return nil
-}
-
-// FindByAccountVerificationToken retrieves a user by their account verification token
-func (repo *GormUserRepository) FindByAccountVerificationToken(token string) (*UserDomain.User, error) {
-	var user UserDomain.User
-	err := repo.db.Where("token = ?", token).First(&user).Error
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &user, nil
-}
-
-// FindByUUID retrieves a user by their UUID
-func (repo *GormUserRepository) FindByUUID(uuid string) (*UserDomain.User, error) {
-	var user UserDomain.User
-	err := repo.db.Where("uuid = ?", uuid).First(&user).Error
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &user, nil
+	// Delete removes a user by their ID.
+	Delete(userID int) error
 }

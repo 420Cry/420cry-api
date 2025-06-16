@@ -158,32 +158,43 @@ You can access MailHog at
 
 This project follows a Domain-Driven Design (DDD) approach, with a well-defined folder structure to separate concerns and ensure clarity in the codebase. Below is a breakdown of the project structure:
 
-### 1. **api**  
-Contains the API-related components, including routes, controllers, and any logic related to the HTTP API. This folder is responsible for exposing the domain logic through the server interface.
+## 1. api
+- Handles the HTTP layer: routes, controllers, request/response validation, and API-specific logic.  
+- Acts as the entry point to expose domain logic via REST or other protocols.
 
-### 2. **services**  
-Contains services and orchestrates the interaction between the domain layer and the external world. This is where business logic is executed, like sending emails or processing user actions.
+## 2. services
+- Contains application/business services that coordinate domain logic, orchestration, and integration with external services (e.g., email, payment gateways).  
+- Implements use cases or workflows by invoking domain entities and repositories.
 
-### 3. **core**  
-Contains the foundational code of the services, including utilities, helpers, and common services that are used across other parts of the services.
 
-### 4. **domain**  
-The domain layer represents the heart of the business logic and contains entities, value objects, aggregates, and domain services. This is where the core business rules and logic reside.
+## 3. core
+- Provides foundational utilities, shared interfaces, and common service abstractions used across the application.  
+- Can include base repository interfaces, error handling utilities, middleware helpers, or generic helpers.
 
-### 5. **server**  
-This folder contains the configuration and setup for running the server, including setting up the routes, middleware, and server initialization.
+## 4. persistence
+- Contains the concrete implementations for data storage and retrieval.  
+- Implements repository interfaces defined in the core or domain layers, handling database interactions, caching, and external storage.  
+- Acts as the bridge between your domain/business logic and your database or any other storage mechanisms.
 
-### 6. **database**  
-Contains database-related code, including migrations, schema definitions, and database models. It is responsible for managing data persistence.
+## 5. domain
+- Represents the business domain and rules.  
+- Contains domain entities, value objects, aggregates, domain services, domain events, and business invariants.  
+- Pure business logic, free of infrastructure concerns.
 
-### 7. **migration**  
-Contains database migration files, which are used to manage changes to the database schema over time.
+## 6. server
+- Contains setup and bootstrapping code for the HTTP server and routing, middleware registration, and server lifecycle management.
 
-### 8. **templates**  
-Contains the HTML or email templates used in the services, like the verification email templates.
+## 7. database
+- Contains database-related code, including schema definitions, ORM models, and connection setup.
 
-### 9. **types**  
-Contains type definitions.
+## 8. migration
+- Contains database migration files, used to manage schema changes over time.
+
+## 9. templates
+- Contains HTML or email templates used in services such as verification emails or notifications.
+
+## 10. types
+- Contains type definitions, interfaces, and DTOs used across the project.
 
 ## Frequently asked questions
 ### How can I see which application uses a port?
