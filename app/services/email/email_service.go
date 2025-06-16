@@ -2,11 +2,14 @@
 package services
 
 import (
-	"log"
-
 	EmailDomain "cry-api/app/domain/email"
 	"cry-api/app/utils"
 )
+
+// EmailServiceInterface provides all EmailService methods
+type EmailServiceInterface interface {
+	SendVerifyAccountEmail(to, from, username, link, token string) error
+}
 
 // EmailService provides operations for sending emails
 type EmailService struct {
@@ -32,17 +35,13 @@ func (service *EmailService) SendVerifyAccountEmail(to, from, userName, verifica
 
 	email, err := EmailDomain.CreateVerifyAccountEmail(to, from, userName, verificationLink, verificationTokens)
 	if err != nil {
-		log.Printf("Error creating email template: %v", err)
 		return err
 	}
 
 	// Send the email via the core layer
 	err = service.emailSender.Send(email)
 	if err != nil {
-		log.Printf("Error sending email: %v", err)
 		return err
 	}
-
-	log.Printf("Email sent successfully to %s", email.To)
 	return nil
 }

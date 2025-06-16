@@ -5,7 +5,6 @@ package database
 
 import (
 	"fmt"
-	"log"
 
 	Config "cry-api/app/config"
 	types "cry-api/app/types/database"
@@ -32,9 +31,6 @@ func NewDatabase(dsn string) (*types.Database, error) {
 		return nil, fmt.Errorf("failed to ping database: %v", err)
 	}
 
-	// Log success
-	log.Println("Successfully connected to the database!")
-
 	return &types.Database{DB: db}, nil
 }
 
@@ -46,7 +42,6 @@ func GetDBConnection() (*types.Database, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		cfg.DBUserName, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBDatabase)
 
-	log.Printf("Connecting to database at %s:%d, database: %s", cfg.DBHost, cfg.DBPort, cfg.DBDatabase)
 	// Get the database connection
 	dbConn, err := NewDatabase(dsn)
 	if err != nil {

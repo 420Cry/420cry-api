@@ -14,7 +14,13 @@ import (
 type UserRepository interface {
 	Save(user *UserDomain.User) error
 	FindByUsernameOrEmail(username, email string) (*UserDomain.User, error)
+	FindByUsername(username string) (*UserDomain.User, error)
+	FindByEmail(username string) (*UserDomain.User, error)
 	FindByVerificationToken(token string) (*UserDomain.User, error)
+	FindByAccountVerificationToken(token string) (*UserDomain.User, error)
+	Delete(userID int) error
+	FindByUUID(uuid string) (*UserDomain.User, error)
+	FindByUserToken(token string) (*UserDomain.User, error)
 }
 
 // GormUserRepository implements the UserRepository interface for GORM
@@ -33,9 +39,37 @@ func (repo *GormUserRepository) Save(user *UserDomain.User) error {
 }
 
 // FindByUsernameOrEmail retrieves a user by their username or email
-func (repo *GormUserRepository) FindByUsernameOrEmail(username, email string) (*UserDomain.User, error) {
+func (repo *GormUserRepository) FindByUsernameOrEmail(username string, email string) (*UserDomain.User, error) {
 	var user UserDomain.User
 	err := repo.db.Where("username = ?", username).Or("email = ?", email).First(&user).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+// FindByUsername retrieves a user by their username
+func (repo *GormUserRepository) FindByUsername(username string) (*UserDomain.User, error) {
+	var user UserDomain.User
+	err := repo.db.Where("username = ?", username).First(&user).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+// FindByEmail retrieves a user from the database by their email address.
+// It returns a pointer to the User if found, or nil if no user exists with the given email.
+// If an error occurs during the query (other than record not found), it returns the error.
+func (repo *GormUserRepository) FindByEmail(email string) (*UserDomain.User, error) {
+	var user UserDomain.User
+	err := repo.db.Where("email = ?", email).First(&user).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
@@ -55,15 +89,39 @@ func (repo *GormUserRepository) FindByVerificationToken(token string) (*UserDoma
 		}
 		return nil, err
 	}
-	// Check if the created_at is older than 24 hours
-	if time.Since(user.CreatedAt) > 24*time.Hour {
+	if time.Since(user.VerificationTokenCreatedAt) > 24*time.Hour {
 		return nil, fmt.Errorf("account verification token is invalid or expired")
 	}
 	return &user, nil
 }
 
+// FindByUserToken retrieves a user by their verification token
 // FindByAccountVerificationToken retrieves a user by their account verification token (THIS IS OPT AND LOGIC IS CURRENTLY INCORRECT)
 // THIS WILL BE REFACTORED IN CRY-55.
+func (repo *GormUserRepository) FindByUserToken(token string) (*UserDomain.User, error) {
+	var user UserDomain.User
+	err := repo.db.Where("verification_tokens = ?", token).First(&user).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	if time.Since(user.VerificationTokenCreatedAt) > 24*time.Hour {
+		return nil, fmt.Errorf("account verification token is invalid or expired")
+	}
+	return &user, nil
+}
+
+// Delete removes the user from the database (hard delete)
+func (repo *GormUserRepository) Delete(userID int) error {
+	if err := repo.db.Delete(&UserDomain.User{}, userID).Error; err != nil {
+		return fmt.Errorf("failed to delete user: %v", err)
+	}
+	return nil
+}
+
+// FindByAccountVerificationToken retrieves a user by their account verification token
 func (repo *GormUserRepository) FindByAccountVerificationToken(token string) (*UserDomain.User, error) {
 	var user UserDomain.User
 	err := repo.db.Where("token = ?", token).First(&user).Error
@@ -73,16 +131,18 @@ func (repo *GormUserRepository) FindByAccountVerificationToken(token string) (*U
 		}
 		return nil, err
 	}
+	return &user, nil
+}
 
-	// Check if the created_at is older than 24 hours
-	if time.Since(user.CreatedAt) > 24*time.Hour {
-		return nil, fmt.Errorf("account verification token is invalid or expired")
+// FindByUUID retrieves a user by their UUID
+func (repo *GormUserRepository) FindByUUID(uuid string) (*UserDomain.User, error) {
+	var user UserDomain.User
+	err := repo.db.Where("uuid = ?", uuid).First(&user).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
 	}
-
-	// Check if user is already verified
-	if user.IsVerified {
-		return nil, fmt.Errorf("account already verified")
-	}
-
 	return &user, nil
 }
