@@ -1,4 +1,4 @@
-package user_routes_test
+package tests
 
 import (
 	"bytes"
@@ -10,6 +10,7 @@ import (
 
 	users "cry-api/app/api/routes/users"
 	UserDomain "cry-api/app/domain/users"
+	TestUtils "cry-api/app/utils/tests"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -30,16 +31,16 @@ func TestVerifyAccountToken_Success(t *testing.T) {
 	mockUserService.On("CheckAccountVerificationToken", token).Return(user, nil)
 
 	bodyBytes, _ := json.Marshal(map[string]string{"token": token})
-
 	req := httptest.NewRequest(http.MethodPost, "/verify-account-token", bytes.NewReader(bodyBytes))
 	w := httptest.NewRecorder()
 
-	handler.VerifyAccountToken(w, req)
+	c := TestUtils.GetGinContext(w, req)
+	handler.VerifyAccountToken(c)
 
 	res := w.Result()
-	if err := res.Body.Close(); err != nil {
-		t.Fatalf("failed to close response body: %v", err)
-	}
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	assert.Equal(t, http.StatusOK, res.StatusCode)
 
@@ -61,12 +62,13 @@ func TestVerifyAccountToken_InvalidJSON(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/verify-account-token", bytes.NewReader([]byte(`{invalid-json}`)))
 	w := httptest.NewRecorder()
 
-	handler.VerifyAccountToken(w, req)
+	c := TestUtils.GetGinContext(w, req)
+	handler.VerifyAccountToken(c)
 
 	res := w.Result()
-	if err := res.Body.Close(); err != nil {
-		t.Fatalf("failed to close response body: %v", err)
-	}
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 
@@ -87,16 +89,16 @@ func TestVerifyAccountToken_UserNotFound(t *testing.T) {
 	mockUserService.On("CheckAccountVerificationToken", token).Return((*UserDomain.User)(nil), assert.AnError)
 
 	bodyBytes, _ := json.Marshal(map[string]string{"token": token})
-
 	req := httptest.NewRequest(http.MethodPost, "/verify-account-token", bytes.NewReader(bodyBytes))
 	w := httptest.NewRecorder()
 
-	handler.VerifyAccountToken(w, req)
+	c := TestUtils.GetGinContext(w, req)
+	handler.VerifyAccountToken(c)
 
 	res := w.Result()
-	if err := res.Body.Close(); err != nil {
-		t.Fatalf("failed to close response body: %v", err)
-	}
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 
@@ -115,27 +117,27 @@ func TestVerifyAccountToken_TokenMismatchOrExpired(t *testing.T) {
 		UserService: mockUserService,
 	}
 
-	token := "valid-token-123"
-	// Token in user is different or created too far in the past
-	differentToken := "different-token"
+	// Simulate mismatch or expiration
+	requestToken := "valid-token-123"
+	storedToken := "different-token"
 	user := &UserDomain.User{
-		Token:                      &differentToken,
-		VerificationTokenCreatedAt: time.Now().Add(-25 * time.Hour),
+		Token:                      &storedToken,
+		VerificationTokenCreatedAt: time.Now().Add(-25 * time.Hour), // expired
 	}
 
-	mockUserService.On("CheckAccountVerificationToken", token).Return(user, nil)
+	mockUserService.On("CheckAccountVerificationToken", requestToken).Return(user, nil)
 
-	bodyBytes, _ := json.Marshal(map[string]string{"token": token})
-
+	bodyBytes, _ := json.Marshal(map[string]string{"token": requestToken})
 	req := httptest.NewRequest(http.MethodPost, "/verify-account-token", bytes.NewReader(bodyBytes))
 	w := httptest.NewRecorder()
 
-	handler.VerifyAccountToken(w, req)
+	c := TestUtils.GetGinContext(w, req)
+	handler.VerifyAccountToken(c)
 
 	res := w.Result()
-	if err := res.Body.Close(); err != nil {
-		t.Fatalf("failed to close response body: %v", err)
-	}
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 

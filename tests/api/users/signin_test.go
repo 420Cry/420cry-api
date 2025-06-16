@@ -1,4 +1,5 @@
-package user_routes_test
+// Package tests provides tests for user routes.
+package tests
 
 import (
 	"bytes"
@@ -10,6 +11,7 @@ import (
 	users "cry-api/app/api/routes/users"
 	UserDomain "cry-api/app/domain/users"
 	UserTypes "cry-api/app/types/users"
+	TestUtils "cry-api/app/utils/tests"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -17,7 +19,7 @@ import (
 
 func TestSignIn_Success(t *testing.T) {
 	mockUserService := new(MockUserService)
-	mockEmailService := new(MockEmailService) // unused here but needed for Handler struct
+	mockEmailService := new(MockEmailService) // needed for Handler struct
 
 	handler := &users.Handler{
 		UserService:  mockUserService,
@@ -46,13 +48,12 @@ func TestSignIn_Success(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/signin", bytes.NewReader(bodyBytes))
 	w := httptest.NewRecorder()
 
-	handler.SignIn(w, req)
+	c := TestUtils.GetGinContext(w, req)
+	handler.SignIn(c)
 
 	res := w.Result()
 	defer func() {
-		if err := res.Body.Close(); err != nil {
-			t.Fatalf("failed to close response body: %v", err)
-		}
+		_ = res.Body.Close()
 	}()
 
 	assert.Equal(t, http.StatusOK, res.StatusCode)
@@ -85,13 +86,12 @@ func TestSignIn_InvalidJSON(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/signin", bytes.NewReader(invalidJSON))
 	w := httptest.NewRecorder()
 
-	handler.SignIn(w, req)
+	c := TestUtils.GetGinContext(w, req)
+	handler.SignIn(c)
 
 	res := w.Result()
 	defer func() {
-		if err := res.Body.Close(); err != nil {
-			t.Fatalf("failed to close response body: %v", err)
-		}
+		_ = res.Body.Close()
 	}()
 
 	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
@@ -128,13 +128,12 @@ func TestSignIn_AuthenticationFails(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/signin", bytes.NewReader(bodyBytes))
 	w := httptest.NewRecorder()
 
-	handler.SignIn(w, req)
+	c := TestUtils.GetGinContext(w, req)
+	handler.SignIn(c)
 
 	res := w.Result()
 	defer func() {
-		if err := res.Body.Close(); err != nil {
-			t.Fatalf("failed to close response body: %v", err)
-		}
+		_ = res.Body.Close()
 	}()
 
 	assert.Equal(t, http.StatusUnauthorized, res.StatusCode)

@@ -1,5 +1,5 @@
-// Package user_routes_test provides tests for user routes.
-package user_routes_test
+// Package tests provides tests for user routes.
+package tests
 
 import (
 	"bytes"
@@ -12,6 +12,7 @@ import (
 	users "cry-api/app/api/routes/users"
 	UserDomain "cry-api/app/domain/users"
 	UserTypes "cry-api/app/types/users"
+	TestUtils "cry-api/app/utils/tests"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -40,10 +41,8 @@ func TestSignup_Success(t *testing.T) {
 		VerificationTokens: "verify123",
 	}
 
-	// Channel to signal SendVerifyAccountEmail was called
 	done := make(chan struct{})
 
-	// Setup mock expectations
 	mockUserService.
 		On("CreateUser", input.Fullname, input.Username, input.Email, input.Password).
 		Return(dummyUser, "token123", nil)
@@ -64,16 +63,15 @@ func TestSignup_Success(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewReader(bodyBytes))
 	w := httptest.NewRecorder()
 
-	handler.Signup(w, req)
+	// Use Gin context helper for consistency
+	c := TestUtils.GetGinContext(w, req)
+	handler.Signup(c)
 
-	// Wait for email sending to be called (since it's async)
 	<-done
 
 	res := w.Result()
 	defer func() {
-		if err := res.Body.Close(); err != nil {
-			t.Fatalf("failed to close response body: %v", err)
-		}
+		_ = res.Body.Close()
 	}()
 
 	assert.Equal(t, http.StatusCreated, res.StatusCode)
@@ -99,12 +97,13 @@ func TestSignup_InvalidJSON(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewReader(invalidJSON))
 	w := httptest.NewRecorder()
 
-	handler.Signup(w, req)
+	c := TestUtils.GetGinContext(w, req)
+	handler.Signup(c)
 
 	res := w.Result()
-	if err := res.Body.Close(); err != nil {
-		t.Fatalf("failed to close response body: %v", err)
-	}
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 
@@ -130,7 +129,6 @@ func TestSignup_UserCreationFails(t *testing.T) {
 	}
 	bodyBytes, _ := json.Marshal(input)
 
-	// Simulate error from CreateUser
 	mockUserService.
 		On("CreateUser", input.Fullname, input.Username, input.Email, input.Password).
 		Return((*UserDomain.User)(nil), "", fmt.Errorf("user exists"))
@@ -138,12 +136,13 @@ func TestSignup_UserCreationFails(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewReader(bodyBytes))
 	w := httptest.NewRecorder()
 
-	handler.Signup(w, req)
+	c := TestUtils.GetGinContext(w, req)
+	handler.Signup(c)
 
 	res := w.Result()
-	if err := res.Body.Close(); err != nil {
-		t.Fatalf("failed to close response body: %v", err)
-	}
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	assert.NotEqual(t, http.StatusCreated, res.StatusCode)
 
@@ -153,7 +152,6 @@ func TestSignup_UserCreationFails(t *testing.T) {
 	assert.Contains(t, respBody["error"], "user exists")
 
 	mockUserService.AssertExpectations(t)
-	// Email service should NOT be called on failure
 	mockEmailService.AssertNotCalled(t, "SendVerifyAccountEmail", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
@@ -168,14 +166,14 @@ func TestSignup_EmptyRequestBody(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewReader([]byte{})) // empty body
 	w := httptest.NewRecorder()
 
-	handler.Signup(w, req)
+	c := TestUtils.GetGinContext(w, req)
+	handler.Signup(c)
 
 	res := w.Result()
-	if err := res.Body.Close(); err != nil {
-		t.Fatalf("failed to close response body: %v", err)
-	}
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
-	// Should fail with invalid JSON (empty body)
 	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 
 	var respBody map[string]string
