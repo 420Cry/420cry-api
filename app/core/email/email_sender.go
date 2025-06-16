@@ -1,5 +1,5 @@
-// Package core provides core functionalities for email.
-package core
+// Package emailcore provides core functionalities for email.
+package emailcore
 
 import (
 	"fmt"
