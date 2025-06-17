@@ -31,13 +31,12 @@ func TestUserService_CreateUser_NewUser_Success(t *testing.T) {
 	mockUserRepo.On("Save", mock.AnythingOfType("*models.User")).Return(nil)
 
 	// Execute
-	user, token, err := userSvc.CreateUser(fullname, username, email, password)
+	user, err := userSvc.CreateUser(fullname, username, email, password)
 
 	// Assertions
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
 	assert.Equal(t, username, user.Username)
-	assert.NotEmpty(t, token)
 
 	mockUserRepo.AssertExpectations(t)
 }
@@ -63,11 +62,11 @@ func TestUserService_CreateUser_ExistingUnverifiedUser_RefreshToken(t *testing.T
 		return u.VerificationTokens != "oldtoken"
 	})).Return(nil)
 
-	user, token, err := userSvc.CreateUser("John Doe", existingUser.Username, existingUser.Email, "password123")
+	user, err := userSvc.CreateUser("John Doe", existingUser.Username, existingUser.Email, "password123")
 
 	assert.NoError(t, err)
 	assert.Equal(t, existingUser.Username, user.Username)
-	assert.NotEqual(t, "oldtoken", token)
+	assert.NotEqual(t, "oldtoken", user.VerificationTokens)
 
 	mockUserRepo.AssertExpectations(t)
 }

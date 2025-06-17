@@ -8,7 +8,7 @@ import (
 
 // EmailServiceInterface provides all EmailService methods
 type EmailServiceInterface interface {
-	SendVerifyAccountEmail(to, from, username, link, token string) error
+	SendVerifyAccountEmail(to, from, username, verificationLink, verificationTokens string) error
 }
 
 // EmailService provides operations for sending emails

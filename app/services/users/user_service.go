@@ -22,7 +22,7 @@ type UserService struct {
 
 // UserServiceInterface defines the contract for user service methods.
 type UserServiceInterface interface {
-	CreateUser(fullname, username, email, password string) (*UserModel.User, string, error)
+	CreateUser(fullname, username, email, password string) (*UserModel.User, error)
 	AuthenticateUser(username, password string) (*UserModel.User, error)
 	VerifyUserWithTokens(userToken, verifyToken string) (*UserModel.User, error)
 	CheckAccountVerificationToken(token string) (*UserModel.User, error)
@@ -36,42 +36,37 @@ func NewUserService(userRepo UserRepository.UserRepository, emailService EmailSe
 }
 
 // CreateUser creates a new user or refreshes the verification token if user exists but is unverified.
-// Returns the created user, a verification token string, or an error.
-func (s *UserService) CreateUser(fullname, username, email, password string) (*UserModel.User, string, error) {
+// Returns the created user or an error.
+func (s *UserService) CreateUser(fullname, username, email, password string) (*UserModel.User, error) {
 	// Check if a user with the same username or email already exists
 	existingUser, err := s.userRepo.FindByUsernameOrEmail(username, email)
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
 	if existingUser != nil {
 		// Handle existing user case: refresh token if unverified and expired
 		refreshed, err := s.handleExistingUser(existingUser, username, email)
 		if err != nil {
-			return nil, "", err
+			return nil, err
 		}
 		if refreshed != nil {
-			return refreshed, refreshed.VerificationTokens, nil
+			return refreshed, nil
 		}
 	}
 
 	// Create a new user instance using factory
 	newUser, err := factories.NewUser(fullname, username, email, password)
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
 	// Persist the new user to the repository
 	if err := s.userRepo.Save(newUser); err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
-	// Return the verification/signup token if available
-	token := ""
-	if newUser.AccountVerificationToken != nil {
-		token = *newUser.AccountVerificationToken
-	}
-	return newUser, token, nil
+	return newUser, nil
 }
 
 // AuthenticateUser verifies the username and password and returns the user if valid and verified.

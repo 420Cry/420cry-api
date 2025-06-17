@@ -2,7 +2,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -21,9 +20,6 @@ func (h *UserController) VerifyAccountToken(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
-
-	fmt.Printf("VerifyAccountToken request: %+v\n", req)
-
 	token := req.Token
 	if token == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Token is required"})

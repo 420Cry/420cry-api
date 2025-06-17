@@ -29,14 +29,20 @@ func (h *UserController) Signup(c *gin.Context) {
 		return
 	}
 
-	createdUser, token, err := h.UserService.CreateUser(input.Fullname, input.Username, input.Email, input.Password)
+	createdUser, err := h.UserService.CreateUser(input.Fullname, input.Username, input.Email, input.Password)
 	if err != nil {
-		c.JSON(mapUserCreationErrorToStatusCode(err.Error()), gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create user"})
 		return
 	}
 
-	go func(user *UserModel.User, token string, cfg *EnvTypes.EnvConfig) {
-		verificationLink := fmt.Sprintf("%s/auth/signup/verify?token=%s", cfg.CryAppURL, token)
+	// Send email asynchronously
+	go func(user *UserModel.User, cfg *EnvTypes.EnvConfig) {
+		if user.AccountVerificationToken == nil {
+			log.Printf("Cannot send email: account verification token is nil")
+			return
+		}
+
+		verificationLink := fmt.Sprintf("%s/auth/signup/verify?token=%s", cfg.CryAppURL, *user.AccountVerificationToken)
 		err := h.EmailService.SendVerifyAccountEmail(
 			user.Email,
 			cfg.NoReplyEmail,
@@ -47,21 +53,7 @@ func (h *UserController) Signup(c *gin.Context) {
 		if err != nil {
 			log.Printf("Failed to send verification email to %s: %v", user.Email, err)
 		}
-	}(createdUser, token, cfg)
+	}(createdUser, cfg)
 
 	c.JSON(http.StatusCreated, gin.H{"success": true})
-}
-
-// mapUserCreationErrorToStatusCode maps the error message to an HTTP status code
-func mapUserCreationErrorToStatusCode(errMessage string) int {
-	switch errMessage {
-	case "username is already taken":
-		return http.StatusConflict
-	case "email is already taken":
-		return http.StatusConflict
-	case "failed to generate signup token":
-		return http.StatusInternalServerError
-	default:
-		return http.StatusInternalServerError
-	}
 }

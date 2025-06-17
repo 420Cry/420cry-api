@@ -12,10 +12,10 @@ type MockUserService struct {
 }
 
 // CreateUser mocks CreateUser from  UserService
-func (m *MockUserService) CreateUser(fullname, username, email, password string) (*UserModel.User, string, error) {
+func (m *MockUserService) CreateUser(fullname, username, email, password string) (*UserModel.User, error) {
 	args := m.Called(fullname, username, email, password)
 	user, _ := args.Get(0).(*UserModel.User)
-	return user, args.String(1), args.Error(2)
+	return user, args.Error(1)
 }
 
 // AuthenticateUser mocks AuthenticateUser from UserService

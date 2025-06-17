@@ -46,7 +46,7 @@ func SetupCORS(cfg *Env.EnvConfig) gin.HandlerFunc {
 		MaxAge:           12 * time.Hour,
 
 		AllowOriginFunc: func(origin string) bool {
-			return origin == "" || origin == cfg.CryAppURL
+			return origin == cfg.CryAppURL
 		},
 	})
 }

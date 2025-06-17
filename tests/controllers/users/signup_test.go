@@ -36,25 +36,29 @@ func TestSignup_Success(t *testing.T) {
 	}
 	bodyBytes, _ := json.Marshal(input)
 
+	dummyToken := "verify123"
+	dummyAccountToken := "account123"
+
 	dummyUser := &UserModel.User{
-		Email:              input.Email,
-		Username:           input.Username,
-		VerificationTokens: "verify123",
+		Email:                    input.Email,
+		Username:                 input.Username,
+		VerificationTokens:       dummyToken,
+		AccountVerificationToken: &dummyAccountToken,
 	}
 
 	done := make(chan struct{})
 
 	mockUserService.
 		On("CreateUser", input.Fullname, input.Username, input.Email, input.Password).
-		Return(dummyUser, "token123", nil)
+		Return(dummyUser, nil)
 
 	mockEmailService.
 		On("SendVerifyAccountEmail",
-			mock.Anything,
-			mock.Anything,
-			mock.Anything,
-			mock.Anything,
-			mock.Anything,
+			dummyUser.Email,
+			mock.Anything, // from
+			dummyUser.Username,
+			mock.Anything, // verification link
+			dummyUser.VerificationTokens,
 		).
 		Return(nil).
 		Run(func(_ mock.Arguments) {
@@ -64,7 +68,6 @@ func TestSignup_Success(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewReader(bodyBytes))
 	w := httptest.NewRecorder()
 
-	// Use Gin context helper for consistency
 	c := TestUtils.GetGinContext(w, req)
 	userController.Signup(c)
 
@@ -117,6 +120,7 @@ func TestSignup_InvalidJSON(t *testing.T) {
 func TestSignup_UserCreationFails(t *testing.T) {
 	mockUserService := new(testmocks.MockUserService)
 	mockEmailService := new(testmocks.MockEmailService)
+
 	userController := &controller.UserController{
 		UserService:  mockUserService,
 		EmailService: mockEmailService,
@@ -132,7 +136,7 @@ func TestSignup_UserCreationFails(t *testing.T) {
 
 	mockUserService.
 		On("CreateUser", input.Fullname, input.Username, input.Email, input.Password).
-		Return((*UserModel.User)(nil), "", fmt.Errorf("user exists"))
+		Return(nil, fmt.Errorf("user exists")) // updated: no second string value
 
 	req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewReader(bodyBytes))
 	w := httptest.NewRecorder()
@@ -150,21 +154,26 @@ func TestSignup_UserCreationFails(t *testing.T) {
 	var respBody map[string]string
 	err := json.NewDecoder(res.Body).Decode(&respBody)
 	assert.NoError(t, err)
-	assert.Contains(t, respBody["error"], "user exists")
+	assert.Equal(t, "Could not create user", respBody["error"])
 
 	mockUserService.AssertExpectations(t)
-	mockEmailService.AssertNotCalled(t, "SendVerifyAccountEmail", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	mockEmailService.AssertNotCalled(
+		t,
+		"SendVerifyAccountEmail",
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+	)
 }
 
 func TestSignup_EmptyRequestBody(t *testing.T) {
 	mockUserService := new(testmocks.MockUserService)
 	mockEmailService := new(testmocks.MockEmailService)
+
 	userController := &controller.UserController{
 		UserService:  mockUserService,
 		EmailService: mockEmailService,
 	}
 
-	req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewReader([]byte{})) // empty body
+	req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewReader([]byte{}))
 	w := httptest.NewRecorder()
 
 	c := TestUtils.GetGinContext(w, req)
