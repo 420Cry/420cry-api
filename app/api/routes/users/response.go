@@ -10,7 +10,7 @@ RespondJSON writes the given payload as a JSON response with the specified HTTP 
 It sets the "Content-Type" header to "application/json" and encodes the payload to the response writer.
 If encoding fails, it sends an internal server error response.
 */
-func RespondJSON(w http.ResponseWriter, status int, payload interface{}) {
+func RespondJSON(w http.ResponseWriter, status int, payload any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(payload); err != nil {

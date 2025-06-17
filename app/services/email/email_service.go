@@ -7,6 +7,12 @@ import (
 	"log"
 )
 
+// EmailServiceInterface provides all EmailService methods
+type EmailServiceInterface interface {
+	SendVerifyAccountEmail(to, from, username, link, token string) error
+	SendResetPasswordEmail(to, from, userName, resetPasswordLink string) error
+}
+
 // EmailService provides operations for sending emails
 type EmailService struct {
 	emailSender EmailSender
@@ -31,29 +37,25 @@ func (service *EmailService) SendVerifyAccountEmail(to, from, userName, verifica
 
 	email, err := EmailDomain.CreateVerifyAccountEmail(to, from, userName, verificationLink, verificationTokens)
 	if err != nil {
-		log.Printf("Error creating email template: %v", err)
 		return err
 	}
 
 	// Send the email via the core layer
 	err = service.emailSender.Send(email)
 	if err != nil {
-		log.Printf("Error sending email: %v", err)
 		return err
 	}
-
-	log.Printf("Email sent successfully to %s", email.To)
 	return nil
 }
 
 // SendResetPasswordEmail creates the reset password email and send to the user
-func (service *EmailService) SendResetPasswordEmail(to, from, userName, resetPasswordLink string) error {
+func (service *EmailService) SendResetPasswordEmail(to, from, userName, resetPasswordLink, API_URL string) error {
 	to = utils.SanitizeInput(to)
 	userName = utils.SanitizeInput(userName)
 	resetPasswordLink = utils.SanitizeInput(resetPasswordLink)
 
 	// Creating email template
-	email, err := EmailDomain.CreateResetPasswordRequestEmail(to, from, userName, resetPasswordLink)
+	email, err := EmailDomain.CreateResetPasswordRequestEmail(to, from, userName, resetPasswordLink, API_URL)
 
 	if err != nil {
 		log.Printf("Error creating email template: %v", err)

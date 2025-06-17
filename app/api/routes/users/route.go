@@ -3,18 +3,18 @@ package users
 import (
 	"cry-api/app/config"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-// RegisterRoutes registers the user-related HTTP routes with the provided router.
-func RegisterRoutes(r *mux.Router, db *gorm.DB) {
+// RegisterRoutes registers the user-related HTTP routes with the provided Gin router group.
+func RegisterRoutes(rg *gin.RouterGroup, db *gorm.DB) {
 	cfg := config.Get()
 	handler := NewHandler(db, cfg)
 
-	r.HandleFunc("/signup", handler.Signup).Methods("POST")
-	r.HandleFunc("/verify-email-token", handler.VerifyEmailToken).Methods("POST")
-	r.HandleFunc("/verify-account-token", handler.VerificationAccountToken).Methods("POST")
-	r.HandleFunc("/test", handler.Test).Methods("GET")
-	r.HandleFunc("/reset-password-request", handler.HandleResetPasswordRequest).Methods("POST")
+	rg.POST("/signup", handler.Signup)
+	rg.POST("/verify-email-token", handler.VerifyEmailToken)
+	rg.POST("/verify-account-token", handler.VerifyAccountToken)
+	rg.POST("/signin", handler.SignIn)
+	rg.POST("/reset-password-request", handler.HandleResetPasswordRequest)
 }

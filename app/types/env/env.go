@@ -10,6 +10,7 @@ type SMTPConfig struct {
 // EnvConfig maps environment variables to application configuration fields.
 type EnvConfig struct {
 	CryAppURL    string
+	CryApiURL		 string
 	APIPort      int
 	DBHost       string
 	DBPort       int

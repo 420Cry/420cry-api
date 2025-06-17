@@ -1,63 +1,52 @@
-// server main. this should be refactored
+// Package main provides server configuration and start up logic
 package main
 
 import (
 	"log"
-	"net/http"
 	"strconv"
 	"time"
 
 	"cry-api/app/api"
 	"cry-api/app/config"
 	"cry-api/app/database"
+	Env "cry-api/app/types/env"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	// Load the configuration settings
 	cfg := config.Get()
+
 	dbConn, err := database.GetDBConnection()
 	if err != nil {
 		log.Fatal("Database connection failed: ", err)
 	}
-
-	// Set up the router
-	r := mux.NewRouter()
 	db := dbConn.GetDB()
 
-	// Register all routes dynamically
-	api.RegisterAllRoutes(r, db)
+	router := gin.Default()
 
-	// Wrap router with CORS middleware
-	corsRouter := enableCORS(r)
+	router.Use(SetupCORS(cfg))
 
-	// Log when the server is starting
-	log.Println("Server started on port " + strconv.Itoa(cfg.APIPort))
+	api.RegisterAllRoutes(router, db)
 
-	// Define the HTTP server
-	server := &http.Server{
-		Addr:              ":" + strconv.Itoa(cfg.APIPort),
-		Handler:           corsRouter,
-		ReadHeaderTimeout: 5 * time.Second,
-	}
-
-	// Start the server and check for errors
-	if err := server.ListenAndServe(); err != nil {
-		log.Fatalf("Server failed to start: %v", err)
+	if err := router.Run(":" + strconv.Itoa(cfg.APIPort)); err != nil {
+		log.Fatal("Failed to run server: ", err)
 	}
 }
 
-// CORS middleware to allow all origins
-func enableCORS(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-		next.ServeHTTP(w, r)
+// SetupCORS funcs provides config and setups CORS
+func SetupCORS(cfg *Env.EnvConfig) gin.HandlerFunc {
+	return cors.New(cors.Config{
+		AllowOrigins:     []string{cfg.CryAppURL},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+
+		AllowOriginFunc: func(origin string) bool {
+			return origin == "" || origin == cfg.CryAppURL
+		},
 	})
 }
