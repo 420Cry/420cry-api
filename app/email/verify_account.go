@@ -29,7 +29,7 @@ func CreateVerifyAccountEmail(to, from, userName, verificationLink, token string
 		"Year":             time.Now().Year(),
 	}
 
-	templatePath := "app/email/templates/verify_account.html"
+	templatePath := "api/app/email/templates/verify_account.html"
 	htmlBody, err := RenderTemplate(templatePath, data)
 	if err != nil {
 		return EmailMessage{}, fmt.Errorf("template render error: %w", err)
