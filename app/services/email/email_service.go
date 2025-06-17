@@ -2,7 +2,7 @@
 package services
 
 import (
-	EmailDomain "cry-api/app/domain/email"
+	Email "cry-api/app/email"
 	"cry-api/app/utils"
 )
 
@@ -18,7 +18,7 @@ type EmailService struct {
 
 // EmailSender is an interface for sending emails
 type EmailSender interface {
-	Send(email EmailDomain.EmailMessage) error
+	Send(email Email.EmailMessage) error
 }
 
 // NewEmailService creates a new instance of EmailService
@@ -33,7 +33,7 @@ func (service *EmailService) SendVerifyAccountEmail(to, from, userName, verifica
 	userName = utils.SanitizeInput(userName)
 	verificationLink = utils.SanitizeInput(verificationLink)
 
-	email, err := EmailDomain.CreateVerifyAccountEmail(to, from, userName, verificationLink, verificationTokens)
+	email, err := Email.CreateVerifyAccountEmail(to, from, userName, verificationLink, verificationTokens)
 	if err != nil {
 		return err
 	}
