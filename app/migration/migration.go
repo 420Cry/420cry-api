@@ -5,7 +5,7 @@ import (
 	"log"
 
 	database "cry-api/app/database"
-	UserDomain "cry-api/app/domain/users"
+	UserModel "cry-api/app/models"
 )
 
 func main() {
@@ -15,7 +15,7 @@ func main() {
 	}
 
 	// Run AutoMigrate for the User model (create tables if not already there)
-	err = dbConn.AutoMigrate(&UserDomain.User{})
+	err = dbConn.AutoMigrate(&UserModel.User{})
 	if err != nil {
 		log.Fatal("Auto-migration failed: ", err)
 	}

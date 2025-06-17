@@ -5,11 +5,11 @@ BINARY_NAME=cry-api
 
 # Build the Go application
 build:
-	go build -o $(BINARY_NAME) app/server/server.go
+	go build -o $(BINARY_NAME) app/cmd/main.go
 
 # Run the Go application
 run:
-	go run app/server/server.go
+	go run app/cmd/main.go
 
 # Clean the project (remove binaries)
 clean:
