@@ -13,7 +13,7 @@ type User struct {
 	Email                      string    `json:"email" gorm:"unique;not null"`
 	Fullname                   string    `json:"fullname"`
 	Password                   string    `json:"-" gorm:"not null"`
-	Token                      *string   `json:"token,omitempty" gorm:"unique"`
+	AccountVerificationToken   *string   `json:"account_verification_token,omitempty" gorm:"unique"`
 	VerificationTokens         string    `json:"verification_tokens,omitempty" gorm:"size:6"`
 	VerificationTokenCreatedAt time.Time `json:"verification_token_created_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
 	IsVerified                 bool      `json:"is_verified" gorm:"not null;default:false"`

@@ -37,7 +37,7 @@ func (h *UserController) VerifyAccountToken(c *gin.Context) {
 	}
 
 	timeLimit := time.Now().Add(-24 * time.Hour)
-	if user.Token == nil || *user.Token != token || user.VerificationTokenCreatedAt.Before(timeLimit) {
+	if user.AccountVerificationToken == nil || *user.AccountVerificationToken != token || user.VerificationTokenCreatedAt.Before(timeLimit) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Token is invalid or expired"})
 		return
 	}

@@ -24,7 +24,7 @@ func TestVerifyAccountToken_Success(t *testing.T) {
 
 	token := "valid-token-123"
 	user := &UserModel.User{
-		Token:                      &token,
+		AccountVerificationToken:   &token,
 		VerificationTokenCreatedAt: time.Now(),
 	}
 
@@ -121,7 +121,7 @@ func TestVerifyAccountToken_TokenMismatchOrExpired(t *testing.T) {
 	requestToken := "valid-token-123"
 	storedToken := "different-token"
 	user := &UserModel.User{
-		Token:                      &storedToken,
+		AccountVerificationToken:   &storedToken,
 		VerificationTokenCreatedAt: time.Now().Add(-25 * time.Hour), // expired
 	}
 
