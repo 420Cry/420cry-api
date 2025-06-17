@@ -20,16 +20,16 @@ import (
 // Returns:
 //   - an EmailMessage with subject "Verify Your Account" and the rendered HTML body
 //   - an error if the template rendering fails
-func CreateVerifyAccountEmail(to, from, userName, verificationLink, token string) (EmailMessage, error) {
+func CreateVerifyAccountEmail(to, from, userName, verificationLink, verificationToken string) (EmailMessage, error) {
 	data := map[string]any{
 		"UserName":         userName,
 		"AppName":          "420Cry",
 		"VerificationLink": verificationLink,
-		"Token":            token,
+		"Token":            verificationToken,
 		"Year":             time.Now().Year(),
 	}
 
-	templatePath := "api/app/email/templates/verify_account.html"
+	templatePath := "app/app/email/templates/verify_account.html"
 	htmlBody, err := RenderTemplate(templatePath, data)
 	if err != nil {
 		return EmailMessage{}, fmt.Errorf("template render error: %w", err)

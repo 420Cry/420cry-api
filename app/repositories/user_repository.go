@@ -128,27 +128,11 @@ func (repo *GormUserRepository) FindByVerificationToken(token string) (*UserMode
 	return &user, nil
 }
 
-// FindByUserToken retrieves a user from the database by their token.
-func (repo *GormUserRepository) FindByUserToken(token string) (*UserModel.User, error) {
-	var user UserModel.User
-	err := repo.db.Where("verification_tokens = ?", token).First(&user).Error
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
-		return nil, err
-	}
-	if time.Since(user.VerificationTokenCreatedAt) > 24*time.Hour {
-		return nil, fmt.Errorf("user token expired")
-	}
-	return &user, nil
-}
-
 // FindByAccountVerificationToken retrieves a user by their account verification token.
 // Returns (nil, nil) if not found, or an error if a DB error occurs.
 func (repo *GormUserRepository) FindByAccountVerificationToken(token string) (*UserModel.User, error) {
 	var user UserModel.User
-	err := repo.db.Where("token = ?", token).First(&user).Error
+	err := repo.db.Where("account_verification_token = ?", token).First(&user).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil

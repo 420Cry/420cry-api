@@ -12,14 +12,15 @@ import (
 	UserModel "cry-api/app/models"
 	UserTypes "cry-api/app/types/users"
 	TestUtils "cry-api/app/utils/tests"
+	testmocks "cry-api/tests/mocks"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestSignIn_Success(t *testing.T) {
-	mockUserService := new(MockUserService)
-	mockEmailService := new(MockEmailService) // needed for Handler struct
+	mockUserService := new(testmocks.MockUserService)
+	mockEmailService := new(testmocks.MockEmailService) // needed for Handler struct
 
 	userController := &controller.UserController{
 		UserService:  mockUserService,
@@ -74,8 +75,8 @@ func TestSignIn_Success(t *testing.T) {
 }
 
 func TestSignIn_InvalidJSON(t *testing.T) {
-	mockUserService := new(MockUserService)
-	mockEmailService := new(MockEmailService)
+	mockUserService := new(testmocks.MockUserService)
+	mockEmailService := new(testmocks.MockEmailService)
 
 	userController := &controller.UserController{
 		UserService:  mockUserService,
@@ -105,8 +106,8 @@ func TestSignIn_InvalidJSON(t *testing.T) {
 }
 
 func TestSignIn_AuthenticationFails(t *testing.T) {
-	mockUserService := new(MockUserService)
-	mockEmailService := new(MockEmailService)
+	mockUserService := new(testmocks.MockUserService)
+	mockEmailService := new(testmocks.MockEmailService)
 
 	userController := &controller.UserController{
 		UserService:  mockUserService,

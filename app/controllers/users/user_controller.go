@@ -1,4 +1,3 @@
-// Package controllers contains HTTP handlers for user-related operations.
 package controllers
 
 import (
@@ -19,15 +18,6 @@ type UserController struct {
 
 /*
 NewUserController initializes and returns a new NewUserController instance with its dependencies.
-It sets up the user repository, email sender, email service, and user service
-using the provided GORM database connection and environment configuration.
-
-Parameters:
-  - db:   A pointer to the GORM database instance.
-  - cfg:  A pointer to the environment configuration.
-
-Returns:
-  - A pointer to the initialized Handler.
 */
 func NewUserController(db *gorm.DB, cfg *EnvTypes.EnvConfig) *UserController {
 	userRepository := UserRepository.NewGormUserRepository(db)

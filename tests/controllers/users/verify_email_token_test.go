@@ -11,12 +11,13 @@ import (
 	UserModel "cry-api/app/models"
 	UserTypes "cry-api/app/types/users"
 	TestUtils "cry-api/app/utils/tests"
+	testmocks "cry-api/tests/mocks"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestVerifyEmailToken_Success(t *testing.T) {
-	mockUserService := new(MockUserService)
+	mockUserService := new(testmocks.MockUserService)
 
 	userController := &controller.UserController{
 		UserService: mockUserService,
@@ -58,7 +59,7 @@ func TestVerifyEmailToken_Success(t *testing.T) {
 }
 
 func TestVerifyEmailToken_InvalidJSON(t *testing.T) {
-	mockUserService := new(MockUserService)
+	mockUserService := new(testmocks.MockUserService)
 
 	userController := &controller.UserController{
 		UserService: mockUserService,
@@ -84,7 +85,7 @@ func TestVerifyEmailToken_InvalidJSON(t *testing.T) {
 }
 
 func TestVerifyEmailToken_VerificationFails(t *testing.T) {
-	mockUserService := new(MockUserService)
+	mockUserService := new(testmocks.MockUserService)
 
 	userController := &controller.UserController{
 		UserService: mockUserService,
