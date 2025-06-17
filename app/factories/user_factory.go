@@ -48,6 +48,8 @@ func NewUser(fullname, username, email, password string) (*models.User, error) {
 		VerificationTokenCreatedAt: time.Now(),        // Timestamp of token creation
 		IsVerified:                 false,             // User starts as unverified
 		CreatedAt:                  time.Now(),        // Creation timestamp
+		TwoFASecret:                nil,               // Default disable 2fa
+		TwoFAEnabled:               false,             // Default disable 2fa
 	}
 	return user, nil
 }
