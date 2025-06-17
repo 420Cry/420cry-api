@@ -13,14 +13,15 @@ import (
 	UserModel "cry-api/app/models"
 	UserTypes "cry-api/app/types/users"
 	TestUtils "cry-api/app/utils/tests"
+	testmocks "cry-api/tests/mocks"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestSignup_Success(t *testing.T) {
-	mockUserService := new(MockUserService)
-	mockEmailService := new(MockEmailService)
+	mockUserService := new(testmocks.MockUserService)
+	mockEmailService := new(testmocks.MockEmailService)
 
 	userController := &controller.UserController{
 		UserService:  mockUserService,
@@ -86,8 +87,8 @@ func TestSignup_Success(t *testing.T) {
 }
 
 func TestSignup_InvalidJSON(t *testing.T) {
-	mockUserService := new(MockUserService)
-	mockEmailService := new(MockEmailService)
+	mockUserService := new(testmocks.MockUserService)
+	mockEmailService := new(testmocks.MockEmailService)
 	userController := &controller.UserController{
 		UserService:  mockUserService,
 		EmailService: mockEmailService,
@@ -114,8 +115,8 @@ func TestSignup_InvalidJSON(t *testing.T) {
 }
 
 func TestSignup_UserCreationFails(t *testing.T) {
-	mockUserService := new(MockUserService)
-	mockEmailService := new(MockEmailService)
+	mockUserService := new(testmocks.MockUserService)
+	mockEmailService := new(testmocks.MockEmailService)
 	userController := &controller.UserController{
 		UserService:  mockUserService,
 		EmailService: mockEmailService,
@@ -156,8 +157,8 @@ func TestSignup_UserCreationFails(t *testing.T) {
 }
 
 func TestSignup_EmptyRequestBody(t *testing.T) {
-	mockUserService := new(MockUserService)
-	mockEmailService := new(MockEmailService)
+	mockUserService := new(testmocks.MockUserService)
+	mockEmailService := new(testmocks.MockEmailService)
 	userController := &controller.UserController{
 		UserService:  mockUserService,
 		EmailService: mockEmailService,

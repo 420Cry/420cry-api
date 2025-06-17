@@ -11,12 +11,13 @@ import (
 	controller "cry-api/app/controllers/users"
 	UserModel "cry-api/app/models"
 	TestUtils "cry-api/app/utils/tests"
+	testmocks "cry-api/tests/mocks"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestVerifyAccountToken_Success(t *testing.T) {
-	mockUserService := new(MockUserService)
+	mockUserService := new(testmocks.MockUserService)
 
 	userController := &controller.UserController{
 		UserService: mockUserService,
@@ -53,7 +54,7 @@ func TestVerifyAccountToken_Success(t *testing.T) {
 }
 
 func TestVerifyAccountToken_InvalidJSON(t *testing.T) {
-	mockUserService := new(MockUserService)
+	mockUserService := new(testmocks.MockUserService)
 
 	userController := &controller.UserController{
 		UserService: mockUserService,
@@ -79,7 +80,7 @@ func TestVerifyAccountToken_InvalidJSON(t *testing.T) {
 }
 
 func TestVerifyAccountToken_UserNotFound(t *testing.T) {
-	mockUserService := new(MockUserService)
+	mockUserService := new(testmocks.MockUserService)
 
 	userController := &controller.UserController{
 		UserService: mockUserService,
@@ -111,7 +112,7 @@ func TestVerifyAccountToken_UserNotFound(t *testing.T) {
 }
 
 func TestVerifyAccountToken_TokenMismatchOrExpired(t *testing.T) {
-	mockUserService := new(MockUserService)
+	mockUserService := new(testmocks.MockUserService)
 
 	userController := &controller.UserController{
 		UserService: mockUserService,
