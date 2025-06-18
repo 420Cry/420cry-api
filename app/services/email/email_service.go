@@ -2,15 +2,15 @@
 package services
 
 import (
-	EmailDomain "cry-api/app/domain/email"
+	Email "cry-api/app/email"
 	"cry-api/app/utils"
 	"log"
 )
 
 // EmailServiceInterface provides all EmailService methods
 type EmailServiceInterface interface {
-	SendVerifyAccountEmail(to, from, username, link, token string) error
-	SendResetPasswordEmail(to, from, userName, resetPasswordLink string) error
+	SendVerifyAccountEmail(to, from, username, verificationLink, verificationTokens string) error
+	SendResetPasswordEmail(to, from, username, resetPasswordLink, APIURL string) error
 }
 
 // EmailService provides operations for sending emails
@@ -20,7 +20,7 @@ type EmailService struct {
 
 // EmailSender is an interface for sending emails
 type EmailSender interface {
-	Send(email EmailDomain.EmailMessage) error
+	Send(email Email.EmailMessage) error
 }
 
 // NewEmailService creates a new instance of EmailService
@@ -35,7 +35,7 @@ func (service *EmailService) SendVerifyAccountEmail(to, from, userName, verifica
 	userName = utils.SanitizeInput(userName)
 	verificationLink = utils.SanitizeInput(verificationLink)
 
-	email, err := EmailDomain.CreateVerifyAccountEmail(to, from, userName, verificationLink, verificationTokens)
+	email, err := Email.CreateVerifyAccountEmail(to, from, userName, verificationLink, verificationTokens)
 	if err != nil {
 		return err
 	}
@@ -49,13 +49,13 @@ func (service *EmailService) SendVerifyAccountEmail(to, from, userName, verifica
 }
 
 // SendResetPasswordEmail creates the reset password email and send to the user
-func (service *EmailService) SendResetPasswordEmail(to, from, userName, resetPasswordLink, API_URL string) error {
+func (service *EmailService) SendResetPasswordEmail(to, from, userName, resetPasswordLink, APIURL string) error {
 	to = utils.SanitizeInput(to)
 	userName = utils.SanitizeInput(userName)
 	resetPasswordLink = utils.SanitizeInput(resetPasswordLink)
 
 	// Creating email template
-	email, err := EmailDomain.CreateResetPasswordRequestEmail(to, from, userName, resetPasswordLink, API_URL)
+	email, err := Email.CreateResetPasswordRequestEmail(to, from, userName, resetPasswordLink, APIURL)
 
 	if err != nil {
 		log.Printf("Error creating email template: %v", err)

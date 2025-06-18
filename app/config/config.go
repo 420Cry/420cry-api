@@ -47,10 +47,10 @@ func Load() *types.EnvConfig {
 		cryAppURL = "https://" + cryAppURL
 	}
 
-	// CryApiUrl
-	CryApiURL := os.Getenv("CRY_API_URL")
-	if !strings.HasPrefix(CryApiURL, "http://") && !strings.HasPrefix(CryApiURL, "https://") {
-		CryApiURL = "https://" + CryApiURL
+	// CryAPIURL
+	CryAPIURL := os.Getenv("CRY_API_URL")
+	if !strings.HasPrefix(CryAPIURL, "http://") && !strings.HasPrefix(CryAPIURL, "https://") {
+		CryAPIURL = "https://" + CryAPIURL
 	}
 
 	// Load API Port with a fallback value
@@ -74,7 +74,7 @@ func Load() *types.EnvConfig {
 	// Set the config instance
 	configInstance = &types.EnvConfig{
 		CryAppURL:    cryAppURL,
-		CryApiURL:    CryApiURL,
+		CryAPIURL:    CryAPIURL,
 		APIPort:      apiPort,
 		DBHost:       dbHost,
 		DBPort:       dbPort,
