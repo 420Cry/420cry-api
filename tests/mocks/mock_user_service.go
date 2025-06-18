@@ -25,6 +25,13 @@ func (m *MockUserService) AuthenticateUser(username, password string) (*UserMode
 	return user, args.Error(1)
 }
 
+// GetUserByUUID mocks GetUserByUUID from UserService
+func (m *MockUserService) GetUserByUUID(uuid string) (*UserModel.User, error) {
+	args := m.Called(uuid)
+	user, _ := args.Get(0).(*UserModel.User)
+	return user, args.Error(1)
+}
+
 // VerifyUserWithTokens mocks VerifyUserWithTokens from UserService
 func (m *MockUserService) VerifyUserWithTokens(userToken, verifyToken string) (*UserModel.User, error) {
 	args := m.Called(userToken, verifyToken)

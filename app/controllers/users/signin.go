@@ -34,10 +34,11 @@ func (h *UserController) SignIn(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"jwt": jwt,
 		"user": gin.H{
-			"uuid":     user.UUID,
-			"fullname": user.Fullname,
-			"email":    user.Email,
-			"username": user.Username,
+			"uuid":         user.UUID,
+			"fullname":     user.Fullname,
+			"email":        user.Email,
+			"username":     user.Username,
+			"twoFAEnabled": user.TwoFAEnabled,
 		},
 	})
 }

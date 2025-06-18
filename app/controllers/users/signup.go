@@ -2,6 +2,7 @@
 package controllers
 
 import (
+	SignUpError "cry-api/app/types/errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -30,6 +31,10 @@ func (h *UserController) Signup(c *gin.Context) {
 	}
 
 	createdUser, err := h.UserService.CreateUser(input.Fullname, input.Username, input.Email, input.Password)
+	if err == SignUpError.ErrUserConflict {
+		c.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
+		return
+	}
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create user"})
 		return

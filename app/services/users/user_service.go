@@ -2,15 +2,15 @@
 package services
 
 import (
-	"errors"
-	"fmt"
-	"time"
-
 	"cry-api/app/factories"
 	UserModel "cry-api/app/models"
 	UserRepository "cry-api/app/repositories"
 	EmailService "cry-api/app/services/email"
 	PasswordService "cry-api/app/services/password"
+	SignUpError "cry-api/app/types/errors"
+	"errors"
+	"fmt"
+	"time"
 )
 
 // UserService handles user-related business logic such as
@@ -23,6 +23,7 @@ type UserService struct {
 // UserServiceInterface defines the contract for user service methods.
 type UserServiceInterface interface {
 	CreateUser(fullname, username, email, password string) (*UserModel.User, error)
+	GetUserByUUID(uuid string) (*UserModel.User, error)
 	AuthenticateUser(username, password string) (*UserModel.User, error)
 	VerifyUserWithTokens(userToken, verifyToken string) (*UserModel.User, error)
 	CheckAccountVerificationToken(token string) (*UserModel.User, error)
@@ -35,8 +36,16 @@ func NewUserService(userRepo UserRepository.UserRepository, emailService EmailSe
 	return &UserService{userRepo: userRepo, emailService: emailService}
 }
 
+// GetUserByUUID returns user or nil
+func (s *UserService) GetUserByUUID(uuid string) (*UserModel.User, error) {
+	user, err := s.userRepo.FindByUUID(uuid)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
 // CreateUser creates a new user or refreshes the verification token if user exists but is unverified.
-// Returns the created user or an error.
 func (s *UserService) CreateUser(fullname, username, email, password string) (*UserModel.User, error) {
 	// Check if a user with the same username or email already exists
 	existingUser, err := s.userRepo.FindByUsernameOrEmail(username, email)
@@ -45,14 +54,8 @@ func (s *UserService) CreateUser(fullname, username, email, password string) (*U
 	}
 
 	if existingUser != nil {
-		// Handle existing user case: refresh token if unverified and expired
-		refreshed, err := s.handleExistingUser(existingUser, username, email)
-		if err != nil {
-			return nil, err
-		}
-		if refreshed != nil {
-			return refreshed, nil
-		}
+		// Return 409 Conflict error if user exists
+		return nil, SignUpError.ErrUserConflict
 	}
 
 	// Create a new user instance using factory
