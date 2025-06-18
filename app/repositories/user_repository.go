@@ -35,6 +35,9 @@ type UserRepository interface {
 
 	// Delete removes a user from the database by their ID.
 	Delete(userID int) error
+
+	// FindByResetPasswordToken retrieves a user by their reset password token
+	FindByResetPasswordToken(token string) (*UserModel.User, error)
 }
 
 // GormUserRepository type
@@ -133,6 +136,20 @@ func (repo *GormUserRepository) FindByVerificationToken(token string) (*UserMode
 func (repo *GormUserRepository) FindByAccountVerificationToken(token string) (*UserModel.User, error) {
 	var user UserModel.User
 	err := repo.db.Where("account_verification_token = ?", token).First(&user).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+// FindByResetPasswordToken retrieves a user by their reset password token
+// Returns (nil, nil) if not found, or an error if a DB error occurs.
+func (repo *GormUserRepository) FindByResetPasswordToken(token string) (*UserModel.User, error) {
+	var user UserModel.User
+	err := repo.db.Where("reset_password_token = ?", token).First(&user).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil

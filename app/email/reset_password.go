@@ -1,6 +1,7 @@
 package mail
 
 import (
+	"cry-api/app/utils"
 	"fmt"
 	"time"
 )
@@ -27,11 +28,14 @@ func CreateResetPasswordRequestEmail(to, from, userName, resetPasswordLink, APIU
 		"Year":              time.Now().Year(),
 	}
 
-	templatePath := "app/email/templates/reset_password.html"
+	// Render a template path based on the environment
+	templatePrefix := utils.GenerateEmailTemplatePrefix()
+
+	templatePath := fmt.Sprintf("%s/reset_password.html", templatePrefix)
 	htmlBody, err := RenderTemplate(templatePath, data)
 	if err != nil {
 		return EmailMessage{}, fmt.Errorf("template render error: %w", err)
 	}
 
-	return NewEmailMessage(to, from, "Verify Your Account", htmlBody), nil
+	return NewEmailMessage(to, from, "Reset Your Password", htmlBody), nil
 }

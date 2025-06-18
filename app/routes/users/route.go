@@ -29,4 +29,10 @@ func RegisterRoutes(rg *gin.RouterGroup, db *gorm.DB) {
 
 	// Route for user signin (login)
 	rg.POST("/signin", userController.SignIn)
+
+	// Route for reset password
+	rg.POST("/reset-password", userController.HandleResetPasswordRequest)
+
+	// Route for verifying reset password token to save new password
+	rg.POST("/verify-password-token/:token", userController.VerifyResetPassword)
 }

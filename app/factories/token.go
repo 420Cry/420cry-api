@@ -37,6 +37,7 @@ func GenerateVerificationToken() (string, error) {
 	return string(b), nil
 }
 
+// GenerateRandomToken for reset password token
 func GenerateRandomToken() (string, error) {
 	tokenLength := 16
 

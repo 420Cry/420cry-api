@@ -41,6 +41,9 @@ func Load() *types.EnvConfig {
 		log.Printf("Warning: Error loading .env file: %v", err)
 	}
 
+	// AppEnv
+	appEnv := os.Getenv("APP_ENV")
+
 	// CryAppUrl
 	cryAppURL := os.Getenv("CRY_APP_URL")
 	if !strings.HasPrefix(cryAppURL, "http://") && !strings.HasPrefix(cryAppURL, "https://") {
@@ -73,6 +76,7 @@ func Load() *types.EnvConfig {
 
 	// Set the config instance
 	configInstance = &types.EnvConfig{
+		AppEnv:       appEnv,
 		CryAppURL:    cryAppURL,
 		CryAPIURL:    CryAPIURL,
 		APIPort:      apiPort,

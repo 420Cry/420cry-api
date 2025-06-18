@@ -83,3 +83,15 @@ func (m *MockUserRepository) Delete(userID int) error {
 	args := m.Called(userID)
 	return args.Error(0)
 }
+
+// FindByResetPasswordToken mocks FindByResetPasswordToken method from UserRepository
+func (m *MockUserRepository) FindByResetPasswordToken(token string) (*models.User, error) {
+	args := m.Called(token)
+
+	user, ok := args.Get(0).(*models.User)
+	if !ok {
+		return nil, args.Error(1)
+	}
+
+	return user, args.Error(1)
+}
