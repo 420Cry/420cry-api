@@ -41,6 +41,8 @@ func NewUser(fullname, username, email, password string) (*models.User, error) {
 		VerificationTokenCreatedAt: time.Now(),
 		IsVerified:                 false,
 		CreatedAt:                  time.Now(),
+		TwoFASecret:                nil,
+		TwoFAEnabled:               false,
 	}
 	return user, nil
 }

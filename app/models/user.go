@@ -19,4 +19,6 @@ type User struct {
 	IsVerified                 bool      `json:"is_verified" gorm:"not null;default:false"`
 	CreatedAt                  time.Time `json:"created_at" gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP"`
 	UpdatedAt                  time.Time `json:"updated_at" gorm:"type:timestamp;default:NULL;autoUpdateTime"`
+	TwoFASecret                *string   `db:"two_fa_secret"`
+	TwoFAEnabled               bool      `db:"two_fa_enabled"`
 }
