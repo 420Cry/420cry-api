@@ -24,8 +24,9 @@ func (m *MockAuthService) SaveTOTPSecret(userUUID, secret string) error {
 	return args.Error(0)
 }
 
-// VerifyOTP mocks VerifyOTP method from AuthService
-func (m *MockAuthService) VerifyOTP(userUUID string, otp string) (bool, error) {
-	args := m.Called(userUUID, otp)
-	return args.Bool(0), args.Error(1)
+// VerifyOTP mocks the VerifyOTP method from AuthService
+func (m *MockAuthService) VerifyOTP(secret string, otp string) (bool, error) {
+	args := m.Called(secret, otp)
+	valid, _ := args.Get(0).(bool)
+	return valid, args.Error(1)
 }

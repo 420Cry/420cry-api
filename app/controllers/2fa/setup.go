@@ -36,15 +36,6 @@ func (h *TwoFactorController) Setup(c *gin.Context) {
 		return
 	}
 
-	// Save the secret to the user model
-	user.TwoFASecret = &secret
-
-	// Persist updated user
-	if err := h.UserService.UpdateUser(user); err != nil {
-		c.JSON(500, gin.H{"error": "Failed to save 2FA secret"})
-		return
-	}
-
 	// Generate base64 QR code
 	qrCode, err := TwoFactorService.GenerateQRCodeBase64(otpauthURL)
 	if err != nil {

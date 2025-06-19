@@ -28,7 +28,7 @@ func NewAuthService(userRepo UserRepository.UserRepository, passwordService Pass
 type AuthServiceInterface interface {
 	AuthenticateUser(username, password string) (*UserModel.User, error)
 	SaveTOTPSecret(userUUID, secret string) error
-	VerifyOTP(userUUID string, otp string) (bool, error)
+	VerifyOTP(secret string, otp string) (bool, error)
 }
 
 // AuthenticateUser verifies username and password, and checks if user is verified.
@@ -73,22 +73,8 @@ func (s *AuthService) SaveTOTPSecret(userUUID, secret string) error {
 }
 
 // VerifyOTP verifies the OTP.
-func (s *AuthService) VerifyOTP(userUUID string, otp string) (bool, error) {
-	// Get user by UUID
-	user, err := s.userRepo.FindByUUID(userUUID)
-	if err != nil {
-		return false, fmt.Errorf("failed to get user: %w", err)
-	}
-	if user == nil {
-		return false, fmt.Errorf("user not found")
-	}
-
-	// TODO: Add logic to verify the OTP using the provided `secret`
-	if *user.TwoFASecret == "" {
-		return false, fmt.Errorf("user has no TOTP secret configured")
-	}
-
-	isValid := TwoFactorService.VerifyTOTP(*user.TwoFASecret, otp)
+func (s *AuthService) VerifyOTP(secret string, otp string) (bool, error) {
+	isValid := TwoFactorService.VerifyTOTP(secret, otp)
 	if !isValid {
 		return false, fmt.Errorf("invalid OTP token")
 	}
