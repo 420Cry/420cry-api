@@ -24,13 +24,19 @@ type UserController struct {
 NewUserController initializes and returns a new NewUserController instance with its dependencies.
 */
 func NewUserController(db *gorm.DB, cfg *EnvTypes.EnvConfig) *UserController {
+	passwordService := PasswordService.NewPasswordService()
 	userRepository := UserRepository.NewGormUserRepository(db)
 	emailSender := Email.NewSMTPEmailSender(cfg.SMTPConfig.Host, cfg.SMTPConfig.Port)
 	emailService := EmailServices.NewEmailService(emailSender)
 
-	userService := UserServices.NewUserService(userRepository, emailService)
+	authService := UserServices.NewAuthService(userRepository, passwordService)
+	verificationService := UserServices.NewVerificationService(userRepository)
+
+	userService := UserServices.NewUserService(userRepository, emailService, verificationService, authService)
 	return &UserController{
-		UserService:  userService,
-		EmailService: emailService,
+		UserService:         userService,
+		EmailService:        emailService,
+		VerificationService: verificationService,
+		AuthService:         authService,
 	}
 }

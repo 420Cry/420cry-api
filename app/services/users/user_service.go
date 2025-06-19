@@ -12,8 +12,10 @@ import (
 // UserService handles user-related business logic such as
 // creating users, authenticating, and verifying accounts.
 type UserService struct {
-	userRepo     UserRepository.UserRepository      // User data repository interface
-	emailService EmailService.EmailServiceInterface // Email service interface for sending emails
+	userRepo            UserRepository.UserRepository      // User data repository interface
+	emailService        EmailService.EmailServiceInterface // Email service interface for sending emails
+	VerificationService VerificationServiceInterface
+	AuthService         AuthServiceInterface
 }
 
 // UserServiceInterface defines the contract for user service methods.
@@ -23,9 +25,18 @@ type UserServiceInterface interface {
 }
 
 // NewUserService creates a new instance of UserService with provided user repository and email service.
-func NewUserService(userRepo UserRepository.UserRepository, emailService EmailService.EmailServiceInterface,
+func NewUserService(
+	userRepo UserRepository.UserRepository,
+	emailService EmailService.EmailServiceInterface,
+	verificationService VerificationServiceInterface,
+	authService AuthServiceInterface,
 ) *UserService {
-	return &UserService{userRepo: userRepo, emailService: emailService}
+	return &UserService{
+		userRepo:            userRepo,
+		emailService:        emailService,
+		VerificationService: verificationService,
+		AuthService:         authService,
+	}
 }
 
 // GetUserByUUID returns user or nil
