@@ -1,5 +1,5 @@
-// Package factories provides factory functions for creating and initializing
-package factories
+// Package services provides business logic for handling 2fa operations.
+package services
 
 import (
 	"encoding/base64"
@@ -7,6 +7,12 @@ import (
 	"github.com/pquerna/otp/totp"
 	"github.com/skip2/go-qrcode"
 )
+
+// VerifyTOTP verifies the user-provided token against the stored secret.
+// Returns true if valid, false otherwise.
+func VerifyTOTP(secret string, token string) bool {
+	return totp.Validate(token, secret)
+}
 
 // GenerateTOTP returns OTP for 2fa app
 func GenerateTOTP(userEmail string) (secret, otpAuthURL string, err error) {

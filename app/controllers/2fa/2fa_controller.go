@@ -17,10 +17,11 @@ type TwoFactorController struct {
 
 // NewTwoFactorController initializes a new TwoFactorController with dependencies.
 func NewTwoFactorController(db *gorm.DB, cfg *EnvTypes.EnvConfig) *TwoFactorController {
-	userRepo := UserRepository.NewGormUserRepository(db)
+	userRepository := UserRepository.NewGormUserRepository(db)
 	emailSender := Email.NewSMTPEmailSender(cfg.SMTPConfig.Host, cfg.SMTPConfig.Port)
 	emailService := EmailServices.NewEmailService(emailSender)
-	userService := UserServices.NewUserService(userRepo, emailService)
+
+	userService := UserServices.NewUserService(userRepository, emailService)
 
 	return &TwoFactorController{
 		UserService: userService,

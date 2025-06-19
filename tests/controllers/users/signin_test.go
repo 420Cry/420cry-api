@@ -19,12 +19,16 @@ import (
 )
 
 func TestSignIn_Success(t *testing.T) {
+	mockAuthService := new(testmocks.MockAuthService)
+	mockVerificationService := new(testmocks.MockVerificationService)
 	mockUserService := new(testmocks.MockUserService)
-	mockEmailService := new(testmocks.MockEmailService) // needed for Handler struct
+	mockEmailService := new(testmocks.MockEmailService)
 
 	userController := &controller.UserController{
-		UserService:  mockUserService,
-		EmailService: mockEmailService,
+		UserService:         mockUserService,
+		EmailService:        mockEmailService,
+		VerificationService: mockVerificationService,
+		AuthService:         mockAuthService,
 	}
 
 	input := UserTypes.IUserSigninRequest{
@@ -42,7 +46,7 @@ func TestSignIn_Success(t *testing.T) {
 	}
 
 	// Setup mock expectations
-	mockUserService.
+	mockAuthService.
 		On("AuthenticateUser", input.Username, input.Password).
 		Return(dummyUser, nil)
 
@@ -75,12 +79,16 @@ func TestSignIn_Success(t *testing.T) {
 }
 
 func TestSignIn_InvalidJSON(t *testing.T) {
+	mockAuthService := new(testmocks.MockAuthService)
+	mockVerificationService := new(testmocks.MockVerificationService)
 	mockUserService := new(testmocks.MockUserService)
 	mockEmailService := new(testmocks.MockEmailService)
 
 	userController := &controller.UserController{
-		UserService:  mockUserService,
-		EmailService: mockEmailService,
+		UserService:         mockUserService,
+		EmailService:        mockEmailService,
+		VerificationService: mockVerificationService,
+		AuthService:         mockAuthService,
 	}
 
 	invalidJSON := []byte(`{invalid-json}`) // malformed JSON
@@ -102,16 +110,20 @@ func TestSignIn_InvalidJSON(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, respBody["error"], "Invalid JSON")
 
-	mockUserService.AssertNotCalled(t, "AuthenticateUser", mock.Anything, mock.Anything)
+	mockAuthService.AssertNotCalled(t, "AuthenticateUser", mock.Anything, mock.Anything)
 }
 
 func TestSignIn_AuthenticationFails(t *testing.T) {
+	mockAuthService := new(testmocks.MockAuthService)
+	mockVerificationService := new(testmocks.MockVerificationService)
 	mockUserService := new(testmocks.MockUserService)
 	mockEmailService := new(testmocks.MockEmailService)
 
 	userController := &controller.UserController{
-		UserService:  mockUserService,
-		EmailService: mockEmailService,
+		UserService:         mockUserService,
+		EmailService:        mockEmailService,
+		VerificationService: mockVerificationService,
+		AuthService:         mockAuthService,
 	}
 
 	input := UserTypes.IUserSigninRequest{
@@ -122,7 +134,7 @@ func TestSignIn_AuthenticationFails(t *testing.T) {
 	bodyBytes, _ := json.Marshal(input)
 
 	// Simulate authentication failure
-	mockUserService.
+	mockAuthService.
 		On("AuthenticateUser", input.Username, input.Password).
 		Return((*UserModel.User)(nil), assert.AnError)
 

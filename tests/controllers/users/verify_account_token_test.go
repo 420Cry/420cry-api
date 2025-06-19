@@ -17,10 +17,16 @@ import (
 )
 
 func TestVerifyAccountToken_Success(t *testing.T) {
+	mockAuthService := new(testmocks.MockAuthService)
+	mockVerificationService := new(testmocks.MockVerificationService)
 	mockUserService := new(testmocks.MockUserService)
+	mockEmailService := new(testmocks.MockEmailService)
 
 	userController := &controller.UserController{
-		UserService: mockUserService,
+		UserService:         mockUserService,
+		EmailService:        mockEmailService,
+		VerificationService: mockVerificationService,
+		AuthService:         mockAuthService,
 	}
 
 	token := "valid-token-123"
@@ -29,7 +35,7 @@ func TestVerifyAccountToken_Success(t *testing.T) {
 		VerificationTokenCreatedAt: time.Now(),
 	}
 
-	mockUserService.On("CheckAccountVerificationToken", token).Return(user, nil)
+	mockVerificationService.On("CheckAccountVerificationToken", token).Return(user, nil)
 
 	bodyBytes, _ := json.Marshal(map[string]string{"token": token})
 	req := httptest.NewRequest(http.MethodPost, "/verify-account-token", bytes.NewReader(bodyBytes))
@@ -50,14 +56,20 @@ func TestVerifyAccountToken_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, resp["valid"])
 
-	mockUserService.AssertExpectations(t)
+	mockVerificationService.AssertExpectations(t)
 }
 
 func TestVerifyAccountToken_InvalidJSON(t *testing.T) {
+	mockAuthService := new(testmocks.MockAuthService)
+	mockVerificationService := new(testmocks.MockVerificationService)
 	mockUserService := new(testmocks.MockUserService)
+	mockEmailService := new(testmocks.MockEmailService)
 
 	userController := &controller.UserController{
-		UserService: mockUserService,
+		UserService:         mockUserService,
+		EmailService:        mockEmailService,
+		VerificationService: mockVerificationService,
+		AuthService:         mockAuthService,
 	}
 
 	req := httptest.NewRequest(http.MethodPost, "/verify-account-token", bytes.NewReader([]byte(`{invalid-json}`)))
@@ -80,14 +92,20 @@ func TestVerifyAccountToken_InvalidJSON(t *testing.T) {
 }
 
 func TestVerifyAccountToken_UserNotFound(t *testing.T) {
+	mockAuthService := new(testmocks.MockAuthService)
+	mockVerificationService := new(testmocks.MockVerificationService)
 	mockUserService := new(testmocks.MockUserService)
+	mockEmailService := new(testmocks.MockEmailService)
 
 	userController := &controller.UserController{
-		UserService: mockUserService,
+		UserService:         mockUserService,
+		EmailService:        mockEmailService,
+		VerificationService: mockVerificationService,
+		AuthService:         mockAuthService,
 	}
 
 	token := "nonexistent-token"
-	mockUserService.On("CheckAccountVerificationToken", token).Return((*UserModel.User)(nil), assert.AnError)
+	mockVerificationService.On("CheckAccountVerificationToken", token).Return((*UserModel.User)(nil), assert.AnError)
 
 	bodyBytes, _ := json.Marshal(map[string]string{"token": token})
 	req := httptest.NewRequest(http.MethodPost, "/verify-account-token", bytes.NewReader(bodyBytes))
@@ -108,14 +126,20 @@ func TestVerifyAccountToken_UserNotFound(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, resp["error"], "Token is invalid or expired")
 
-	mockUserService.AssertExpectations(t)
+	mockVerificationService.AssertExpectations(t)
 }
 
 func TestVerifyAccountToken_TokenMismatchOrExpired(t *testing.T) {
+	mockAuthService := new(testmocks.MockAuthService)
+	mockVerificationService := new(testmocks.MockVerificationService)
 	mockUserService := new(testmocks.MockUserService)
+	mockEmailService := new(testmocks.MockEmailService)
 
 	userController := &controller.UserController{
-		UserService: mockUserService,
+		UserService:         mockUserService,
+		EmailService:        mockEmailService,
+		VerificationService: mockVerificationService,
+		AuthService:         mockAuthService,
 	}
 
 	// Simulate mismatch or expiration
@@ -126,7 +150,7 @@ func TestVerifyAccountToken_TokenMismatchOrExpired(t *testing.T) {
 		VerificationTokenCreatedAt: time.Now().Add(-25 * time.Hour), // expired
 	}
 
-	mockUserService.On("CheckAccountVerificationToken", requestToken).Return(user, nil)
+	mockVerificationService.On("CheckAccountVerificationToken", requestToken).Return(user, nil)
 
 	bodyBytes, _ := json.Marshal(map[string]string{"token": requestToken})
 	req := httptest.NewRequest(http.MethodPost, "/verify-account-token", bytes.NewReader(bodyBytes))
@@ -147,5 +171,5 @@ func TestVerifyAccountToken_TokenMismatchOrExpired(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, resp["error"], "Token is invalid or expired")
 
-	mockUserService.AssertExpectations(t)
+	mockVerificationService.AssertExpectations(t)
 }

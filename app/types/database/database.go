@@ -16,6 +16,6 @@ func (db *Database) GetDB() *gorm.DB {
 }
 
 // AutoMigrate will auto-migrate the models
-func (db *Database) AutoMigrate(models ...interface{}) error {
+func (db *Database) AutoMigrate(models ...any) error {
 	return db.DB.AutoMigrate(models...)
 }

@@ -2,9 +2,8 @@
 package controllers
 
 import (
-	"cry-api/app/factories"
+	TwoFactorService "cry-api/app/services/2fa"
 	TwoFactorType "cry-api/app/types/2fa"
-	"log"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,19 +31,19 @@ func (h *TwoFactorController) Setup(c *gin.Context) {
 	}
 
 	// Generate TOTP secret and otpauth URL
-	secret, otpauthURL, err := factories.GenerateTOTP(user.Email)
+	secret, otpauthURL, err := TwoFactorService.GenerateTOTP(user.Email)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "Failed to generate 2FA secret"})
 		return
 	}
 
 	// Generate base64 QR code
-	qrCode, err := factories.GenerateQRCodeBase64(otpauthURL)
+	qrCode, err := TwoFactorService.GenerateQRCodeBase64(otpauthURL)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "Failed to generate QR code"})
 		return
 	}
-	log.Printf("HIHIHI")
+
 	// Return the secret and the QR code image
 	c.JSON(200, gin.H{
 		"secret": secret,

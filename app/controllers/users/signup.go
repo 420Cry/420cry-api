@@ -2,10 +2,11 @@
 package controllers
 
 import (
-	SignUpError "cry-api/app/types/errors"
 	"fmt"
 	"log"
 	"net/http"
+
+	SignUpError "cry-api/app/types/errors"
 
 	"cry-api/app/config"
 	UserModel "cry-api/app/models"

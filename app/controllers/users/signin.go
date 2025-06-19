@@ -19,7 +19,7 @@ func (h *UserController) SignIn(c *gin.Context) {
 		return
 	}
 
-	user, err := h.UserService.AuthenticateUser(req.Username, req.Password)
+	user, err := h.AuthService.AuthenticateUser(req.Username, req.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return

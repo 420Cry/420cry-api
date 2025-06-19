@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"cry-api/app/models"
-	services "cry-api/app/services/password"
+	PasswordService "cry-api/app/services/password"
 
 	"github.com/google/uuid"
 )
@@ -25,7 +25,11 @@ func NewUser(fullname, username, email, password string) (*models.User, error) {
 		return nil, err
 	}
 
-	hashedPassword, err := services.HashPassword(password)
+	// Create PasswordService instance
+	passwordService := PasswordService.NewPasswordService()
+
+	// Call method on instance
+	hashedPassword, err := passwordService.HashPassword(password)
 	if err != nil {
 		return nil, err
 	}

@@ -26,7 +26,7 @@ func (h *UserController) VerifyAccountToken(c *gin.Context) {
 		return
 	}
 
-	user, err := h.UserService.CheckAccountVerificationToken(token)
+	user, err := h.VerificationService.CheckAccountVerificationToken(token)
 	if err != nil || user == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Token is invalid or expired"})
 		return

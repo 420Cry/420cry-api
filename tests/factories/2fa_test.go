@@ -2,13 +2,14 @@
 package tests
 
 import (
-	"cry-api/app/factories"
 	"strings"
 	"testing"
+
+	TwoFactorService "cry-api/app/services/2fa"
 )
 
 func TestGenerateTOTP(t *testing.T) {
-	secret, otpAuthURL, err := factories.GenerateTOTP("user@example.com")
+	secret, otpAuthURL, err := TwoFactorService.GenerateTOTP("user@example.com")
 	if err != nil {
 		t.Fatalf("GenerateTOTP returned error: %v", err)
 	}
@@ -26,12 +27,12 @@ func TestGenerateTOTP(t *testing.T) {
 
 func TestGenerateQRCodeBase64(t *testing.T) {
 	// First generate a valid otpauth URL for testing
-	_, otpAuthURL, err := factories.GenerateTOTP("user@example.com")
+	_, otpAuthURL, err := TwoFactorService.GenerateTOTP("user@example.com")
 	if err != nil {
 		t.Fatalf("GenerateTOTP returned error: %v", err)
 	}
 
-	qrCodeBase64, err := factories.GenerateQRCodeBase64(otpAuthURL)
+	qrCodeBase64, err := TwoFactorService.GenerateQRCodeBase64(otpAuthURL)
 	if err != nil {
 		t.Fatalf("GenerateQRCodeBase64 returned error: %v", err)
 	}
@@ -53,7 +54,7 @@ func TestGenerateQRCodeBase64_AnyInput(t *testing.T) {
 	}
 
 	for _, input := range inputs {
-		qrCodeBase64, err := factories.GenerateQRCodeBase64(input)
+		qrCodeBase64, err := TwoFactorService.GenerateQRCodeBase64(input)
 		if err != nil {
 			t.Errorf("GenerateQRCodeBase64 returned error for input %q: %v", input, err)
 		}
@@ -66,7 +67,7 @@ func TestGenerateQRCodeBase64_AnyInput(t *testing.T) {
 	}
 
 	// Now test empty input explicitly expects error
-	_, err := factories.GenerateQRCodeBase64("")
+	_, err := TwoFactorService.GenerateQRCodeBase64("")
 	if err == nil {
 		t.Error("GenerateQRCodeBase64 did not return error for empty input")
 	}

@@ -1,18 +1,20 @@
 package tests
 
 import (
+	"errors"
 	"testing"
-	"time"
 
-	"cry-api/app/models"
 	services "cry-api/app/services/users"
 	mocks "cry-api/tests/mocks"
 
+	UserModel "cry-api/app/models"
+	SignUpError "cry-api/app/types/errors"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"golang.org/x/crypto/bcrypt"
 )
 
+// Test creating a new user successfully
 func TestUserService_CreateUser_NewUser_Success(t *testing.T) {
 	mockUserRepo := new(mocks.MockUserRepository)
 	mockEmailSvc := new(mocks.MockEmailService)
@@ -30,10 +32,8 @@ func TestUserService_CreateUser_NewUser_Success(t *testing.T) {
 	// Save should be called for new user
 	mockUserRepo.On("Save", mock.AnythingOfType("*models.User")).Return(nil)
 
-	// Execute
 	user, err := userSvc.CreateUser(fullname, username, email, password)
 
-	// Assertions
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
 	assert.Equal(t, username, user.Username)
@@ -41,126 +41,93 @@ func TestUserService_CreateUser_NewUser_Success(t *testing.T) {
 	mockUserRepo.AssertExpectations(t)
 }
 
-func TestUserService_CreateUser_ExistingUnverifiedUser_RefreshToken(t *testing.T) {
+// Test creating user when user already exists returns conflict error
+func TestUserService_CreateUser_UserExists_ReturnsConflict(t *testing.T) {
 	mockUserRepo := new(mocks.MockUserRepository)
 	mockEmailSvc := new(mocks.MockEmailService)
 
 	userSvc := services.NewUserService(mockUserRepo, mockEmailSvc)
 
-	existingUser := &models.User{
-		Username:                   "johndoe",
-		Email:                      "john@example.com",
-		IsVerified:                 false,
-		VerificationTokens:         "oldtoken",
-		VerificationTokenCreatedAt: time.Now().Add(-25 * time.Hour), // expired token
-	}
+	existingUser := &UserModel.User{Username: "johndoe"}
 
-	mockUserRepo.On("FindByUsernameOrEmail", existingUser.Username, existingUser.Email).Return(existingUser, nil)
+	mockUserRepo.On("FindByUsernameOrEmail", "johndoe", "john@example.com").Return(existingUser, nil)
 
-	// Expect Save with refreshed token called
-	mockUserRepo.On("Save", mock.MatchedBy(func(u *models.User) bool {
-		return u.VerificationTokens != "oldtoken"
-	})).Return(nil)
+	user, err := userSvc.CreateUser("John Doe", "johndoe", "john@example.com", "password123")
 
-	user, err := userSvc.CreateUser("John Doe", existingUser.Username, existingUser.Email, "password123")
-
-	assert.NoError(t, err)
-	assert.Equal(t, existingUser.Username, user.Username)
-	assert.NotEqual(t, "oldtoken", user.VerificationTokens)
+	assert.Error(t, err)
+	assert.Nil(t, user)
+	assert.Equal(t, SignUpError.ErrUserConflict, err)
 
 	mockUserRepo.AssertExpectations(t)
 }
 
-func TestUserService_AuthenticateUser_Success(t *testing.T) {
+// Test creating user returns error if FindByUsernameOrEmail fails
+func TestUserService_CreateUser_FindByUsernameOrEmail_Error(t *testing.T) {
 	mockUserRepo := new(mocks.MockUserRepository)
 	mockEmailSvc := new(mocks.MockEmailService)
 
 	userSvc := services.NewUserService(mockUserRepo, mockEmailSvc)
 
-	// Generate bcrypt hash for password123
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
-	if err != nil {
-		t.Fatalf("failed to hash password: %v", err)
-	}
+	mockUserRepo.On("FindByUsernameOrEmail", mock.Anything, mock.Anything).Return(nil, errors.New("db error"))
 
-	user := &models.User{
-		Username:   "johndoe",
-		Password:   string(hashedPassword),
-		IsVerified: true,
-	}
-
-	mockUserRepo.On("FindByUsername", user.Username).Return(user, nil)
-
-	authUser, err := userSvc.AuthenticateUser(user.Username, "password123")
-
-	assert.NoError(t, err)
-	assert.NotNil(t, authUser)
-	assert.Equal(t, user.Username, authUser.Username)
-}
-
-func TestUserService_AuthenticateUser_UserNotVerified(t *testing.T) {
-	mockUserRepo := new(mocks.MockUserRepository)
-	mockEmailSvc := new(mocks.MockEmailService)
-
-	userSvc := services.NewUserService(mockUserRepo, mockEmailSvc)
-
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
-	user := &models.User{
-		Username:   "johndoe",
-		Password:   string(hashedPassword),
-		IsVerified: false,
-	}
-
-	mockUserRepo.On("FindByUsername", user.Username).Return(user, nil)
-
-	authUser, err := userSvc.AuthenticateUser(user.Username, "password123")
-
-	assert.Error(t, err)
-	assert.Nil(t, authUser)
-	assert.Equal(t, "user not verified", err.Error())
-}
-
-func TestUserService_VerifyUserWithTokens_Success(t *testing.T) {
-	mockUserRepo := new(mocks.MockUserRepository)
-	mockEmailSvc := new(mocks.MockEmailService)
-
-	userSvc := services.NewUserService(mockUserRepo, mockEmailSvc)
-
-	userToken := "userToken123"
-	verifyToken := "verifyToken456"
-
-	user := &models.User{
-		Username:                 "johndoe",
-		IsVerified:               false,
-		VerificationTokens:       verifyToken,
-		AccountVerificationToken: &userToken,
-	}
-
-	// Setup CheckUserByBothTokens to return user
-	mockUserRepo.On("FindByVerificationToken", verifyToken).Return(user, nil)
-	mockUserRepo.On("Save", mock.MatchedBy(func(u *models.User) bool {
-		return u.IsVerified && u.VerificationTokens == "" && u.AccountVerificationToken == nil
-	})).Return(nil)
-
-	verifiedUser, err := userSvc.VerifyUserWithTokens(userToken, verifyToken)
-
-	assert.NoError(t, err)
-	assert.True(t, verifiedUser.IsVerified)
-	assert.Empty(t, verifiedUser.VerificationTokens)
-	assert.Nil(t, verifiedUser.AccountVerificationToken)
-}
-
-func TestUserService_VerifyUserWithTokens_InvalidTokens(t *testing.T) {
-	mockUserRepo := new(mocks.MockUserRepository)
-	mockEmailSvc := new(mocks.MockEmailService)
-
-	userSvc := services.NewUserService(mockUserRepo, mockEmailSvc)
-
-	mockUserRepo.On("FindByVerificationToken", "invalid").Return(nil, nil)
-
-	user, err := userSvc.VerifyUserWithTokens("someUserToken", "invalid")
+	user, err := userSvc.CreateUser("John Doe", "johndoe", "john@example.com", "password123")
 
 	assert.Error(t, err)
 	assert.Nil(t, user)
-	assert.Contains(t, err.Error(), "invalid verification token")
+
+	mockUserRepo.AssertExpectations(t)
+}
+
+// Test creating user returns error if Save fails
+func TestUserService_CreateUser_Save_Error(t *testing.T) {
+	mockUserRepo := new(mocks.MockUserRepository)
+	mockEmailSvc := new(mocks.MockEmailService)
+
+	userSvc := services.NewUserService(mockUserRepo, mockEmailSvc)
+
+	mockUserRepo.On("FindByUsernameOrEmail", mock.Anything, mock.Anything).Return(nil, nil)
+	mockUserRepo.On("Save", mock.AnythingOfType("*models.User")).Return(errors.New("save error"))
+
+	user, err := userSvc.CreateUser("John Doe", "johndoe", "john@example.com", "password123")
+
+	assert.Error(t, err)
+	assert.Nil(t, user)
+
+	mockUserRepo.AssertExpectations(t)
+}
+
+// Test GetUserByUUID success
+func TestUserService_GetUserByUUID_Success(t *testing.T) {
+	mockUserRepo := new(mocks.MockUserRepository)
+	mockEmailSvc := new(mocks.MockEmailService)
+
+	userSvc := services.NewUserService(mockUserRepo, mockEmailSvc)
+
+	expectedUser := &UserModel.User{UUID: "uuid-1234"}
+
+	mockUserRepo.On("FindByUUID", "uuid-1234").Return(expectedUser, nil)
+
+	user, err := userSvc.GetUserByUUID("uuid-1234")
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedUser, user)
+
+	mockUserRepo.AssertExpectations(t)
+}
+
+// Test GetUserByUUID returns error from repo
+func TestUserService_GetUserByUUID_Error(t *testing.T) {
+	mockUserRepo := new(mocks.MockUserRepository)
+	mockEmailSvc := new(mocks.MockEmailService)
+
+	userSvc := services.NewUserService(mockUserRepo, mockEmailSvc)
+
+	mockUserRepo.On("FindByUUID", "uuid-1234").Return(nil, errors.New("db error"))
+
+	user, err := userSvc.GetUserByUUID("uuid-1234")
+
+	assert.Error(t, err)
+	assert.Nil(t, user)
+
+	mockUserRepo.AssertExpectations(t)
 }
