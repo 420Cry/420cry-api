@@ -34,5 +34,5 @@ func RegisterRoutes(rg *gin.RouterGroup, db *gorm.DB) {
 	rg.POST("/reset-password", userController.HandleResetPasswordRequest)
 
 	// Route for verifying reset password token to save new password
-	rg.POST("/verify-password-token/:token", userController.VerifyResetPassword)
+	rg.POST("/verify-reset-password-token", userController.VerifyResetPasswordToken)
 }

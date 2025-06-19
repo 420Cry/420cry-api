@@ -2,42 +2,41 @@ package controllers
 
 import (
 	UserTypes "cry-api/app/types/users"
-	"log"
-
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-// VerifyResetPassword verifies the token with passwords and save it intø the database
-func (h *UserController) VerifyResetPassword(c *gin.Context) {
-	token := c.Param("token")
-	log.Printf("Reset password token param: %s", token)
+// VerifyResetPasswordToken verifies the token with passwords and save it intø the database
+func (h *UserController) VerifyResetPasswordToken(c *gin.Context) {
 
 	var req UserTypes.IVerificationResetPasswordForm
-
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON Format"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid JSON Format"})
 		return
 	}
 
-	if req.NewPassword == "" || req.Password == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing fields"})
+	if req.RepeatedPassword == "" || req.NewPassword == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Missing fields"})
 		return
 	}
 
-	if req.NewPassword != req.Password {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Passwords do not match"})
+	if req.RepeatedPassword != req.NewPassword {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Passwords do not match"})
 		return
 	}
 
 	// Check user by token to have the user holding the token
-	foundUser, err := h.UserService.CheckUserByResetPasswordToken(token)
+	foundUser, err := h.UserService.CheckUserByResetPasswordToken(req.ResetPasswordToken)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Cannot find user"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot find user"})
 		return
+	}
+
+	if !foundUser.IsVerified {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "User is not verified"})
 	}
 
 	// Save new password and reset token

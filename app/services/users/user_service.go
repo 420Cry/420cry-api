@@ -254,7 +254,7 @@ func (s *UserService) CheckUserByResetPasswordToken(token string) (*UserModel.Us
 
 // HandleResetPassword hashes the password and saves the reset password for the user
 func (s *UserService) HandleResetPassword(foundUser *UserModel.User, req *UserTypes.IVerificationResetPasswordForm) error {
-	hashedPassword, err := services.HashPassword(req.Password)
+	hashedPassword, err := services.HashPassword(req.NewPassword)
 
 	if err != nil {
 		return fmt.Errorf("cannot create password: %v", err)
