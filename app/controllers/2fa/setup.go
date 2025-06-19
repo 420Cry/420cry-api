@@ -12,7 +12,6 @@ import (
 func (h *TwoFactorController) Setup(c *gin.Context) {
 	var req TwoFactorType.ITwoFactorSetupRequest
 
-	// Parse JSON body into req
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid request format"})
 		return
@@ -34,6 +33,15 @@ func (h *TwoFactorController) Setup(c *gin.Context) {
 	secret, otpauthURL, err := TwoFactorService.GenerateTOTP(user.Email)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "Failed to generate 2FA secret"})
+		return
+	}
+
+	// Save the secret to the user model
+	user.TwoFASecret = &secret
+
+	// Persist updated user
+	if err := h.UserService.UpdateUser(user); err != nil {
+		c.JSON(500, gin.H{"error": "Failed to save 2FA secret"})
 		return
 	}
 

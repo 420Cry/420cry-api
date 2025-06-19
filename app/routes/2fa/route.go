@@ -20,4 +20,7 @@ func RegisterRoutes(rg *gin.RouterGroup, db *gorm.DB) {
 
 	// Route for user setup
 	rg.POST("/setup", TwoFactorController.Setup)
+
+	// Route for verify 2fa otp
+	rg.POST("/verify-otp", TwoFactorController.VerifyOTP)
 }

@@ -22,6 +22,7 @@ type UserService struct {
 type UserServiceInterface interface {
 	CreateUser(fullname, username, email, password string) (*UserModel.User, error)
 	GetUserByUUID(uuid string) (*UserModel.User, error)
+	UpdateUser(user *UserModel.User) error
 }
 
 // NewUserService creates a new instance of UserService with provided user repository and email service.
@@ -73,4 +74,9 @@ func (s *UserService) CreateUser(fullname, username, email, password string) (*U
 	}
 
 	return newUser, nil
+}
+
+// UpdateUser updates the user in the repository.
+func (s *UserService) UpdateUser(user *UserModel.User) error {
+	return s.userRepo.Save(user)
 }

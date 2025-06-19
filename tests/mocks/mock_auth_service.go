@@ -17,3 +17,15 @@ func (m *MockAuthService) AuthenticateUser(username, password string) (*UserMode
 	user, _ := args.Get(0).(*UserModel.User)
 	return user, args.Error(1)
 }
+
+// SaveTOTPSecret mocks SaveTOTPSecret method from AuthService
+func (m *MockAuthService) SaveTOTPSecret(userUUID, secret string) error {
+	args := m.Called(userUUID, secret)
+	return args.Error(0)
+}
+
+// VerifyOTP mocks VerifyOTP method from AuthService
+func (m *MockAuthService) VerifyOTP(userUUID string, otp string) (bool, error) {
+	args := m.Called(userUUID, otp)
+	return args.Bool(0), args.Error(1)
+}

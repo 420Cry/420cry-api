@@ -15,21 +15,21 @@ func (h *TwoFactorController) VerifyOTP(c *gin.Context) {
 		return
 	}
 
-	// Validate UUID presence
 	if req.UserUUID == "" {
 		c.JSON(400, gin.H{"error": "User UUID is required"})
 		return
 	}
 
-	// Get user by UUID
-	user, err := h.UserService.GetUserByUUID(req.UserUUID)
-	if err != nil || user == nil {
-		c.JSON(404, gin.H{"error": "User not found"})
+	if req.OTP == nil || *req.OTP == "" {
+		c.JSON(400, gin.H{"error": "OTP is required for verification"})
 		return
 	}
 
-	// If OTP provided, verify it
+	valid, err := h.AuthService.VerifyOTP(req.UserUUID, *req.OTP)
+	if err != nil || !valid {
+		c.JSON(401, gin.H{"error": err.Error()})
+		return
+	}
 
-	// No OTP provided - maybe respond with QR code & secret or error
-	c.JSON(400, gin.H{"error": "OTP is required for verification"})
+	c.JSON(200, gin.H{"message": "OTP verified successfully"})
 }

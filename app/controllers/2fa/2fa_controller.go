@@ -14,6 +14,7 @@ import (
 // TwoFactorController handles 2FA-related HTTP requests.
 type TwoFactorController struct {
 	UserService UserServices.UserServiceInterface
+	AuthService UserServices.AuthServiceInterface
 }
 
 // NewTwoFactorController initializes a new TwoFactorController with dependencies.
@@ -30,5 +31,6 @@ func NewTwoFactorController(db *gorm.DB, cfg *EnvTypes.EnvConfig) *TwoFactorCont
 
 	return &TwoFactorController{
 		UserService: userService,
+		AuthService: authService,
 	}
 }
