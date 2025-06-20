@@ -17,16 +17,6 @@ func (h *UserController) VerifyResetPasswordToken(c *gin.Context) {
 		return
 	}
 
-	if req.RepeatedPassword == "" || req.NewPassword == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Missing fields"})
-		return
-	}
-
-	if req.RepeatedPassword != req.NewPassword {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Passwords do not match"})
-		return
-	}
-
 	// Check user by token to have the user holding the token
 	foundUser, err := h.UserService.CheckUserByResetPasswordToken(req.ResetPasswordToken)
 
