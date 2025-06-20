@@ -15,20 +15,19 @@ func TestVerificationService_VerifyUserWithTokens_Success(t *testing.T) {
 	mockUserRepo := new(mocks.MockUserRepository)
 	svc := VerificationService.NewVerificationService(mockUserRepo)
 
-	token := "email-token"
+	emailToken := "email-token"
 	verificationToken := "verify-token"
-	accountToken := "email-token"
 
 	user := &UserModel.User{
 		IsVerified:               false,
-		VerificationTokens:       "some-tokens",
-		AccountVerificationToken: &accountToken,
+		VerificationTokens:       verificationToken,
+		AccountVerificationToken: &emailToken,
 	}
 
-	mockUserRepo.On("FindByVerificationToken", verificationToken).Return(user, nil)
+	mockUserRepo.On("FindByAccountVerificationToken", emailToken).Return(user, nil)
 	mockUserRepo.On("Save", user).Return(nil)
 
-	result, err := svc.VerifyUserWithTokens(token, verificationToken)
+	result, err := svc.VerifyUserWithTokens(emailToken, verificationToken)
 	assert.NoError(t, err)
 	assert.True(t, result.IsVerified)
 	assert.Empty(t, result.VerificationTokens)
@@ -41,7 +40,7 @@ func TestVerificationService_VerifyUserWithTokens_ErrorFromCheckUserByBothTokens
 	mockUserRepo := new(mocks.MockUserRepository)
 	svc := VerificationService.NewVerificationService(mockUserRepo)
 
-	mockUserRepo.On("FindByVerificationToken", "verify-token").Return(nil, errors.New("db error"))
+	mockUserRepo.On("FindByAccountVerificationToken", "email-token").Return(nil, errors.New("db error"))
 
 	result, err := svc.VerifyUserWithTokens("email-token", "verify-token")
 	assert.Error(t, err)
@@ -88,10 +87,11 @@ func TestVerificationService_CheckUserByBothTokens_Success(t *testing.T) {
 	verificationToken := "verify-token"
 
 	user := &UserModel.User{
+		IsVerified:               false,
+		VerificationTokens:       verificationToken,
 		AccountVerificationToken: &emailToken,
 	}
-
-	mockUserRepo.On("FindByVerificationToken", verificationToken).Return(user, nil)
+	mockUserRepo.On("FindByAccountVerificationToken", emailToken).Return(user, nil)
 
 	result, err := svc.CheckUserByBothTokens(emailToken, verificationToken)
 	assert.NoError(t, err)
@@ -104,7 +104,7 @@ func TestVerificationService_CheckUserByBothTokens_VerificationTokenInvalid(t *t
 	mockUserRepo := new(mocks.MockUserRepository)
 	svc := VerificationService.NewVerificationService(mockUserRepo)
 
-	mockUserRepo.On("FindByVerificationToken", "bad-token").Return(nil, nil)
+	mockUserRepo.On("FindByAccountVerificationToken", "email-token").Return(nil, nil)
 
 	result, err := svc.CheckUserByBothTokens("email-token", "bad-token")
 	assert.Error(t, err)
@@ -121,8 +121,7 @@ func TestVerificationService_CheckUserByBothTokens_TokenMismatch(t *testing.T) {
 	user := &UserModel.User{
 		AccountVerificationToken: nil,
 	}
-
-	mockUserRepo.On("FindByVerificationToken", "verify-token").Return(user, nil)
+	mockUserRepo.On("FindByAccountVerificationToken", "email-token").Return(user, nil)
 
 	result, err := svc.CheckUserByBothTokens("email-token", "verify-token")
 	assert.Error(t, err)
@@ -143,7 +142,7 @@ func TestVerificationService_CheckEmailVerificationToken_Success(t *testing.T) {
 		VerificationTokens: "some-token",
 	}
 
-	mockUserRepo.On("FindByVerificationToken", emailToken).Return(user, nil)
+	mockUserRepo.On("FindByAccountVerificationToken", emailToken).Return(user, nil)
 	mockUserRepo.On("Save", user).Return(nil)
 
 	result, err := svc.CheckEmailVerificationToken(emailToken)
@@ -158,7 +157,7 @@ func TestVerificationService_CheckEmailVerificationToken_InvalidToken(t *testing
 	mockUserRepo := new(mocks.MockUserRepository)
 	svc := VerificationService.NewVerificationService(mockUserRepo)
 
-	mockUserRepo.On("FindByVerificationToken", "bad-token").Return(nil, nil)
+	mockUserRepo.On("FindByAccountVerificationToken", "bad-token").Return(nil, nil)
 
 	result, err := svc.CheckEmailVerificationToken("bad-token")
 	assert.Error(t, err)
@@ -177,7 +176,7 @@ func TestVerificationService_CheckEmailVerificationToken_SaveFails(t *testing.T)
 		VerificationTokens: "some-token",
 	}
 
-	mockUserRepo.On("FindByVerificationToken", "email-token").Return(user, nil)
+	mockUserRepo.On("FindByAccountVerificationToken", "email-token").Return(user, nil)
 	mockUserRepo.On("Save", user).Return(errors.New("save error"))
 
 	result, err := svc.CheckEmailVerificationToken("email-token")

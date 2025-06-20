@@ -2,13 +2,13 @@
 package controllers
 
 import (
+	"fmt"
+	"log"
+	"net/http"
+
 	"cry-api/app/config"
 	UserModel "cry-api/app/models"
 	UserTypes "cry-api/app/types/users"
-	"fmt"
-
-	"log"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,7 +31,6 @@ func (h *UserController) HandleResetPasswordRequest(c *gin.Context) {
 	}
 
 	savedUser, err := h.UserService.SaveResetPasswordToken(foundUser)
-
 	if err != nil {
 		log.Printf("error saving reset password token: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not create token"})
@@ -56,5 +55,4 @@ func (h *UserController) HandleResetPasswordRequest(c *gin.Context) {
 	}(savedUser)
 
 	c.JSON(http.StatusOK, gin.H{"success": true})
-
 }

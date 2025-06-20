@@ -1,9 +1,10 @@
 package mail
 
 import (
-	"cry-api/app/utils"
 	"fmt"
 	"time"
+
+	"cry-api/app/utils"
 )
 
 // CreateResetPasswordRequestEmail generates an EmailMessage for reset the user's password.

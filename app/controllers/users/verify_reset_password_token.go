@@ -1,16 +1,16 @@
 package controllers
 
 import (
-	UserTypes "cry-api/app/types/users"
 	"net/http"
 	"time"
+
+	UserTypes "cry-api/app/types/users"
 
 	"github.com/gin-gonic/gin"
 )
 
 // VerifyResetPasswordToken verifies the token with passwords and save it intø the database
 func (h *UserController) VerifyResetPasswordToken(c *gin.Context) {
-
 	var req UserTypes.IVerificationResetPasswordForm
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid JSON Format"})
@@ -19,7 +19,6 @@ func (h *UserController) VerifyResetPasswordToken(c *gin.Context) {
 
 	// Check user by token to have the user holding the token
 	foundUser, err := h.UserService.CheckUserByResetPasswordToken(req.ResetPasswordToken)
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot find user"})
 		return
@@ -41,5 +40,4 @@ func (h *UserController) VerifyResetPasswordToken(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true})
-
 }

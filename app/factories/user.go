@@ -15,7 +15,7 @@ import (
 // Returns the created User object or an error if any step fails.
 func NewUser(fullname, username, email, password string) (*models.User, error) {
 	u := generateUUID()
-	signupToken, err := GenerateSignupToken()
+	signupToken, err := Generate32ByteToken()
 	if err != nil {
 		return nil, err
 	}
@@ -35,20 +35,20 @@ func NewUser(fullname, username, email, password string) (*models.User, error) {
 	}
 
 	user := &models.User{
-		UUID:                       u,
-		Username:                   username,
-		Fullname:                   fullname,
-		Email:                      email,
-		Password:                   hashedPassword,
-    		ResetPasswordToken:          "",
+		UUID:                        u,
+		Username:                    username,
+		Fullname:                    fullname,
+		Email:                       email,
+		Password:                    hashedPassword,
+		ResetPasswordToken:          "",
 		ResetPasswordTokenCreatedAt: nil,
-		AccountVerificationToken:   &signupToken,
-		VerificationTokens:         verificationToken,
-		VerificationTokenCreatedAt: time.Now(),
-		IsVerified:                 false,
-		CreatedAt:                  time.Now(),
-		TwoFASecret:                nil,
-		TwoFAEnabled:               false,
+		AccountVerificationToken:    &signupToken,
+		VerificationTokens:          verificationToken,
+		VerificationTokenCreatedAt:  time.Now(),
+		IsVerified:                  false,
+		CreatedAt:                   time.Now(),
+		TwoFASecret:                 nil,
+		TwoFAEnabled:                false,
 	}
 	return user, nil
 }

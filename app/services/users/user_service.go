@@ -2,12 +2,15 @@
 package services
 
 import (
+	"fmt"
+	"time"
+
 	"cry-api/app/factories"
 	UserModel "cry-api/app/models"
 	UserRepository "cry-api/app/repositories"
 	EmailService "cry-api/app/services/email"
+	PasswordService "cry-api/app/services/password"
 	SignUpError "cry-api/app/types/errors"
-	services "cry-api/app/services/password"
 	UserTypes "cry-api/app/types/users"
 )
 
@@ -28,6 +31,7 @@ type UserServiceInterface interface {
 	CheckUserByResetPasswordToken(token string) (*UserModel.User, error)
 	SaveResetPasswordToken(user *UserModel.User) (*UserModel.User, error)
 	HandleResetPassword(foundUser *UserModel.User, req *UserTypes.IVerificationResetPasswordForm) error
+	CheckIfUserExists(email string) (*UserModel.User, error)
 }
 
 // NewUserService creates a new instance of UserService with provided user repository and email service.
@@ -81,7 +85,6 @@ func (s *UserService) CreateUser(fullname, username, email, password string) (*U
 	return newUser, nil
 }
 
-
 // UpdateUser updates the user in the repository.
 func (s *UserService) UpdateUser(user *UserModel.User) error {
 	return s.userRepo.Save(user)
@@ -103,9 +106,7 @@ func (s *UserService) CheckIfUserExists(email string) (*UserModel.User, error) {
 
 // SaveResetPasswordToken generates new token for reset password link and save it into the user's database if user exists or user is verified
 func (s *UserService) SaveResetPasswordToken(user *UserModel.User) (*UserModel.User, error) {
-
-	resetPasswordToken, err := factories.GenerateRandomToken()
-
+	resetPasswordToken, err := factories.Generate32ByteToken()
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +126,6 @@ func (s *UserService) SaveResetPasswordToken(user *UserModel.User) (*UserModel.U
 // CheckUserByResetPasswordToken finds users based on reset password token
 func (s *UserService) CheckUserByResetPasswordToken(token string) (*UserModel.User, error) {
 	foundUser, err := s.userRepo.FindByResetPasswordToken(token)
-
 	if err != nil {
 		return nil, fmt.Errorf("error finding the user for this token")
 	}
@@ -135,13 +135,13 @@ func (s *UserService) CheckUserByResetPasswordToken(token string) (*UserModel.Us
 	}
 
 	return foundUser, nil
-
 }
 
 // HandleResetPassword hashes the password and saves the reset password for the user
 func (s *UserService) HandleResetPassword(foundUser *UserModel.User, req *UserTypes.IVerificationResetPasswordForm) error {
-	hashedPassword, err := services.HashPassword(req.NewPassword)
-
+	// Create PasswordService instance
+	passwordService := PasswordService.NewPasswordService()
+	hashedPassword, err := passwordService.HashPassword(req.NewPassword)
 	if err != nil {
 		return fmt.Errorf("cannot create password: %v", err)
 	}
@@ -155,5 +155,4 @@ func (s *UserService) HandleResetPassword(foundUser *UserModel.User, req *UserTy
 	}
 
 	return nil
-
 }
