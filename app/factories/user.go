@@ -31,16 +31,18 @@ func NewUser(fullname, username, email, password string) (*models.User, error) {
 	}
 
 	user := &models.User{
-		UUID:                       u,
-		Username:                   username,
-		Fullname:                   fullname,
-		Email:                      email,
-		Password:                   hashedPassword,
-		AccountVerificationToken:   &signupToken,
-		VerificationTokens:         verificationToken,
-		VerificationTokenCreatedAt: time.Now(),
-		IsVerified:                 false,
-		CreatedAt:                  time.Now(),
+		UUID:                        u,
+		Username:                    username,
+		Fullname:                    fullname,
+		Email:                       email,
+		Password:                    hashedPassword,
+		ResetPasswordToken:          "",
+		ResetPasswordTokenCreatedAt: nil,
+		AccountVerificationToken:    &signupToken,
+		VerificationTokens:          verificationToken,
+		VerificationTokenCreatedAt:  time.Now(),
+		IsVerified:                  false,
+		CreatedAt:                   time.Now(),
 	}
 	return user, nil
 }
