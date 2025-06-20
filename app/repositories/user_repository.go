@@ -78,7 +78,7 @@ func (repo *GormUserRepository) FindByEmail(email string) (*UserModel.User, erro
 }
 
 // FindByUsernameOrEmail retrieves a user from the database whose username or email matches the provided values.
-// It returns a pointer to the UserDomain.User if found, or nil if no matching user exists.
+// It returns a pointer to the User if found, or nil if no matching user exists.
 // If an error occurs during the query (other than record not found), it returns the error.
 func (repo *GormUserRepository) FindByUsernameOrEmail(username string, email string) (*UserModel.User, error) {
 	var user UserModel.User
@@ -93,7 +93,7 @@ func (repo *GormUserRepository) FindByUsernameOrEmail(username string, email str
 }
 
 // FindByUsername retrieves a user from the database by their username.
-// Returns a pointer to the UserDomain.User if found, or nil if no user exists with the given username.
+// Returns a pointer to the User if found, or nil if no user exists with the given username.
 // If an error occurs during the query (other than record not found), it returns the error.
 func (repo *GormUserRepository) FindByUsername(username string) (*UserModel.User, error) {
 	var user UserModel.User

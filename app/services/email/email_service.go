@@ -41,7 +41,6 @@ func (service *EmailService) SendVerifyAccountEmail(to, from, userName, verifica
 		return err
 	}
 
-	// Send the email via the core layer
 	err = service.emailSender.Send(email)
 	if err != nil {
 		return err
