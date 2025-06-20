@@ -40,6 +40,8 @@ func NewUser(fullname, username, email, password string) (*models.User, error) {
 		Fullname:                   fullname,
 		Email:                      email,
 		Password:                   hashedPassword,
+    		ResetPasswordToken:          "",
+		ResetPasswordTokenCreatedAt: nil,
 		AccountVerificationToken:   &signupToken,
 		VerificationTokens:         verificationToken,
 		VerificationTokenCreatedAt: time.Now(),

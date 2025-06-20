@@ -3,6 +3,7 @@
 package mail
 
 import (
+	"cry-api/app/utils"
 	"fmt"
 	"time"
 )
@@ -29,7 +30,10 @@ func CreateVerifyAccountEmail(to, from, userName, verificationLink, verification
 		"Year":             time.Now().Year(),
 	}
 
-	templatePath := "app/app/email/templates/verify_account.html"
+	templatePrefix := utils.GenerateEmailTemplatePrefix()
+
+	templatePath := fmt.Sprintf("%s/verify_account.html", templatePrefix)
+
 	htmlBody, err := RenderTemplate(templatePath, data)
 	if err != nil {
 		return EmailMessage{}, fmt.Errorf("template render error: %w", err)

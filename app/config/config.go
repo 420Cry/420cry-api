@@ -40,10 +40,20 @@ func Load() *types.EnvConfig {
 	if err := godotenv.Load(); err != nil {
 		log.Printf("Warning: Error loading .env file: %v", err)
 	}
+
+	// AppEnv
+	appEnv := os.Getenv("APP_ENV")
+
 	// CryAppUrl
 	cryAppURL := os.Getenv("CRY_APP_URL")
 	if !strings.HasPrefix(cryAppURL, "http://") && !strings.HasPrefix(cryAppURL, "https://") {
 		cryAppURL = "https://" + cryAppURL
+	}
+
+	// CryAPIURL
+	CryAPIURL := os.Getenv("CRY_API_URL")
+	if !strings.HasPrefix(CryAPIURL, "http://") && !strings.HasPrefix(CryAPIURL, "https://") {
+		CryAPIURL = "https://" + CryAPIURL
 	}
 
 	// Load API Port with a fallback value
@@ -66,7 +76,9 @@ func Load() *types.EnvConfig {
 
 	// Set the config instance
 	configInstance = &types.EnvConfig{
+		AppEnv:       appEnv,
 		CryAppURL:    cryAppURL,
+		CryAPIURL:    CryAPIURL,
 		APIPort:      apiPort,
 		DBHost:       dbHost,
 		DBPort:       dbPort,

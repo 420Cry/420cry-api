@@ -3,6 +3,7 @@ package factories
 
 import (
 	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 )
 
@@ -34,4 +35,18 @@ func GenerateVerificationToken() (string, error) {
 		b[i] = charset[int(randBytes[i])%len(charset)]
 	}
 	return string(b), nil
+}
+
+// GenerateRandomToken for reset password token
+func GenerateRandomToken() (string, error) {
+	tokenLength := 16
+
+	b := make([]byte, tokenLength)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", fmt.Errorf("cannot generate random token: %v", err)
+	}
+
+	token := hex.EncodeToString(b)
+	return token, nil
 }
