@@ -99,7 +99,7 @@ func (s *UserService) FindUserByEmail(email string) (*UserModel.User, error) {
 	return foundUser, nil
 }
 
-// CheckUserByResetPasswordToken finds users based on reset password token
+// FindUserByResetPasswordToken finds users based on reset password token
 func (s *UserService) FindUserByResetPasswordToken(token string) (*UserModel.User, error) {
 	foundUser, err := s.userRepo.FindByResetPasswordToken(token)
 	if err != nil {
