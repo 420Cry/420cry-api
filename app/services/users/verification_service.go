@@ -20,7 +20,7 @@ func NewVerificationService(userRepo UserRepository.UserRepository) *Verificatio
 // VerificationServiceInterface defines the contract for VerificationServiceInterface methods.
 type VerificationServiceInterface interface {
 	VerifyUserWithTokens(userToken, verifyToken string) (*UserModel.User, error)
-	CheckAccountVerificationToken(token string) (*UserModel.User, error)
+	FindUserByAccountVerificationToken(token string) (*UserModel.User, error)
 	CheckEmailVerificationToken(token string) (*UserModel.User, error)
 	CheckUserByBothTokens(token string, verificationToken string) (*UserModel.User, error)
 }
@@ -43,8 +43,8 @@ func (s *VerificationService) VerifyUserWithTokens(token, verificationToken stri
 	return user, nil
 }
 
-// CheckAccountVerificationToken validates an account token and returns the user.
-func (s *VerificationService) CheckAccountVerificationToken(token string) (*UserModel.User, error) {
+// FindUserByAccountVerificationToken validates an account token and returns the user.
+func (s *VerificationService) FindUserByAccountVerificationToken(token string) (*UserModel.User, error) {
 	user, err := s.userRepo.FindByAccountVerificationToken(token)
 	if err != nil {
 		return nil, err

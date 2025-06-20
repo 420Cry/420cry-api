@@ -49,7 +49,7 @@ func TestVerificationService_VerifyUserWithTokens_ErrorFromCheckUserByBothTokens
 	mockUserRepo.AssertExpectations(t)
 }
 
-func TestVerificationService_CheckAccountVerificationToken_Success(t *testing.T) {
+func TestVerificationService_FindUserByAccountVerificationToken_Success(t *testing.T) {
 	mockUserRepo := new(mocks.MockUserRepository)
 	svc := VerificationService.NewVerificationService(mockUserRepo)
 
@@ -58,20 +58,20 @@ func TestVerificationService_CheckAccountVerificationToken_Success(t *testing.T)
 
 	mockUserRepo.On("FindByAccountVerificationToken", token).Return(user, nil)
 
-	result, err := svc.CheckAccountVerificationToken(token)
+	result, err := svc.FindUserByAccountVerificationToken(token)
 	assert.NoError(t, err)
 	assert.Equal(t, user, result)
 
 	mockUserRepo.AssertExpectations(t)
 }
 
-func TestVerificationService_CheckAccountVerificationToken_UserNotFound(t *testing.T) {
+func TestVerificationService_FindUserByAccountVerificationTokenn_UserNotFound(t *testing.T) {
 	mockUserRepo := new(mocks.MockUserRepository)
 	svc := VerificationService.NewVerificationService(mockUserRepo)
 
 	mockUserRepo.On("FindByAccountVerificationToken", "invalid-token").Return(nil, nil)
 
-	result, err := svc.CheckAccountVerificationToken("invalid-token")
+	result, err := svc.FindUserByAccountVerificationToken("invalid-token")
 	assert.Error(t, err)
 	assert.Nil(t, result)
 	assert.Equal(t, "invalid account token", err.Error())

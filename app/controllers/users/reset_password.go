@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"cry-api/app/config"
+	"cry-api/app/factories"
 	UserModel "cry-api/app/models"
 	UserTypes "cry-api/app/types/users"
 
@@ -23,30 +24,40 @@ func (h *UserController) HandleResetPasswordRequest(c *gin.Context) {
 		return
 	}
 
-	foundUser, err := h.UserService.CheckIfUserExists(req.Email)
-	if err != nil || foundUser == nil || !foundUser.IsVerified {
+	user, err := h.UserService.FindUserByEmail(req.Email)
+	if err != nil || user == nil || !user.IsVerified {
 		log.Printf("error finding user or user is not verified: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "error finding user or user is not verified"})
 		return
 	}
 
 	var shouldCreateNewToken bool
-	if foundUser.ResetPasswordTokenCreatedAt == nil {
+	if user.ResetPasswordTokenCreatedAt == nil {
 		shouldCreateNewToken = true
 	} else {
-		shouldCreateNewToken = time.Since(*foundUser.ResetPasswordTokenCreatedAt) > time.Hour
+		shouldCreateNewToken = time.Since(*user.ResetPasswordTokenCreatedAt) > time.Hour
 	}
 
 	var userToUse *UserModel.User
 	if shouldCreateNewToken {
-		userToUse, err = h.UserService.CreateResetPasswordToken(foundUser)
+		resetPasswordToken, err := factories.Generate32ByteToken()
+		if err != nil {
+			return
+		}
+
+		now := time.Now()
+
+		user.ResetPasswordToken = resetPasswordToken
+		user.ResetPasswordTokenCreatedAt = &now
+
+		err = h.UserService.UpdateUser(user)
 		if err != nil {
 			log.Printf("error saving reset password token: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not create token"})
 			return
 		}
 	} else {
-		userToUse = foundUser
+		userToUse = user
 	}
 
 	go func(user *UserModel.User) {

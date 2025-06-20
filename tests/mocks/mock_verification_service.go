@@ -18,8 +18,8 @@ func (m *MockVerificationService) VerifyUserWithTokens(token, verificationToken 
 	return user, args.Error(1)
 }
 
-// CheckAccountVerificationToken mocks CheckAccountVerificationToken method from VerificationService
-func (m *MockVerificationService) CheckAccountVerificationToken(token string) (*UserModel.User, error) {
+// FindUserByAccountVerificationToken mocks FindUserByAccountVerificationToken method from VerificationService
+func (m *MockVerificationService) FindUserByAccountVerificationToken(token string) (*UserModel.User, error) {
 	args := m.Called(token)
 	user, _ := args.Get(0).(*UserModel.User)
 	return user, args.Error(1)

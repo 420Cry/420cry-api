@@ -35,7 +35,7 @@ func TestVerifyAccountToken_Success(t *testing.T) {
 		VerificationTokenCreatedAt: time.Now(),
 	}
 
-	mockVerificationService.On("CheckAccountVerificationToken", token).Return(user, nil)
+	mockVerificationService.On("FindUserByAccountVerificationToken", token).Return(user, nil)
 
 	bodyBytes, _ := json.Marshal(map[string]string{"token": token})
 	req := httptest.NewRequest(http.MethodPost, "/verify-account-token", bytes.NewReader(bodyBytes))
@@ -105,7 +105,7 @@ func TestVerifyAccountToken_UserNotFound(t *testing.T) {
 	}
 
 	token := "nonexistent-token"
-	mockVerificationService.On("CheckAccountVerificationToken", token).Return((*UserModel.User)(nil), assert.AnError)
+	mockVerificationService.On("FindUserByAccountVerificationToken", token).Return((*UserModel.User)(nil), assert.AnError)
 
 	bodyBytes, _ := json.Marshal(map[string]string{"token": token})
 	req := httptest.NewRequest(http.MethodPost, "/verify-account-token", bytes.NewReader(bodyBytes))
@@ -150,7 +150,7 @@ func TestVerifyAccountToken_TokenMismatchOrExpired(t *testing.T) {
 		VerificationTokenCreatedAt: time.Now().Add(-25 * time.Hour), // expired
 	}
 
-	mockVerificationService.On("CheckAccountVerificationToken", requestToken).Return(user, nil)
+	mockVerificationService.On("FindUserByAccountVerificationToken", requestToken).Return(user, nil)
 
 	bodyBytes, _ := json.Marshal(map[string]string{"token": requestToken})
 	req := httptest.NewRequest(http.MethodPost, "/verify-account-token", bytes.NewReader(bodyBytes))
