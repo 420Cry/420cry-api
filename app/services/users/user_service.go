@@ -29,7 +29,7 @@ type UserServiceInterface interface {
 	GetUserByUUID(uuid string) (*UserModel.User, error)
 	UpdateUser(user *UserModel.User) error
 	CheckUserByResetPasswordToken(token string) (*UserModel.User, error)
-	SaveResetPasswordToken(user *UserModel.User) (*UserModel.User, error)
+	CreateResetPasswordToken(user *UserModel.User) (*UserModel.User, error)
 	HandleResetPassword(foundUser *UserModel.User, req *UserTypes.IVerificationResetPasswordForm) error
 	CheckIfUserExists(email string) (*UserModel.User, error)
 }
@@ -104,8 +104,8 @@ func (s *UserService) CheckIfUserExists(email string) (*UserModel.User, error) {
 	return foundUser, nil
 }
 
-// SaveResetPasswordToken generates new token for reset password link and save it into the user's database if user exists or user is verified
-func (s *UserService) SaveResetPasswordToken(user *UserModel.User) (*UserModel.User, error) {
+// CreateResetPasswordToken generates new token for reset password link and save it into the user's database if user exists or user is verified
+func (s *UserService) CreateResetPasswordToken(user *UserModel.User) (*UserModel.User, error) {
 	resetPasswordToken, err := factories.Generate32ByteToken()
 	if err != nil {
 		return nil, err

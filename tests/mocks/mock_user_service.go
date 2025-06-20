@@ -46,8 +46,8 @@ func (m *MockUserService) CheckUserByResetPasswordToken(token string) (*UserMode
 	return user, args.Error(1)
 }
 
-// SaveResetPasswordToken mocks SaveResetPasswordToken from userService
-func (m *MockUserService) SaveResetPasswordToken(foundUser *UserModel.User) (*UserModel.User, error) {
+// CreateResetPasswordToken mocks CreateResetPasswordToken from userService
+func (m *MockUserService) CreateResetPasswordToken(foundUser *UserModel.User) (*UserModel.User, error) {
 	args := m.Called(foundUser)
 	user, _ := args.Get(0).(*UserModel.User)
 	return user, args.Error(1)
