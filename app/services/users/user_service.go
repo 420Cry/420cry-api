@@ -2,6 +2,7 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 
 	"cry-api/app/factories"
@@ -9,6 +10,8 @@ import (
 	UserRepository "cry-api/app/repositories"
 	EmailService "cry-api/app/services/email"
 	SignUpError "cry-api/app/types/errors"
+
+	"gorm.io/gorm"
 )
 
 // UserService handles user-related business logic such as
@@ -89,11 +92,10 @@ func (s *UserService) UpdateUser(user *UserModel.User) error {
 func (s *UserService) FindUserByEmail(email string) (*UserModel.User, error) {
 	foundUser, err := s.userRepo.FindByEmail(email)
 	if err != nil {
-		return nil, fmt.Errorf("error finding the user for this email")
-	}
-
-	if foundUser == nil {
-		return nil, fmt.Errorf("no user found using this email: %s", email)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("error finding the user for this email: %w", err)
 	}
 
 	return foundUser, nil
