@@ -1,13 +1,13 @@
 package services
 
 import (
-	"errors"
 	"fmt"
 
 	UserModel "cry-api/app/models"
 	UserRepository "cry-api/app/repositories"
 	TwoFactorService "cry-api/app/services/2fa"
 	PasswordService "cry-api/app/services/password"
+	SignInError "cry-api/app/types/errors"
 )
 
 // AuthService handles user authentication.
@@ -38,13 +38,13 @@ func (s *AuthService) AuthenticateUser(username, password string) (*UserModel.Us
 		return nil, err
 	}
 	if user == nil {
-		return nil, errors.New("user not found")
+		return nil, SignInError.ErrUserNotFound
 	}
 	if err := s.passwordService.CheckPassword(user.Password, password); err != nil {
-		return nil, errors.New("invalid password")
+		return nil, SignInError.ErrInvalidPassword
 	}
 	if !user.IsVerified {
-		return nil, errors.New("user not verified")
+		return nil, SignInError.ErrUserNotVerified
 	}
 	return user, nil
 }

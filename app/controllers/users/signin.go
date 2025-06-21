@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	JWT "cry-api/app/services/jwt"
+	SignInError "cry-api/app/types/errors"
 	UserTypes "cry-api/app/types/users"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +22,12 @@ func (h *UserController) SignIn(c *gin.Context) {
 
 	user, err := h.AuthService.AuthenticateUser(req.Username, req.Password)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+		switch err {
+		case SignInError.ErrUserNotFound, SignInError.ErrInvalidPassword:
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
+		}
 		return
 	}
 
