@@ -3,13 +3,12 @@ package factories
 
 import (
 	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 )
 
-// GenerateSignupToken creates a secure random 32-byte token returned as a hex string.
+// Generate32ByteToken creates a secure random 32-byte token returned as a hex string.
 // This token is typically embedded in account activation URLs.
-func GenerateSignupToken() (string, error) {
+func Generate32ByteToken() (string, error) {
 	token := make([]byte, 32)
 	_, err := rand.Read(token)
 	if err != nil {
@@ -35,18 +34,4 @@ func GenerateVerificationToken() (string, error) {
 		b[i] = charset[int(randBytes[i])%len(charset)]
 	}
 	return string(b), nil
-}
-
-// GenerateRandomToken for reset password token
-func GenerateRandomToken() (string, error) {
-	tokenLength := 16
-
-	b := make([]byte, tokenLength)
-	_, err := rand.Read(b)
-	if err != nil {
-		return "", fmt.Errorf("cannot generate random token: %v", err)
-	}
-
-	token := hex.EncodeToString(b)
-	return token, nil
 }

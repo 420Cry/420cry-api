@@ -19,7 +19,7 @@ func (h *UserController) VerifyEmailToken(c *gin.Context) {
 		return
 	}
 
-	user, err := h.UserService.VerifyUserWithTokens(req.UserToken, req.VerifyToken)
+	user, err := h.VerificationService.VerifyUserWithTokens(req.UserToken, req.VerifyToken)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

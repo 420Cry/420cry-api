@@ -2,7 +2,8 @@
 package routes
 
 import (
-	userroute "cry-api/app/routes/users"
+	TwoFactorRoute "cry-api/app/routes/2fa"
+	UserRoute "cry-api/app/routes/users"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -10,5 +11,6 @@ import (
 
 // RegisterAllRoutes sets up all API routes using Gin.
 func RegisterAllRoutes(r *gin.Engine, db *gorm.DB) {
-	userroute.RegisterRoutes(r.Group("/users"), db)
+	UserRoute.RegisterRoutes(r.Group("/users"), db)
+	TwoFactorRoute.RegisterRoutes(r.Group("/2fa"), db)
 }

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"cry-api/app/models"
-	services "cry-api/app/services/password"
+	PasswordService "cry-api/app/services/password"
 
 	"github.com/google/uuid"
 )
@@ -15,7 +15,7 @@ import (
 // Returns the created User object or an error if any step fails.
 func NewUser(fullname, username, email, password string) (*models.User, error) {
 	u := generateUUID()
-	signupToken, err := GenerateSignupToken()
+	signupToken, err := Generate32ByteToken()
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +25,11 @@ func NewUser(fullname, username, email, password string) (*models.User, error) {
 		return nil, err
 	}
 
-	hashedPassword, err := services.HashPassword(password)
+	// Create PasswordService instance
+	passwordService := PasswordService.NewPasswordService()
+
+	// Call method on instance
+	hashedPassword, err := passwordService.HashPassword(password)
 	if err != nil {
 		return nil, err
 	}
@@ -43,6 +47,8 @@ func NewUser(fullname, username, email, password string) (*models.User, error) {
 		VerificationTokenCreatedAt:  time.Now(),
 		IsVerified:                  false,
 		CreatedAt:                   time.Now(),
+		TwoFASecret:                 nil,
+		TwoFAEnabled:                false,
 	}
 	return user, nil
 }

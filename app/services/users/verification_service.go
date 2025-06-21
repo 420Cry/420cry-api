@@ -17,6 +17,14 @@ func NewVerificationService(userRepo UserRepository.UserRepository) *Verificatio
 	return &VerificationService{userRepo: userRepo}
 }
 
+// VerificationServiceInterface defines the contract for VerificationServiceInterface methods.
+type VerificationServiceInterface interface {
+	VerifyUserWithTokens(userToken, verifyToken string) (*UserModel.User, error)
+	FindUserByAccountVerificationToken(token string) (*UserModel.User, error)
+	CheckEmailVerificationToken(token string) (*UserModel.User, error)
+	CheckUserByBothTokens(token string, verificationToken string) (*UserModel.User, error)
+}
+
 // VerifyUserWithTokens validates both tokens and marks user as verified.
 func (s *VerificationService) VerifyUserWithTokens(token, verificationToken string) (*UserModel.User, error) {
 	user, err := s.CheckUserByBothTokens(token, verificationToken)
@@ -35,8 +43,8 @@ func (s *VerificationService) VerifyUserWithTokens(token, verificationToken stri
 	return user, nil
 }
 
-// CheckAccountVerificationToken validates an account token and returns the user.
-func (s *VerificationService) CheckAccountVerificationToken(token string) (*UserModel.User, error) {
+// FindUserByAccountVerificationToken validates an account token and returns the user.
+func (s *VerificationService) FindUserByAccountVerificationToken(token string) (*UserModel.User, error) {
 	user, err := s.userRepo.FindByAccountVerificationToken(token)
 	if err != nil {
 		return nil, err
@@ -49,14 +57,14 @@ func (s *VerificationService) CheckAccountVerificationToken(token string) (*User
 
 // CheckUserByBothTokens verifies both the URL token and verification token.
 func (s *VerificationService) CheckUserByBothTokens(emailVerificationToken, verificationToken string) (*UserModel.User, error) {
-	user, err := s.userRepo.FindByVerificationToken(verificationToken)
+	user, err := s.userRepo.FindByAccountVerificationToken(emailVerificationToken)
 	if err != nil {
 		return nil, err
 	}
 	if user == nil {
 		return nil, fmt.Errorf("invalid verification token")
 	}
-	if user.AccountVerificationToken == nil || *user.AccountVerificationToken != emailVerificationToken {
+	if user.VerificationTokens == "" || user.VerificationTokens != verificationToken {
 		return nil, fmt.Errorf("token does not match")
 	}
 	return user, nil
@@ -64,7 +72,7 @@ func (s *VerificationService) CheckUserByBothTokens(emailVerificationToken, veri
 
 // CheckEmailVerificationToken verifies the email token and marks user as verified.
 func (s *VerificationService) CheckEmailVerificationToken(emailVerificationToken string) (*UserModel.User, error) {
-	user, err := s.userRepo.FindByVerificationToken(emailVerificationToken)
+	user, err := s.userRepo.FindByAccountVerificationToken(emailVerificationToken)
 	if err != nil {
 		return nil, err
 	}

@@ -7,14 +7,13 @@ import (
 	"fmt"
 
 	Config "cry-api/app/config"
-	types "cry-api/app/types/database"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 // NewDatabase initializes a new database connection
-func NewDatabase(dsn string) (*types.Database, error) {
+func NewDatabase(dsn string) (*Database, error) {
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to the database: %v", err)
@@ -31,11 +30,11 @@ func NewDatabase(dsn string) (*types.Database, error) {
 		return nil, fmt.Errorf("failed to ping database: %v", err)
 	}
 
-	return &types.Database{DB: db}, nil
+	return &Database{DB: db}, nil
 }
 
 // GetDBConnection loads configuration and returns a database connection
-func GetDBConnection() (*types.Database, error) {
+func GetDBConnection() (*Database, error) {
 	cfg := Config.Get()
 
 	// Database connection string

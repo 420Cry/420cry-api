@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 
+	SignUpError "cry-api/app/types/errors"
+
 	"cry-api/app/config"
 	UserModel "cry-api/app/models"
 	EnvTypes "cry-api/app/types/env"
@@ -16,7 +18,7 @@ import (
 
 /*
 Signup handles user registration requests.
-It decodes the incoming JSON request into a UserDomain.User struct,
+It decodes the incoming JSON request into a User struct,
 creates a new user using the userService, and sends a verification email asynchronously.
 Responds with a success status if user creation is successful.
 */
@@ -30,6 +32,10 @@ func (h *UserController) Signup(c *gin.Context) {
 	}
 
 	createdUser, err := h.UserService.CreateUser(input.Fullname, input.Username, input.Email, input.Password)
+	if err == SignUpError.ErrUserConflict {
+		c.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
+		return
+	}
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create user"})
 		return

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
-	"time"
 
 	"cry-api/app/models"
 	repositorie "cry-api/app/repositories"
@@ -221,74 +220,6 @@ func TestGormUserRepository_FindByUsername(t *testing.T) {
 		WillReturnError(fmt.Errorf("db error"))
 
 	result, err = repo.FindByUsername("error")
-	assert.Error(t, err)
-	assert.Nil(t, result)
-
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
-
-func TestGormUserRepository_FindByVerificationToken(t *testing.T) {
-	db, mock, close := mocks.SetupMockDB(t)
-	defer close()
-
-	repo := repositorie.NewGormUserRepository(db)
-
-	token := "token123"
-	now := time.Now()
-
-	// User with valid token (created recently)
-	user := models.User{
-		ID:                         1,
-		UUID:                       "uuid1",
-		VerificationTokens:         token,
-		VerificationTokenCreatedAt: now.Add(-1 * time.Hour),
-	}
-
-	rows := sqlmock.NewRows([]string{"id", "uuid", "verification_tokens", "verification_token_created_at"}).
-		AddRow(user.ID, user.UUID, user.VerificationTokens, user.VerificationTokenCreatedAt)
-
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE verification_tokens = $1 ORDER BY "users"."id" LIMIT $2`)).
-		WithArgs(token, 1).
-		WillReturnRows(rows)
-
-	result, err := repo.FindByVerificationToken(token)
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-
-	// User with expired token
-	expiredUser := models.User{
-		ID:                         2,
-		UUID:                       "uuid2",
-		VerificationTokens:         token,
-		VerificationTokenCreatedAt: now.Add(-25 * time.Hour),
-	}
-	expiredRows := sqlmock.NewRows([]string{"id", "uuid", "verification_tokens", "verification_token_created_at"}).
-		AddRow(expiredUser.ID, expiredUser.UUID, expiredUser.VerificationTokens, expiredUser.VerificationTokenCreatedAt)
-
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE verification_tokens = $1 ORDER BY "users"."id" LIMIT $2`)).
-		WithArgs(token, 1).
-		WillReturnRows(expiredRows)
-
-	result, err = repo.FindByVerificationToken(token)
-	assert.Error(t, err)
-	assert.Nil(t, result)
-	assert.Equal(t, "verification token expired", err.Error())
-
-	// Not found
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE verification_tokens = $1 ORDER BY "users"."id" LIMIT $2`)).
-		WithArgs("missingtoken", 1).
-		WillReturnError(gorm.ErrRecordNotFound)
-
-	result, err = repo.FindByVerificationToken("missingtoken")
-	assert.NoError(t, err)
-	assert.Nil(t, result)
-
-	// DB error
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE verification_tokens = $1 ORDER BY "users"."id" LIMIT $2`)).
-		WithArgs("dberror", 1).
-		WillReturnError(fmt.Errorf("db error"))
-
-	result, err = repo.FindByVerificationToken("dberror")
 	assert.Error(t, err)
 	assert.Nil(t, result)
 

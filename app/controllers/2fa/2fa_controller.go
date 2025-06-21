@@ -11,19 +11,14 @@ import (
 	"gorm.io/gorm"
 )
 
-// UserController handles HTTP requests related to user operations
-type UserController struct {
-	VerificationService UserServices.VerificationServiceInterface
-	AuthService         UserServices.AuthServiceInterface
-	UserService         UserServices.UserServiceInterface
-	EmailService        EmailServices.EmailServiceInterface
-	PasswordService     PasswordService.PasswordServiceInterface
+// TwoFactorController handles 2FA-related HTTP requests.
+type TwoFactorController struct {
+	UserService UserServices.UserServiceInterface
+	AuthService UserServices.AuthServiceInterface
 }
 
-/*
-NewUserController initializes and returns a new NewUserController instance with its dependencies.
-*/
-func NewUserController(db *gorm.DB, cfg *EnvTypes.EnvConfig) *UserController {
+// NewTwoFactorController initializes a new TwoFactorController with dependencies.
+func NewTwoFactorController(db *gorm.DB, cfg *EnvTypes.EnvConfig) *TwoFactorController {
 	passwordService := PasswordService.NewPasswordService()
 	userRepository := UserRepository.NewGormUserRepository(db)
 	emailSender := Email.NewSMTPEmailSender(cfg.SMTPConfig.Host, cfg.SMTPConfig.Port)
@@ -33,10 +28,9 @@ func NewUserController(db *gorm.DB, cfg *EnvTypes.EnvConfig) *UserController {
 	verificationService := UserServices.NewVerificationService(userRepository)
 
 	userService := UserServices.NewUserService(userRepository, emailService, verificationService, authService)
-	return &UserController{
-		UserService:         userService,
-		EmailService:        emailService,
-		VerificationService: verificationService,
-		AuthService:         authService,
+
+	return &TwoFactorController{
+		UserService: userService,
+		AuthService: authService,
 	}
 }
