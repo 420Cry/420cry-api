@@ -25,9 +25,17 @@ func (h *UserController) HandleResetPasswordRequest(c *gin.Context) {
 	}
 
 	user, err := h.UserService.FindUserByEmail(req.Email)
-	if err != nil || user == nil || !user.IsVerified {
-		log.Printf("error finding user or user is not verified: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "error finding user or user is not verified"})
+	if err != nil {
+		log.Printf("internal error finding user: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+	if user == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		return
+	}
+	if !user.IsVerified {
+		c.JSON(http.StatusForbidden, gin.H{"error": "user not verified"})
 		return
 	}
 

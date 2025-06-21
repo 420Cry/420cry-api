@@ -14,9 +14,10 @@ var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
 // embedding standard registered claims along with user-specific fields
 // such as UUID and Email.
 type CustomClaims struct {
-	UUID         string `json:"uuid"`
-	Email        string `json:"email"`
-	TwoFAEnabled bool   `json:"twoFAEnabled"`
+	UUID                    string `json:"uuid"`
+	Email                   string `json:"email"`
+	TwoFAEnabled            bool   `json:"twoFAEnabled"`
+	TwoFASetUpSkippedForNow bool   `json:"twoFASetUpSkippedForNow"`
 	jwt.RegisteredClaims
 }
 

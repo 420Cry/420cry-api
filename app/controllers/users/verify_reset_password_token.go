@@ -46,6 +46,11 @@ func (h *UserController) VerifyResetPasswordToken(c *gin.Context) {
 	user.ResetPasswordTokenCreatedAt = nil
 	user.ResetPasswordToken = ""
 	user.Password = hashedPassword
+	err = h.UserService.UpdateUser(user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to update user"})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
