@@ -33,10 +33,12 @@ func NewUserController(db *gorm.DB, cfg *EnvTypes.EnvConfig) *UserController {
 	verificationService := UserServices.NewVerificationService(userRepository)
 
 	userService := UserServices.NewUserService(userRepository, emailService, verificationService, authService)
+
 	return &UserController{
 		UserService:         userService,
 		EmailService:        emailService,
 		VerificationService: verificationService,
 		AuthService:         authService,
+		PasswordService:     passwordService,
 	}
 }

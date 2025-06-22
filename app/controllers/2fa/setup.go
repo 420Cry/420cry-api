@@ -4,7 +4,6 @@ package controllers
 import (
 	"net/http"
 
-	TwoFactorService "cry-api/app/services/2fa"
 	TwoFactorType "cry-api/app/types/2fa"
 
 	"github.com/gin-gonic/gin"
@@ -31,9 +30,10 @@ func (h *TwoFactorController) Setup(c *gin.Context) {
 	}
 
 	if user.TwoFASecret != nil && *user.TwoFASecret != "" {
-		otpauthURL := TwoFactorService.GenerateOtpauthURL(user.Email, *user.TwoFASecret)
+		// Use interface method instead of package function
+		otpauthURL := h.TwoFactorService.GenerateOtpauthURL(user.Email, *user.TwoFASecret)
 
-		qrCode, err := TwoFactorService.GenerateQRCodeBase64(otpauthURL)
+		qrCode, err := h.TwoFactorService.GenerateQRCodeBase64(otpauthURL)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate QR code"})
 			return
@@ -46,7 +46,8 @@ func (h *TwoFactorController) Setup(c *gin.Context) {
 		return
 	}
 
-	secret, otpauthURL, err := TwoFactorService.GenerateTOTP(user.Email)
+	// Generate new secret
+	secret, otpauthURL, err := h.TwoFactorService.GenerateTOTP(user.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate 2FA secret"})
 		return
@@ -58,7 +59,7 @@ func (h *TwoFactorController) Setup(c *gin.Context) {
 		return
 	}
 
-	qrCode, err := TwoFactorService.GenerateQRCodeBase64(otpauthURL)
+	qrCode, err := h.TwoFactorService.GenerateQRCodeBase64(otpauthURL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate QR code"})
 		return

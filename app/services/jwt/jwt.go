@@ -23,12 +23,12 @@ type Claims struct {
 }
 
 // GenerateJWT generates a new JWT token
-func GenerateJWT(uuid, email string, twoFAEnabled bool, twoFAVerified bool) (string, error) {
+var GenerateJWT = func(uuid, email string, twoFAEnabled bool, twoFAVerified bool) (string, error) {
 	var expiryDuration time.Duration
 	if twoFAEnabled {
-		expiryDuration = 7 * 24 * time.Hour // 7 days
+		expiryDuration = 7 * 24 * time.Hour
 	} else {
-		expiryDuration = 10 * time.Minute // 10 minutes for pre-2FA grace period
+		expiryDuration = 10 * time.Minute
 	}
 
 	claims := Claims{

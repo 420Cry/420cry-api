@@ -66,7 +66,6 @@ func TestGenerateQRCodeBase64_AnyInput(t *testing.T) {
 		}
 	}
 
-	// Now test empty input explicitly expects error
 	_, err := TwoFactorService.GenerateQRCodeBase64("")
 	if err == nil {
 		t.Error("GenerateQRCodeBase64 did not return error for empty input")

@@ -1,3 +1,4 @@
+// Package services provides 2fa logic
 package services
 
 import (
@@ -7,6 +8,13 @@ import (
 	"github.com/pquerna/otp/totp"
 	"github.com/skip2/go-qrcode"
 )
+
+// TwoFactorServiceInterface provides methods for 2fa
+type TwoFactorServiceInterface interface {
+	GenerateOtpauthURL(userEmail, secret string) string
+	GenerateQRCodeBase64(url string) (string, error)
+	GenerateTOTP(userEmail string) (string, string, error)
+}
 
 // VerifyTOTP verifies the user-provided token against the stored secret.
 // Returns true if valid, false otherwise.

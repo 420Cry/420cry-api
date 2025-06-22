@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	PasswordService "cry-api/app/services/password"
 	UserTypes "cry-api/app/types/users"
 
 	"github.com/gin-gonic/gin"
@@ -18,7 +17,6 @@ func (h *UserController) VerifyResetPasswordToken(c *gin.Context) {
 		return
 	}
 
-	// Check user by token to have the user holding the token
 	user, err := h.UserService.FindUserByResetPasswordToken(req.ResetPasswordToken)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot find user"})
@@ -27,19 +25,18 @@ func (h *UserController) VerifyResetPasswordToken(c *gin.Context) {
 
 	if !user.IsVerified {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "User is not verified"})
+		return
 	}
 
-	// Save new password and reset token
 	if user.ResetPasswordTokenCreatedAt == nil || time.Since(*user.ResetPasswordTokenCreatedAt) > time.Hour {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "The token has been expired"})
 		return
 	}
 
-	// 	// Create PasswordService instance
-	passwordService := PasswordService.NewPasswordService()
-	hashedPassword, err := passwordService.HashPassword(req.NewPassword)
+	// Use the injected PasswordService here:
+	hashedPassword, err := h.PasswordService.HashPassword(req.NewPassword)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Can not hash password"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot hash password"})
 		return
 	}
 

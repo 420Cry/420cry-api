@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// VerifyOTP validates the OTP and returns a new JWT if successful.
+// VerifySetUpOTP validates the OTP and returns a new JWT if successful.
 func (h *TwoFactorController) VerifySetUpOTP(c *gin.Context) {
 	var req types.ITwoFactorSetupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

@@ -50,6 +50,7 @@ func (h *UserController) HandleResetPasswordRequest(c *gin.Context) {
 	if shouldCreateNewToken {
 		resetPasswordToken, err := factories.Generate32ByteToken()
 		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate token"})
 			return
 		}
 
@@ -64,6 +65,8 @@ func (h *UserController) HandleResetPasswordRequest(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not create token"})
 			return
 		}
+
+		userToUse = user
 	} else {
 		userToUse = user
 	}
