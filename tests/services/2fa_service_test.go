@@ -13,8 +13,8 @@ import (
 )
 
 func TestVerifyTOTP(t *testing.T) {
-	// Generate a valid token for a secret
-	secret := "JBSWY3DPEHPK3PXP" // Base32 encoded secret (example)
+	secret, _, err := services.GenerateTOTP("testuser@example.com")
+	assert.NoError(t, err)
 	token, err := totp.GenerateCode(secret, time.Now())
 	assert.NoError(t, err)
 
