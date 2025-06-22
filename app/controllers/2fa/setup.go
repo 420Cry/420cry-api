@@ -1,7 +1,9 @@
-// Package controllers handles HTTP requests and responses,
+// Package controllers handles HTTP requests and responses.
 package controllers
 
 import (
+	"net/http"
+
 	TwoFactorService "cry-api/app/services/2fa"
 	TwoFactorType "cry-api/app/types/2fa"
 
@@ -13,38 +15,56 @@ func (h *TwoFactorController) Setup(c *gin.Context) {
 	var req TwoFactorType.ITwoFactorSetupRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": "Invalid request format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
 		return
 	}
 
 	if req.UserUUID == "" {
-		c.JSON(400, gin.H{"error": "User UUID is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User UUID is required"})
 		return
 	}
 
-	// Get user by UUID
 	user, err := h.UserService.GetUserByUUID(req.UserUUID)
 	if err != nil || user == nil {
-		c.JSON(404, gin.H{"error": "User not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
-	// Generate TOTP secret and otpauth URL
+	if user.TwoFASecret != nil && *user.TwoFASecret != "" {
+		otpauthURL := TwoFactorService.GenerateOtpauthURL(user.Email, *user.TwoFASecret)
+
+		qrCode, err := TwoFactorService.GenerateQRCodeBase64(otpauthURL)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate QR code"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"secret": *user.TwoFASecret,
+			"qrCode": qrCode,
+		})
+		return
+	}
+
 	secret, otpauthURL, err := TwoFactorService.GenerateTOTP(user.Email)
 	if err != nil {
-		c.JSON(500, gin.H{"error": "Failed to generate 2FA secret"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate 2FA secret"})
 		return
 	}
 
-	// Generate base64 QR code
+	user.TwoFASecret = &secret
+	if err := h.UserService.UpdateUser(user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save 2FA secret"})
+		return
+	}
+
 	qrCode, err := TwoFactorService.GenerateQRCodeBase64(otpauthURL)
 	if err != nil {
-		c.JSON(500, gin.H{"error": "Failed to generate QR code"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate QR code"})
 		return
 	}
 
-	// Return the secret and the QR code image
-	c.JSON(200, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"secret": secret,
 		"qrCode": qrCode,
 	})

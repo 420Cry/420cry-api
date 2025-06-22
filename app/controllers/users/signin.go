@@ -31,7 +31,7 @@ func (h *UserController) SignIn(c *gin.Context) {
 		return
 	}
 
-	jwt, err := JWT.GenerateJWT(user.UUID, user.Email, user.TwoFAEnabled)
+	jwt, err := JWT.GenerateJWT(user.UUID, user.Email, user.TwoFAEnabled, false)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return

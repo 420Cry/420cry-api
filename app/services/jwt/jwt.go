@@ -10,19 +10,20 @@ import (
 
 var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
 
-// CustomClaims defines the custom JWT claims used for authentication,
+// Claims defines the custom JWT claims used for authentication,
 // embedding standard registered claims along with user-specific fields
 // such as UUID and Email.
-type CustomClaims struct {
+type Claims struct {
 	UUID                    string `json:"uuid"`
 	Email                   string `json:"email"`
 	TwoFAEnabled            bool   `json:"twoFAEnabled"`
 	TwoFASetUpSkippedForNow bool   `json:"twoFASetUpSkippedForNow"`
+	TwoFAVerified           bool   `json:"twoFAVerified"`
 	jwt.RegisteredClaims
 }
 
 // GenerateJWT generates a new JWT token
-func GenerateJWT(uuid, email string, twoFAEnabled bool) (string, error) {
+func GenerateJWT(uuid, email string, twoFAEnabled bool, twoFAVerified bool) (string, error) {
 	var expiryDuration time.Duration
 	if twoFAEnabled {
 		expiryDuration = 7 * 24 * time.Hour // 7 days
@@ -30,7 +31,7 @@ func GenerateJWT(uuid, email string, twoFAEnabled bool) (string, error) {
 		expiryDuration = 10 * time.Minute // 10 minutes for pre-2FA grace period
 	}
 
-	claims := CustomClaims{
+	claims := Claims{
 		UUID:         uuid,
 		Email:        email,
 		TwoFAEnabled: twoFAEnabled,
@@ -39,6 +40,7 @@ func GenerateJWT(uuid, email string, twoFAEnabled bool) (string, error) {
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Subject:   uuid,
 		},
+		TwoFAVerified: twoFAVerified,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtSecret)
