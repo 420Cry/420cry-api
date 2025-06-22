@@ -9,7 +9,9 @@ import (
 )
 
 func TestGenerateTOTP(t *testing.T) {
-	secret, otpAuthURL, err := TwoFactorService.GenerateTOTP("user@example.com")
+	service := TwoFactorService.NewTwoFactorService()
+
+	secret, otpAuthURL, err := service.GenerateTOTP("user@example.com")
 	if err != nil {
 		t.Fatalf("GenerateTOTP returned error: %v", err)
 	}
@@ -26,13 +28,15 @@ func TestGenerateTOTP(t *testing.T) {
 }
 
 func TestGenerateQRCodeBase64(t *testing.T) {
+	service := TwoFactorService.NewTwoFactorService()
+
 	// First generate a valid otpauth URL for testing
-	_, otpAuthURL, err := TwoFactorService.GenerateTOTP("user@example.com")
+	_, otpAuthURL, err := service.GenerateTOTP("user@example.com")
 	if err != nil {
 		t.Fatalf("GenerateTOTP returned error: %v", err)
 	}
 
-	qrCodeBase64, err := TwoFactorService.GenerateQRCodeBase64(otpAuthURL)
+	qrCodeBase64, err := service.GenerateQRCodeBase64(otpAuthURL)
 	if err != nil {
 		t.Fatalf("GenerateQRCodeBase64 returned error: %v", err)
 	}
@@ -47,6 +51,8 @@ func TestGenerateQRCodeBase64(t *testing.T) {
 }
 
 func TestGenerateQRCodeBase64_AnyInput(t *testing.T) {
+	service := TwoFactorService.NewTwoFactorService()
+
 	inputs := []string{
 		"validstring",
 		"\x00\x01\x02",
@@ -54,7 +60,7 @@ func TestGenerateQRCodeBase64_AnyInput(t *testing.T) {
 	}
 
 	for _, input := range inputs {
-		qrCodeBase64, err := TwoFactorService.GenerateQRCodeBase64(input)
+		qrCodeBase64, err := service.GenerateQRCodeBase64(input)
 		if err != nil {
 			t.Errorf("GenerateQRCodeBase64 returned error for input %q: %v", input, err)
 		}
@@ -66,7 +72,7 @@ func TestGenerateQRCodeBase64_AnyInput(t *testing.T) {
 		}
 	}
 
-	_, err := TwoFactorService.GenerateQRCodeBase64("")
+	_, err := service.GenerateQRCodeBase64("")
 	if err == nil {
 		t.Error("GenerateQRCodeBase64 did not return error for empty input")
 	}

@@ -31,8 +31,12 @@ func NewTwoFactorController(db *gorm.DB, cfg *EnvTypes.EnvConfig) *TwoFactorCont
 
 	userService := UserService.NewUserService(userRepository, emailService, verificationService, authService)
 
+	// Initialize TwoFactorService here (make sure you have a constructor for it)
+	twoFactorService := TwoFactorService.NewTwoFactorService() // or pass required params
+
 	return &TwoFactorController{
-		UserService: userService,
-		AuthService: authService,
+		UserService:      userService,
+		AuthService:      authService,
+		TwoFactorService: twoFactorService, // assign it here!
 	}
 }
