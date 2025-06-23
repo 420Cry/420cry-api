@@ -17,10 +17,16 @@ import (
 )
 
 func TestVerifyEmailToken_Success(t *testing.T) {
+	mockAuthService := new(testmocks.MockAuthService)
+	mockVerificationService := new(testmocks.MockVerificationService)
 	mockUserService := new(testmocks.MockUserService)
+	mockEmailService := new(testmocks.MockEmailService)
 
 	userController := &controller.UserController{
-		UserService: mockUserService,
+		UserService:         mockUserService,
+		EmailService:        mockEmailService,
+		VerificationService: mockVerificationService,
+		AuthService:         mockAuthService,
 	}
 
 	reqBody := UserTypes.IVerificationTokenCheckRequest{
@@ -33,7 +39,7 @@ func TestVerifyEmailToken_Success(t *testing.T) {
 		IsVerified: true,
 	}
 
-	mockUserService.
+	mockVerificationService.
 		On("VerifyUserWithTokens", reqBody.UserToken, reqBody.VerifyToken).
 		Return(dummyUser, nil)
 
@@ -55,14 +61,20 @@ func TestVerifyEmailToken_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, resp["verified"])
 
-	mockUserService.AssertExpectations(t)
+	mockVerificationService.AssertExpectations(t)
 }
 
 func TestVerifyEmailToken_InvalidJSON(t *testing.T) {
+	mockAuthService := new(testmocks.MockAuthService)
+	mockVerificationService := new(testmocks.MockVerificationService)
 	mockUserService := new(testmocks.MockUserService)
+	mockEmailService := new(testmocks.MockEmailService)
 
 	userController := &controller.UserController{
-		UserService: mockUserService,
+		UserService:         mockUserService,
+		EmailService:        mockEmailService,
+		VerificationService: mockVerificationService,
+		AuthService:         mockAuthService,
 	}
 
 	req := httptest.NewRequest(http.MethodPost, "/verify-email-token", bytes.NewReader([]byte(`{invalid-json}`)))
@@ -85,10 +97,16 @@ func TestVerifyEmailToken_InvalidJSON(t *testing.T) {
 }
 
 func TestVerifyEmailToken_VerificationFails(t *testing.T) {
+	mockAuthService := new(testmocks.MockAuthService)
+	mockVerificationService := new(testmocks.MockVerificationService)
 	mockUserService := new(testmocks.MockUserService)
+	mockEmailService := new(testmocks.MockEmailService)
 
 	userController := &controller.UserController{
-		UserService: mockUserService,
+		UserService:         mockUserService,
+		EmailService:        mockEmailService,
+		VerificationService: mockVerificationService,
+		AuthService:         mockAuthService,
 	}
 
 	reqBody := UserTypes.IVerificationTokenCheckRequest{
@@ -97,7 +115,7 @@ func TestVerifyEmailToken_VerificationFails(t *testing.T) {
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
 
-	mockUserService.
+	mockVerificationService.
 		On("VerifyUserWithTokens", reqBody.UserToken, reqBody.VerifyToken).
 		Return((*UserModel.User)(nil), assert.AnError)
 
@@ -119,5 +137,5 @@ func TestVerifyEmailToken_VerificationFails(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, resp["error"], assert.AnError.Error())
 
-	mockUserService.AssertExpectations(t)
+	mockVerificationService.AssertExpectations(t)
 }

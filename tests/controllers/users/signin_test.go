@@ -10,6 +10,7 @@ import (
 
 	controller "cry-api/app/controllers/users"
 	UserModel "cry-api/app/models"
+	SignInError "cry-api/app/types/errors"
 	UserTypes "cry-api/app/types/users"
 	TestUtils "cry-api/app/utils/tests"
 	testmocks "cry-api/tests/mocks"
@@ -19,12 +20,16 @@ import (
 )
 
 func TestSignIn_Success(t *testing.T) {
+	mockAuthService := new(testmocks.MockAuthService)
+	mockVerificationService := new(testmocks.MockVerificationService)
 	mockUserService := new(testmocks.MockUserService)
-	mockEmailService := new(testmocks.MockEmailService) // needed for Handler struct
+	mockEmailService := new(testmocks.MockEmailService)
 
 	userController := &controller.UserController{
-		UserService:  mockUserService,
-		EmailService: mockEmailService,
+		UserService:         mockUserService,
+		EmailService:        mockEmailService,
+		VerificationService: mockVerificationService,
+		AuthService:         mockAuthService,
 	}
 
 	input := UserTypes.IUserSigninRequest{
@@ -42,7 +47,7 @@ func TestSignIn_Success(t *testing.T) {
 	}
 
 	// Setup mock expectations
-	mockUserService.
+	mockAuthService.
 		On("AuthenticateUser", input.Username, input.Password).
 		Return(dummyUser, nil)
 
@@ -75,12 +80,16 @@ func TestSignIn_Success(t *testing.T) {
 }
 
 func TestSignIn_InvalidJSON(t *testing.T) {
+	mockAuthService := new(testmocks.MockAuthService)
+	mockVerificationService := new(testmocks.MockVerificationService)
 	mockUserService := new(testmocks.MockUserService)
 	mockEmailService := new(testmocks.MockEmailService)
 
 	userController := &controller.UserController{
-		UserService:  mockUserService,
-		EmailService: mockEmailService,
+		UserService:         mockUserService,
+		EmailService:        mockEmailService,
+		VerificationService: mockVerificationService,
+		AuthService:         mockAuthService,
 	}
 
 	invalidJSON := []byte(`{invalid-json}`) // malformed JSON
@@ -102,29 +111,33 @@ func TestSignIn_InvalidJSON(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, respBody["error"], "Invalid JSON")
 
-	mockUserService.AssertNotCalled(t, "AuthenticateUser", mock.Anything, mock.Anything)
+	mockAuthService.AssertNotCalled(t, "AuthenticateUser", mock.Anything, mock.Anything)
 }
 
-func TestSignIn_AuthenticationFails(t *testing.T) {
+func TestSignIn_UserNotFound(t *testing.T) {
+	mockAuthService := new(testmocks.MockAuthService)
+	mockVerificationService := new(testmocks.MockVerificationService)
 	mockUserService := new(testmocks.MockUserService)
 	mockEmailService := new(testmocks.MockEmailService)
 
 	userController := &controller.UserController{
-		UserService:  mockUserService,
-		EmailService: mockEmailService,
+		UserService:         mockUserService,
+		EmailService:        mockEmailService,
+		VerificationService: mockVerificationService,
+		AuthService:         mockAuthService,
 	}
 
 	input := UserTypes.IUserSigninRequest{
-		Username: "wronguser",
-		Password: "wrongpassword",
+		Username: "nonexistentuser",
+		Password: "anyPassword",
 	}
 
 	bodyBytes, _ := json.Marshal(input)
 
-	// Simulate authentication failure
-	mockUserService.
+	// Return ErrUserNotFound
+	mockAuthService.
 		On("AuthenticateUser", input.Username, input.Password).
-		Return((*UserModel.User)(nil), assert.AnError)
+		Return((*UserModel.User)(nil), SignInError.ErrUserNotFound)
 
 	req := httptest.NewRequest(http.MethodPost, "/signin", bytes.NewReader(bodyBytes))
 	w := httptest.NewRecorder()
@@ -144,5 +157,51 @@ func TestSignIn_AuthenticationFails(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, respBody["error"], "Invalid email or password")
 
-	mockUserService.AssertExpectations(t)
+	mockAuthService.AssertExpectations(t)
+}
+
+func TestSignIn_InvalidPassword(t *testing.T) {
+	mockAuthService := new(testmocks.MockAuthService)
+	mockVerificationService := new(testmocks.MockVerificationService)
+	mockUserService := new(testmocks.MockUserService)
+	mockEmailService := new(testmocks.MockEmailService)
+
+	userController := &controller.UserController{
+		UserService:         mockUserService,
+		EmailService:        mockEmailService,
+		VerificationService: mockVerificationService,
+		AuthService:         mockAuthService,
+	}
+
+	input := UserTypes.IUserSigninRequest{
+		Username: "existinguser",
+		Password: "wrongpassword",
+	}
+
+	bodyBytes, _ := json.Marshal(input)
+
+	// Return ErrInvalidPassword
+	mockAuthService.
+		On("AuthenticateUser", input.Username, input.Password).
+		Return((*UserModel.User)(nil), SignInError.ErrInvalidPassword)
+
+	req := httptest.NewRequest(http.MethodPost, "/signin", bytes.NewReader(bodyBytes))
+	w := httptest.NewRecorder()
+
+	c := TestUtils.GetGinContext(w, req)
+	userController.SignIn(c)
+
+	res := w.Result()
+	defer func() {
+		_ = res.Body.Close()
+	}()
+
+	assert.Equal(t, http.StatusUnauthorized, res.StatusCode)
+
+	var respBody map[string]string
+	err := json.NewDecoder(res.Body).Decode(&respBody)
+	assert.NoError(t, err)
+	assert.Contains(t, respBody["error"], "Invalid email or password")
+
+	mockAuthService.AssertExpectations(t)
 }

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	JWT "cry-api/app/services/jwt"
+	SignInError "cry-api/app/types/errors"
 	UserTypes "cry-api/app/types/users"
 
 	"github.com/gin-gonic/gin"
@@ -19,13 +20,18 @@ func (h *UserController) SignIn(c *gin.Context) {
 		return
 	}
 
-	user, err := h.UserService.AuthenticateUser(req.Username, req.Password)
+	user, err := h.AuthService.AuthenticateUser(req.Username, req.Password)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+		switch err {
+		case SignInError.ErrUserNotFound, SignInError.ErrInvalidPassword:
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
+		}
 		return
 	}
 
-	jwt, err := JWT.GenerateJWT(user.UUID, user.Email)
+	jwt, err := JWT.GenerateJWT(user.UUID, user.Email, user.TwoFAEnabled, false)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
@@ -34,10 +40,11 @@ func (h *UserController) SignIn(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"jwt": jwt,
 		"user": gin.H{
-			"uuid":     user.UUID,
-			"fullname": user.Fullname,
-			"email":    user.Email,
-			"username": user.Username,
+			"uuid":         user.UUID,
+			"fullname":     user.Fullname,
+			"email":        user.Email,
+			"username":     user.Username,
+			"twoFAEnabled": user.TwoFAEnabled,
 		},
 	})
 }

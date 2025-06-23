@@ -3,7 +3,6 @@ package repositorie
 
 import (
 	"fmt"
-	"time"
 
 	UserModel "cry-api/app/models"
 
@@ -27,17 +26,14 @@ type UserRepository interface {
 	// FindByUsername retrieves a user by their username.
 	FindByUsername(username string) (*UserModel.User, error)
 
-	// FindByVerificationToken retrieves a user by their email verification token.
-	FindByVerificationToken(token string) (*UserModel.User, error)
-
-	// FindByAccountVerificationToken retrieves a user by their signup/account token.
-	FindByAccountVerificationToken(token string) (*UserModel.User, error)
-
 	// Delete removes a user from the database by their ID.
 	Delete(userID int) error
 
 	// FindByResetPasswordToken retrieves a user by their reset password token
 	FindByResetPasswordToken(token string) (*UserModel.User, error)
+
+	// FindByAccountVerificationToken retrieves a user by their account verification token.
+	FindByAccountVerificationToken(token string) (*UserModel.User, error)
 }
 
 // GormUserRepository type
@@ -82,7 +78,7 @@ func (repo *GormUserRepository) FindByEmail(email string) (*UserModel.User, erro
 }
 
 // FindByUsernameOrEmail retrieves a user from the database whose username or email matches the provided values.
-// It returns a pointer to the UserDomain.User if found, or nil if no matching user exists.
+// It returns a pointer to the User if found, or nil if no matching user exists.
 // If an error occurs during the query (other than record not found), it returns the error.
 func (repo *GormUserRepository) FindByUsernameOrEmail(username string, email string) (*UserModel.User, error) {
 	var user UserModel.User
@@ -97,7 +93,7 @@ func (repo *GormUserRepository) FindByUsernameOrEmail(username string, email str
 }
 
 // FindByUsername retrieves a user from the database by their username.
-// Returns a pointer to the UserDomain.User if found, or nil if no user exists with the given username.
+// Returns a pointer to the User if found, or nil if no user exists with the given username.
 // If an error occurs during the query (other than record not found), it returns the error.
 func (repo *GormUserRepository) FindByUsername(username string) (*UserModel.User, error) {
 	var user UserModel.User
@@ -107,26 +103,6 @@ func (repo *GormUserRepository) FindByUsername(username string) (*UserModel.User
 			return nil, nil
 		}
 		return nil, err
-	}
-	return &user, nil
-}
-
-// FindByVerificationToken retrieves a user from the database by their verification token.
-// It returns the user if the token exists and has not expired (within 24 hours).
-// If the token is not found, it returns (nil, nil).
-// If the token is found but expired, it returns an error indicating expiration.
-// Any other database errors are returned as errors.
-func (repo *GormUserRepository) FindByVerificationToken(token string) (*UserModel.User, error) {
-	var user UserModel.User
-	err := repo.db.Where("verification_tokens = ?", token).First(&user).Error
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
-		return nil, err
-	}
-	if time.Since(user.VerificationTokenCreatedAt) > 24*time.Hour {
-		return nil, fmt.Errorf("verification token expired")
 	}
 	return &user, nil
 }

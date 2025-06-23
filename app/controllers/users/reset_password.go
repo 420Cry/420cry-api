@@ -2,13 +2,15 @@
 package controllers
 
 import (
-	"cry-api/app/config"
-	UserModel "cry-api/app/models"
-	UserTypes "cry-api/app/types/users"
 	"fmt"
-
 	"log"
 	"net/http"
+	"time"
+
+	"cry-api/app/config"
+	"cry-api/app/factories"
+	UserModel "cry-api/app/models"
+	UserTypes "cry-api/app/types/users"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,20 +24,51 @@ func (h *UserController) HandleResetPasswordRequest(c *gin.Context) {
 		return
 	}
 
-	foundUser, err := h.UserService.CheckIfUserExists(req.Email)
-
-	if err != nil || foundUser == nil || !foundUser.IsVerified {
-		log.Printf("error finding user or user is not verified: %v", err)
-		c.JSON(http.StatusOK, gin.H{"status": "success"})
+	user, err := h.UserService.FindUserByEmail(req.Email)
+	if err != nil {
+		log.Printf("internal error finding user: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+	if user == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		return
+	}
+	if !user.IsVerified {
+		c.JSON(http.StatusForbidden, gin.H{"error": "user not verified"})
 		return
 	}
 
-	savedUser, err := h.UserService.SaveResetPasswordToken(foundUser)
+	var shouldCreateNewToken bool
+	if user.ResetPasswordTokenCreatedAt == nil {
+		shouldCreateNewToken = true
+	} else {
+		shouldCreateNewToken = time.Since(*user.ResetPasswordTokenCreatedAt) > time.Hour
+	}
 
-	if err != nil {
-		log.Printf("error saving reset password token: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not create token"})
-		return
+	var userToUse *UserModel.User
+	if shouldCreateNewToken {
+		resetPasswordToken, err := factories.Generate32ByteToken()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate token"})
+			return
+		}
+
+		now := time.Now()
+
+		user.ResetPasswordToken = resetPasswordToken
+		user.ResetPasswordTokenCreatedAt = &now
+
+		err = h.UserService.UpdateUser(user)
+		if err != nil {
+			log.Printf("error saving reset password token: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not create token"})
+			return
+		}
+
+		userToUse = user
+	} else {
+		userToUse = user
 	}
 
 	go func(user *UserModel.User) {
@@ -53,8 +86,7 @@ func (h *UserController) HandleResetPasswordRequest(c *gin.Context) {
 		if err != nil {
 			log.Printf("Failed to send reset password email to %s: %v", user.Email, err)
 		}
-	}(savedUser)
+	}(userToUse)
 
 	c.JSON(http.StatusOK, gin.H{"success": true})
-
 }

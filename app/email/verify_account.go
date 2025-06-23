@@ -3,9 +3,10 @@
 package mail
 
 import (
-	"cry-api/app/utils"
 	"fmt"
 	"time"
+
+	"cry-api/app/utils"
 )
 
 // CreateVerifyAccountEmail generates an EmailMessage for verifying a user account.

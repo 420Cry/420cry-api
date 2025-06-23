@@ -2,9 +2,10 @@
 package services
 
 import (
+	"log"
+
 	Email "cry-api/app/email"
 	"cry-api/app/utils"
-	"log"
 )
 
 // EmailServiceInterface provides all EmailService methods
@@ -40,7 +41,6 @@ func (service *EmailService) SendVerifyAccountEmail(to, from, userName, verifica
 		return err
 	}
 
-	// Send the email via the core layer
 	err = service.emailSender.Send(email)
 	if err != nil {
 		return err
@@ -56,14 +56,12 @@ func (service *EmailService) SendResetPasswordEmail(to, from, userName, resetPas
 
 	// Creating email template
 	email, err := Email.CreateResetPasswordRequestEmail(to, from, userName, resetPasswordLink, APIURL)
-
 	if err != nil {
 		log.Printf("Error creating email template: %v", err)
 	}
 
 	// Sending the email
 	err = service.emailSender.Send(email)
-
 	if err != nil {
 		log.Printf("error sending the email: %v", err)
 	}

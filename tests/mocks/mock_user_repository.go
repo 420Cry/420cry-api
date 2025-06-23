@@ -58,16 +58,6 @@ func (m *MockUserRepository) FindByUsername(username string) (*models.User, erro
 	return user.(*models.User), args.Error(1)
 }
 
-// FindByVerificationToken mocks FindByVerificationToken method from UserRepository
-func (m *MockUserRepository) FindByVerificationToken(token string) (*models.User, error) {
-	args := m.Called(token)
-	user := args.Get(0)
-	if user == nil {
-		return nil, args.Error(1)
-	}
-	return user.(*models.User), args.Error(1)
-}
-
 // FindByAccountVerificationToken mocks FindByAccountVerificationToken method from UserRepository
 func (m *MockUserRepository) FindByAccountVerificationToken(token string) (*models.User, error) {
 	args := m.Called(token)
