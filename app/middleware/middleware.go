@@ -1,10 +1,12 @@
+// Package middleware provides HTTP middleware for the application.
 package middleware
 
 import (
-	services "cry-api/app/services/jwt"
 	"net/http"
 	"os"
 	"strings"
+
+	services "cry-api/app/services/jwt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -32,7 +34,7 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		tokenStr := tokenParts[1]
 
 		// Parse and verify token
-		token, err := jwt.ParseWithClaims(tokenStr, &services.Claims{}, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.ParseWithClaims(tokenStr, &services.Claims{}, func(_ *jwt.Token) (any, error) {
 			return []byte(os.Getenv("JWT_SECRET")), nil
 		})
 

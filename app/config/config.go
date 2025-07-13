@@ -75,7 +75,7 @@ func Load() *types.EnvConfig {
 	noReplyEmail := os.Getenv("NO_REPLY_EMAIL")
 
 	// Load WALLET_EXPLORER_API
-	walletExplorerApi := os.Getenv("WALLET_EXPLORER_API")
+	walletExplorerAPI := os.Getenv("WALLET_EXPLORER_API")
 
 	// Set the config instance
 	configInstance = &types.EnvConfig{
@@ -94,7 +94,7 @@ func Load() *types.EnvConfig {
 			Port: smtpPort,
 		},
 		WalletExplorerConfig: types.WalletExplorerConfig{
-			API: walletExplorerApi,
+			API: walletExplorerAPI,
 		},
 	}
 

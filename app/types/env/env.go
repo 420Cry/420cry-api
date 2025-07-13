@@ -7,6 +7,7 @@ type SMTPConfig struct {
 	Port string
 }
 
+// WalletExplorerConfig holds external API configuration for wallet explorer services.
 type WalletExplorerConfig struct {
 	API string
 }

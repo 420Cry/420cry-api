@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// RegisterRoutes sets up the wallet explorer routes.
 func RegisterRoutes(rg *gin.RouterGroup) {
 	cfg := config.Get()
 
