@@ -12,6 +12,11 @@ type WalletExplorerConfig struct {
 	API string
 }
 
+// Blockchain holds external API configuration for wallet explorer services.
+type BlockchainConfig struct {
+	API string
+}
+
 // EnvConfig maps environment variables to application configuration fields.
 type EnvConfig struct {
 	AppEnv               string
@@ -26,4 +31,5 @@ type EnvConfig struct {
 	SMTPConfig           SMTPConfig
 	NoReplyEmail         string
 	WalletExplorerConfig WalletExplorerConfig
+	BlockchainConfig     BlockchainConfig
 }

@@ -26,8 +26,8 @@ func NewExternalService(cfg *EnvTypes.EnvConfig) *ExternalService {
 // GetTransactionByTxID fetches transaction data from WalletExplorer API
 func (s *ExternalService) GetTransactionByTxID(txid string) (*WalletExplorer.ITransactionData, error) {
 	// Use config URL
-	baseURL := s.Config.WalletExplorerConfig.API
-	url := fmt.Sprintf("%s/tx?txid=%s", baseURL, txid)
+	baseURL := s.Config.BlockchainConfig.API
+	url := fmt.Sprintf("%s/rawtx/%s", baseURL, txid)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

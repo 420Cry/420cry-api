@@ -77,6 +77,9 @@ func Load() *types.EnvConfig {
 	// Load WALLET_EXPLORER_API
 	walletExplorerAPI := os.Getenv("WALLET_EXPLORER_API")
 
+	// Load BLOCKCHAIN_API
+	blockChainAPI := os.Getenv("BLOCKCHAIN_API")
+
 	// Set the config instance
 	configInstance = &types.EnvConfig{
 		AppEnv:       appEnv,
@@ -95,6 +98,9 @@ func Load() *types.EnvConfig {
 		},
 		WalletExplorerConfig: types.WalletExplorerConfig{
 			API: walletExplorerAPI,
+		},
+		BlockchainConfig: types.BlockchainConfig{
+			API: blockChainAPI,
 		},
 	}
 

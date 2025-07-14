@@ -3,16 +3,54 @@ package types
 
 // ITransactionData represents the payload from external API response
 type ITransactionData struct {
-	Found          bool   `json:"found"`
-	Label          string `json:"label"`
-	Txid           string `json:"txid"`
-	IsCoinbase     bool   `json:"is_coinbase"`
-	WalletID       string `json:"wallet_id"`
-	BlockHeight    int    `json:"block_height"`
-	BlockPos       int    `json:"block_pos"`
-	Time           int64  `json:"time"`
-	Size           int    `json:"size"`
-	In             any    `json:"in"`
-	Out            any    `json:"out"`
-	UpdatedToBlock int    `json:"updated_to_block"`
+	Hash        string   `json:"hash"`
+	Ver         int      `json:"ver"`
+	VinSz       int      `json:"vin_sz"`
+	VoutSz      int      `json:"vout_sz"`
+	LockTime    any      `json:"lock_time"` // can be int or string
+	Size        int      `json:"size"`
+	Weight      *int     `json:"weight,omitempty"` // optional
+	Fee         *int64   `json:"fee,omitempty"`    // optional
+	RelayedBy   string   `json:"relayed_by"`
+	BlockHeight int      `json:"block_height"`
+	BlockIndex  *int64   `json:"block_index,omitempty"`
+	TxIndex     any      `json:"tx_index"` // can be string or number
+	DoubleSpend *bool    `json:"double_spend,omitempty"`
+	Time        int64    `json:"time"`
+	Inputs      []Input  `json:"inputs"`
+	Out         []Output `json:"out"`
+}
+
+type Input struct {
+	Sequence *int64   `json:"sequence,omitempty"`
+	Witness  *string  `json:"witness,omitempty"`
+	Script   string   `json:"script"`
+	Index    *int     `json:"index,omitempty"`
+	PrevOut  *PrevOut `json:"prev_out,omitempty"`
+}
+
+type PrevOut struct {
+	Type              *int       `json:"type,omitempty"`
+	Spent             *bool      `json:"spent,omitempty"`
+	Value             any        `json:"value"` // sometimes int, sometimes string
+	SpendingOutpoints []Outpoint `json:"spending_outpoints"`
+	N                 any        `json:"n"`        // sometimes string or int
+	TxIndex           any        `json:"tx_index"` // can vary
+	Script            string     `json:"script"`
+}
+
+type Output struct {
+	Type              *int       `json:"type,omitempty"`
+	Spent             *bool      `json:"spent,omitempty"`
+	Value             any        `json:"value"` // sometimes int, sometimes string
+	SpendingOutpoints []Outpoint `json:"spending_outpoints,omitempty"`
+	N                 *int       `json:"n,omitempty"`
+	TxIndex           any        `json:"tx_index"` // can vary
+	Script            string     `json:"script"`
+	Addr              *string    `json:"addr,omitempty"`
+}
+
+type Outpoint struct {
+	TxIndex any `json:"tx_index"`
+	N       int `json:"n"`
 }
