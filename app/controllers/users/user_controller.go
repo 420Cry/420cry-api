@@ -27,11 +27,15 @@ func NewUserController(db *gorm.DB, cfg *EnvTypes.EnvConfig) *UserController {
 	passwordService := PasswordService.NewPasswordService()
 	userRepository := UserRepository.NewGormUserRepository(db)
 	emailSender := Email.NewSMTPEmailSender(cfg.SMTPConfig.Host, cfg.SMTPConfig.Port)
-	emailService := EmailServices.NewEmailService(emailSender)
+
+	// Instantiate EmailCreator implementation
+	emailCreator := &EmailServices.EmailCreatorImpl{}
+
+	// Pass both sender and creator
+	emailService := EmailServices.NewEmailService(emailSender, emailCreator)
 
 	authService := UserServices.NewAuthService(userRepository, passwordService)
 	verificationService := UserServices.NewVerificationService(userRepository)
-
 	userService := UserServices.NewUserService(userRepository, emailService, verificationService, authService)
 
 	return &UserController{

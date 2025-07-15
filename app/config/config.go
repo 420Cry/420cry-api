@@ -74,6 +74,12 @@ func Load() *types.EnvConfig {
 	// Load NoReplyEmail
 	noReplyEmail := os.Getenv("NO_REPLY_EMAIL")
 
+	// Load WALLET_EXPLORER_API
+	walletExplorerAPI := os.Getenv("WALLET_EXPLORER_API")
+
+	// Load BLOCKCHAIN_API
+	blockChainAPI := os.Getenv("BLOCKCHAIN_API")
+
 	// Set the config instance
 	configInstance = &types.EnvConfig{
 		AppEnv:       appEnv,
@@ -89,6 +95,12 @@ func Load() *types.EnvConfig {
 		SMTPConfig: types.SMTPConfig{
 			Host: smtpHost,
 			Port: smtpPort,
+		},
+		WalletExplorerConfig: types.WalletExplorerConfig{
+			API: walletExplorerAPI,
+		},
+		BlockchainConfig: types.BlockchainConfig{
+			API: blockChainAPI,
 		},
 	}
 
