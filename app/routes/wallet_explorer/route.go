@@ -21,4 +21,5 @@ func RegisterRoutes(rg *gin.RouterGroup) {
 
 	// Authenticated route
 	authGroup.GET("/tx", walletExplorerController.GetTransactionInfo)
+	authGroup.GET("/xpub", walletExplorerController.GetTransactionByXPUB)
 }

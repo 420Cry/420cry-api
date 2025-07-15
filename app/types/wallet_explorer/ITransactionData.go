@@ -21,6 +21,7 @@ type ITransactionData struct {
 	Out         []Output `json:"out"`
 }
 
+// Input represents the payload from external API response
 type Input struct {
 	Sequence *int64   `json:"sequence,omitempty"`
 	Witness  *string  `json:"witness,omitempty"`
@@ -29,6 +30,7 @@ type Input struct {
 	PrevOut  *PrevOut `json:"prev_out,omitempty"`
 }
 
+// PrevOut represents the payload from external API response
 type PrevOut struct {
 	Type              *int       `json:"type,omitempty"`
 	Spent             *bool      `json:"spent,omitempty"`
@@ -39,6 +41,7 @@ type PrevOut struct {
 	Script            string     `json:"script"`
 }
 
+// Output represents the payload from external API response
 type Output struct {
 	Type              *int       `json:"type,omitempty"`
 	Spent             *bool      `json:"spent,omitempty"`
@@ -50,6 +53,7 @@ type Output struct {
 	Addr              *string    `json:"addr,omitempty"`
 }
 
+// Outpoint represents the payload from external API response
 type Outpoint struct {
 	TxIndex any `json:"tx_index"`
 	N       int `json:"n"`

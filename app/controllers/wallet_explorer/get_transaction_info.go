@@ -4,21 +4,11 @@ package controllers
 import (
 	"net/http"
 
-	services "cry-api/app/services/jwt"
-
 	"github.com/gin-gonic/gin"
 )
 
 // GetTransactionInfo retrieves transaction information by transaction ID.
 func (h *WalletExplorerController) GetTransactionInfo(c *gin.Context) {
-	// User validation
-	claims, exists := c.Get("user")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User info not found in context"})
-		return
-	}
-	_ = claims.(*services.Claims)
-
 	// Query param
 	txid := c.Query("txid")
 	if txid == "" {
@@ -30,9 +20,7 @@ func (h *WalletExplorerController) GetTransactionInfo(c *gin.Context) {
 	data, err := h.ExternalService.GetTransactionByTxID(txid)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"isSuccess": false,
-			"message":   "Failed to retrieve transaction data",
-			"error":     err.Error(),
+			"error": err.Error(),
 		})
 		return
 	}

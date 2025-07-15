@@ -12,7 +12,7 @@ type WalletExplorerConfig struct {
 	API string
 }
 
-// Blockchain holds external API configuration for wallet explorer services.
+// BlockchainConfig holds external API configuration for wallet explorer services.
 type BlockchainConfig struct {
 	API string
 }
