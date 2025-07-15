@@ -2,6 +2,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -32,7 +33,7 @@ func (h *UserController) Signup(c *gin.Context) {
 	}
 
 	createdUser, err := h.UserService.CreateUser(input.Fullname, input.Username, input.Email, input.Password)
-	if err == SignUpError.ErrUserConflict {
+	if errors.Is(err, SignUpError.ErrUserConflict) {
 		c.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
 		return
 	}

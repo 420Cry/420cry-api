@@ -3,7 +3,6 @@ package middleware
 
 import (
 	"net/http"
-	"os"
 	"strings"
 
 	services "cry-api/app/services/jwt"
@@ -35,7 +34,7 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 
 		// Parse and verify token
 		token, err := jwt.ParseWithClaims(tokenStr, &services.Claims{}, func(_ *jwt.Token) (any, error) {
-			return []byte(os.Getenv("JWT_SECRET")), nil
+			return services.GetJWTSecret(), nil
 		})
 
 		if err != nil || !token.Valid {
