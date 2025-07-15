@@ -17,6 +17,12 @@ type ExternalService struct {
 	Config *EnvTypes.EnvConfig
 }
 
+// ExternalServiceInterface defines the methods for the ExternalService.
+type ExternalServiceInterface interface {
+	GetTransactionByXPUB(xpub string) (*WalletExplorer.ITransactionXPUB, error)
+	GetTransactionByTxID(txid string) (*WalletExplorer.ITransactionData, error)
+}
+
 // NewExternalService initializes and returns an ExternalService instance
 func NewExternalService(cfg *EnvTypes.EnvConfig) *ExternalService {
 	return &ExternalService{
