@@ -15,7 +15,7 @@ func (h *WalletExplorerController) GetTransactionByXPUB(c *gin.Context) {
 		return
 	}
 
-	data, err := h.ExternalService.GetTransactionByXPUB(xpub)
+	data, err := h.TransactionService.GetTransactionByXPUB(xpub)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

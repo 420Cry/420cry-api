@@ -3,6 +3,7 @@ package routes
 
 import (
 	TwoFactorRoute "cry-api/app/routes/2fa"
+	CoinMarketRoute "cry-api/app/routes/coin_market_cap"
 	UserRoute "cry-api/app/routes/users"
 	WalletExplorerRoute "cry-api/app/routes/wallet_explorer"
 
@@ -15,4 +16,5 @@ func RegisterAllRoutes(r *gin.Engine, db *gorm.DB) {
 	UserRoute.RegisterRoutes(r.Group("/users"), db)
 	TwoFactorRoute.RegisterRoutes(r.Group("/2fa"), db)
 	WalletExplorerRoute.RegisterRoutes(r.Group("/wallet-explorer"))
+	CoinMarketRoute.RegisterRoutes(r.Group("/coin-market-cap"))
 }

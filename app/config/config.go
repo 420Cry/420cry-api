@@ -80,6 +80,10 @@ func Load() *types.EnvConfig {
 	// Load BLOCKCHAIN_API
 	blockChainAPI := os.Getenv("BLOCKCHAIN_API")
 
+	// Load CoinMarketCap API
+	coinMarketCapAPI := os.Getenv("COIN_MARKET_CAP_API")
+	coinMarketCapAPIKey := os.Getenv("COIN_MARKET_CAP_API_KEY")
+
 	// Set the config instance
 	configInstance = &types.EnvConfig{
 		AppEnv:       appEnv,
@@ -101,6 +105,10 @@ func Load() *types.EnvConfig {
 		},
 		BlockchainConfig: types.BlockchainConfig{
 			API: blockChainAPI,
+		},
+		CoinMarketCapConfig: types.CoinMarketCapConfig{
+			API:    coinMarketCapAPI,
+			APIKey: coinMarketCapAPIKey,
 		},
 	}
 

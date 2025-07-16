@@ -16,8 +16,7 @@ func (h *WalletExplorerController) GetTransactionInfo(c *gin.Context) {
 		return
 	}
 
-	// Call external service
-	data, err := h.ExternalService.GetTransactionByTxID(txid)
+	data, err := h.TransactionService.GetTransactionByTxID(txid)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

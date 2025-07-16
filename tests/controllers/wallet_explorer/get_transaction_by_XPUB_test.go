@@ -17,10 +17,10 @@ import (
 func TestWalletExplorerController_GetTransactionByXPUB(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	mockExternalService := new(testmocks.MockExternalService)
+	mockTransactionService := new(testmocks.MockTransactionService)
 
 	controller := &controllers.WalletExplorerController{
-		ExternalService: mockExternalService,
+		TransactionService: mockTransactionService,
 	}
 
 	makeRequest := func(query string) (*gin.Context, *httptest.ResponseRecorder) {
@@ -39,9 +39,9 @@ func TestWalletExplorerController_GetTransactionByXPUB(t *testing.T) {
 		assert.JSONEq(t, `{"error":"Missing xpub parameter"}`, w.Body.String())
 	})
 
-	t.Run("ExternalService returns error", func(t *testing.T) {
+	t.Run("TransactionService returns error", func(t *testing.T) {
 		xpub := "testxpub"
-		mockExternalService.On("GetTransactionByXPUB", xpub).Return(nil, errors.New("service failure")).Once()
+		mockTransactionService.On("GetTransactionByXPUB", xpub).Return(nil, errors.New("service failure")).Once()
 
 		c, w := makeRequest("xpub=" + xpub)
 		controller.GetTransactionByXPUB(c)
@@ -49,7 +49,7 @@ func TestWalletExplorerController_GetTransactionByXPUB(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 		assert.JSONEq(t, `{"error":"service failure"}`, w.Body.String())
 
-		mockExternalService.AssertExpectations(t)
+		mockTransactionService.AssertExpectations(t)
 	})
 
 	t.Run("Successful call", func(t *testing.T) {
@@ -59,7 +59,7 @@ func TestWalletExplorerController_GetTransactionByXPUB(t *testing.T) {
 			GapLimit:     0,
 			Transactions: nil,
 		}
-		mockExternalService.On("GetTransactionByXPUB", xpub).Return(mockData, nil).Once()
+		mockTransactionService.On("GetTransactionByXPUB", xpub).Return(mockData, nil).Once()
 
 		c, w := makeRequest("xpub=" + xpub)
 		controller.GetTransactionByXPUB(c)
@@ -67,6 +67,6 @@ func TestWalletExplorerController_GetTransactionByXPUB(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 		assert.JSONEq(t, `{"xpub":{"found":false,"gap_limit":0,"txs":null}}`, w.Body.String())
 
-		mockExternalService.AssertExpectations(t)
+		mockTransactionService.AssertExpectations(t)
 	})
 }

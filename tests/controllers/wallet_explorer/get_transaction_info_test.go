@@ -16,10 +16,10 @@ import (
 func TestWalletExplorerController_GetTransactionInfo(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	mockExternalService := new(testmocks.MockExternalService)
+	mockTransactionService := new(testmocks.MockTransactionService)
 
 	controller := &controllers.WalletExplorerController{
-		ExternalService: mockExternalService,
+		TransactionService: mockTransactionService,
 	}
 
 	makeRequest := func(query string) (*gin.Context, *httptest.ResponseRecorder) {
@@ -40,7 +40,7 @@ func TestWalletExplorerController_GetTransactionInfo(t *testing.T) {
 
 	t.Run("External service error", func(t *testing.T) {
 		txid := "txid123"
-		mockExternalService.On("GetTransactionByTxID", txid).
+		mockTransactionService.On("GetTransactionByTxID", txid).
 			Return(nil, assert.AnError).
 			Once()
 
@@ -48,7 +48,7 @@ func TestWalletExplorerController_GetTransactionInfo(t *testing.T) {
 		controller.GetTransactionInfo(c)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
-		mockExternalService.AssertExpectations(t)
+		mockTransactionService.AssertExpectations(t)
 	})
 
 	t.Run("Successful call", func(t *testing.T) {
@@ -75,7 +75,7 @@ func TestWalletExplorerController_GetTransactionInfo(t *testing.T) {
 			},
 		}
 
-		mockExternalService.On("GetTransactionByTxID", txid).
+		mockTransactionService.On("GetTransactionByTxID", txid).
 			Return(mockData, nil).
 			Once()
 
@@ -102,6 +102,6 @@ func TestWalletExplorerController_GetTransactionInfo(t *testing.T) {
 		}`
 		assert.JSONEq(t, expectedJSON, w.Body.String())
 
-		mockExternalService.AssertExpectations(t)
+		mockTransactionService.AssertExpectations(t)
 	})
 }

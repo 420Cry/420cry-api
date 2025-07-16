@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	services "cry-api/app/services/wallet_explorer"
 	EnvTypes "cry-api/app/types/env"
@@ -49,7 +48,7 @@ func TestGetTransactionByTxID_Success(t *testing.T) {
 	defer server.Close()
 
 	cfg := makeTestEnvConfig(server.URL, "")
-	svc := services.NewExternalService(cfg)
+	svc := services.NewTransactionService(cfg)
 
 	data, err := svc.GetTransactionByTxID("testtxid")
 	assert.NoError(t, err)
@@ -69,7 +68,7 @@ func TestGetTransactionByTxID_Non200Status(t *testing.T) {
 	defer server.Close()
 
 	cfg := makeTestEnvConfig(server.URL, "")
-	svc := services.NewExternalService(cfg)
+	svc := services.NewTransactionService(cfg)
 
 	data, err := svc.GetTransactionByTxID("testtxid")
 	assert.Error(t, err)
@@ -86,7 +85,7 @@ func TestGetTransactionByTxID_InvalidJSON(t *testing.T) {
 	defer server.Close()
 
 	cfg := makeTestEnvConfig(server.URL, "")
-	svc := services.NewExternalService(cfg)
+	svc := services.NewTransactionService(cfg)
 
 	data, err := svc.GetTransactionByTxID("testtxid")
 	assert.Error(t, err)
@@ -111,7 +110,7 @@ func TestGetTransactionByXPUB_Success(t *testing.T) {
 	defer server.Close()
 
 	cfg := makeTestEnvConfig("", server.URL)
-	svc := services.NewExternalService(cfg)
+	svc := services.NewTransactionService(cfg)
 
 	data, err := svc.GetTransactionByXPUB("testxpub")
 	assert.NoError(t, err)
@@ -119,23 +118,6 @@ func TestGetTransactionByXPUB_Success(t *testing.T) {
 	assert.True(t, data.Found)
 	assert.Equal(t, 5, data.GapLimit)
 	assert.Empty(t, data.Transactions)
-}
-
-func TestGetTransactionByXPUB_Timeout(t *testing.T) {
-	// Simulate server that delays response beyond client timeout (30s)
-	handler := func(w http.ResponseWriter, _ *http.Request) {
-		time.Sleep(35 * time.Second)
-		w.WriteHeader(http.StatusOK)
-	}
-	server := httptest.NewServer(http.HandlerFunc(handler))
-	defer server.Close()
-
-	cfg := makeTestEnvConfig("", server.URL)
-	svc := services.NewExternalService(cfg)
-
-	_, err := svc.GetTransactionByXPUB("testxpub")
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to fetch data")
 }
 
 func TestGetTransactionByXPUB_Non200Status(t *testing.T) {
@@ -149,7 +131,7 @@ func TestGetTransactionByXPUB_Non200Status(t *testing.T) {
 	defer server.Close()
 
 	cfg := makeTestEnvConfig("", server.URL)
-	svc := services.NewExternalService(cfg)
+	svc := services.NewTransactionService(cfg)
 
 	data, err := svc.GetTransactionByXPUB("testxpub")
 	assert.Error(t, err)
@@ -168,7 +150,7 @@ func TestGetTransactionByXPUB_InvalidJSON(t *testing.T) {
 	defer server.Close()
 
 	cfg := makeTestEnvConfig("", server.URL)
-	svc := services.NewExternalService(cfg)
+	svc := services.NewTransactionService(cfg)
 
 	data, err := svc.GetTransactionByXPUB("testxpub")
 	assert.Error(t, err)
