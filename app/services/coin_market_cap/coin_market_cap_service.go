@@ -1,4 +1,4 @@
-// Package services provides  wallet explorer services for external API interactions.
+// Package services provides  coin market cap services for external API interactions.
 package services
 
 import (
@@ -29,22 +29,18 @@ func NewCoinMarketCapServiceService(cfg *EnvTypes.EnvConfig) *CoinMarketCapServi
 	}
 }
 
-// GetFearAndGreed fetches fear and greed index data from coin market cap API
+// GetFearAndGreed fetches fear and greed index data from CoinMarketCap API.
 func (s *CoinMarketCapService) GetFearAndGreed() (*CoinMarketCap.FearGreedData, error) {
-	// Use config URL
 	baseURL := s.Config.CoinMarketCapConfig.API
-	url := fmt.Sprintf("%s/v3/fear-and-greed/historical", baseURL)
+	url := fmt.Sprintf("%s/v3/fear-and-greed/latest", baseURL)
 
-	// Create a new HTTP request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create HTTP request: %w", err)
 	}
 
-	// Optional: Add headers like API key if required by the API
-	if s.Config.CoinMarketCapConfig.APIKey != "" {
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.Config.CoinMarketCapConfig.APIKey))
-	}
+	// Use the correct custom header for API key authentication
+	req.Header.Set("X-CMC_PRO_API_KEY", s.Config.CoinMarketCapConfig.APIKey)
 
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
@@ -56,13 +52,11 @@ func (s *CoinMarketCapService) GetFearAndGreed() (*CoinMarketCap.FearGreedData, 
 		_ = resp.Body.Close()
 	}()
 
-	// Check for non-200 response
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
-	// Decode response body into struct
 	var data CoinMarketCap.FearGreedData
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
 		return nil, fmt.Errorf("failed to decode response body: %w", err)
