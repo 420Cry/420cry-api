@@ -17,6 +17,12 @@ type BlockchainConfig struct {
 	API string
 }
 
+// CoinMarketCapConfig holds external API configuration for coin market cap services.
+type CoinMarketCapConfig struct {
+	API    string
+	APIKey string
+}
+
 // EnvConfig maps environment variables to application configuration fields.
 type EnvConfig struct {
 	AppEnv               string
@@ -32,4 +38,5 @@ type EnvConfig struct {
 	NoReplyEmail         string
 	WalletExplorerConfig WalletExplorerConfig
 	BlockchainConfig     BlockchainConfig
+	CoinMarketCapConfig  CoinMarketCapConfig
 }

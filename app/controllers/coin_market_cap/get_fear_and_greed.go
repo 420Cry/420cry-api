@@ -1,0 +1,23 @@
+// Package controllers handles HTTP requests and responses,
+package controllers
+
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
+
+// GetFearAndGreed retrieves the Fear and Greed index
+func (h *CoinMarketCapController) GetFearAndGreed(c *gin.Context) {
+	data, err := h.CoinMarketCapService.GetFearAndGreed()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	// Success
+	c.JSON(http.StatusOK, gin.H{
+		"transaction_data": data,
+	})
+}

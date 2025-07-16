@@ -12,26 +12,26 @@ import (
 	WalletExplorer "cry-api/app/types/wallet_explorer"
 )
 
-// ExternalService interacts with external wallet explorer APIs.
-type ExternalService struct {
+// TransactionService interacts with external wallet explorer APIs.
+type TransactionService struct {
 	Config *EnvTypes.EnvConfig
 }
 
-// ExternalServiceInterface defines the methods for the ExternalService.
-type ExternalServiceInterface interface {
+// TransactionServiceInterface defines the methods for the TransactionService.
+type TransactionServiceInterface interface {
 	GetTransactionByXPUB(xpub string) (*WalletExplorer.ITransactionXPUB, error)
 	GetTransactionByTxID(txid string) (*WalletExplorer.ITransactionData, error)
 }
 
-// NewExternalService initializes and returns an ExternalService instance
-func NewExternalService(cfg *EnvTypes.EnvConfig) *ExternalService {
-	return &ExternalService{
+// NewTransactionService initializes and returns an TransactionService instance
+func NewTransactionService(cfg *EnvTypes.EnvConfig) *TransactionService {
+	return &TransactionService{
 		Config: cfg,
 	}
 }
 
 // GetTransactionByTxID fetches transaction data from Blockchain API
-func (s *ExternalService) GetTransactionByTxID(txid string) (*WalletExplorer.ITransactionData, error) {
+func (s *TransactionService) GetTransactionByTxID(txid string) (*WalletExplorer.ITransactionData, error) {
 	// Use config URL
 	baseURL := s.Config.BlockchainConfig.API
 	url := fmt.Sprintf("%s/rawtx/%s", baseURL, txid)
@@ -69,7 +69,7 @@ func (s *ExternalService) GetTransactionByTxID(txid string) (*WalletExplorer.ITr
 }
 
 // GetTransactionByXPUB fetches transaction data from WalletExplorer API
-func (s *ExternalService) GetTransactionByXPUB(xpub string) (*WalletExplorer.ITransactionXPUB, error) {
+func (s *TransactionService) GetTransactionByXPUB(xpub string) (*WalletExplorer.ITransactionXPUB, error) {
 	// Use config URL
 	baseURL := s.Config.WalletExplorerConfig.API
 	url := fmt.Sprintf("%s/xpub-txs?pub=%s&gap_limit=5", baseURL, xpub)
