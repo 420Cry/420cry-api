@@ -8,8 +8,8 @@ import (
 )
 
 // GetFearAndGreed retrieves the Fear and Greed index
-func (h *CoinMarketCapController) GetFearAndGreed(c *gin.Context) {
-	data, err := h.CoinMarketCapService.GetFearAndGreed()
+func (h *CoinMarketCapController) GetFearAndGreedLastest(c *gin.Context) {
+	data, err := h.CoinMarketCapService.GetFearAndGreedLastest()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -18,6 +18,6 @@ func (h *CoinMarketCapController) GetFearAndGreed(c *gin.Context) {
 	}
 	// Success
 	c.JSON(http.StatusOK, gin.H{
-		"transaction_data": data,
+		"fear_and_greed_index": data,
 	})
 }

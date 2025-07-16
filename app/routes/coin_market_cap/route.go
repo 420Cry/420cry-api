@@ -20,5 +20,6 @@ func RegisterRoutes(rg *gin.RouterGroup) {
 	authGroup.Use(middleware.JWTAuthMiddleware())
 
 	// Authenticated route
-	authGroup.GET("/fear-and-greed", coinMarketCapController.GetFearAndGreed)
+	authGroup.GET("/fear-and-greed-lastest", coinMarketCapController.GetFearAndGreedLastest)
+	authGroup.GET("/fear-and-greed-historical", coinMarketCapController.GetFearAndGreedHistorical)
 }
