@@ -18,6 +18,7 @@ type User struct {
 	ResetPasswordTokenCreatedAt *time.Time `json:"reset_password_token_created_at" gorm:"type:timestamp"`
 	VerificationTokens          string     `json:"verification_tokens,omitempty" gorm:"size:6"`
 	VerificationTokenCreatedAt  time.Time  `json:"verification_token_created_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
+	IsProfileCompleted          bool       `json:"is_profile_completed" gorm:"not null;default:false"`
 	IsVerified                  bool       `json:"is_verified" gorm:"not null;default:false"`
 	CreatedAt                   time.Time  `json:"created_at" gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP"`
 	UpdatedAt                   time.Time  `json:"updated_at" gorm:"type:timestamp;default:NULL;autoUpdateTime"`

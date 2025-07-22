@@ -13,16 +13,24 @@ import (
 // NewUser creates a new instance of models.User with the provided fullname, username, email, and password.
 // It generates a UUID, signup token, and verification token for the user, and hashes the provided password.
 // Returns the created User object or an error if any step fails.
-func NewUser(fullname, username, email, password string) (*models.User, error) {
+func NewUser(fullname, username, email, password string, isVerified bool, isProfileCompleted bool) (*models.User, error) {
 	u := generateUUID()
 	signupToken, err := Generate32ByteToken()
 	if err != nil {
 		return nil, err
 	}
 
-	verificationToken, err := GenerateVerificationToken()
-	if err != nil {
-		return nil, err
+	var verificationToken string
+	if isVerified {
+		verificationToken = ""
+	} else {
+		token, err := GenerateVerificationToken()
+
+		if err != nil {
+			return nil, err
+		}
+
+		verificationToken = token
 	}
 
 	// Create PasswordService instance
@@ -34,18 +42,25 @@ func NewUser(fullname, username, email, password string) (*models.User, error) {
 		return nil, err
 	}
 
+	placeholderPasswordResetToken, err := Generate32ByteToken()
+
+	if err != nil {
+		return nil, err
+	}
+
 	user := &models.User{
 		UUID:                        u,
 		Username:                    username,
 		Fullname:                    fullname,
 		Email:                       email,
 		Password:                    hashedPassword,
-		ResetPasswordToken:          "",
+		ResetPasswordToken:          placeholderPasswordResetToken,
 		ResetPasswordTokenCreatedAt: nil,
 		AccountVerificationToken:    &signupToken,
 		VerificationTokens:          verificationToken,
 		VerificationTokenCreatedAt:  time.Now(),
-		IsVerified:                  false,
+		IsProfileCompleted:          isProfileCompleted,
+		IsVerified:                  isVerified,
 		CreatedAt:                   time.Now(),
 		TwoFASecret:                 nil,
 		TwoFAEnabled:                false,

@@ -25,7 +25,7 @@ type UserService struct {
 
 // UserServiceInterface defines the contract for user service methods.
 type UserServiceInterface interface {
-	CreateUser(fullname, username, email, password string) (*UserModel.User, error)
+	CreateUser(fullname, username, email, password string, isVerified bool, isProfileCompleted bool) (*UserModel.User, error)
 	GetUserByUUID(uuid string) (*UserModel.User, error)
 	UpdateUser(user *UserModel.User) error
 	FindUserByEmail(email string) (*UserModel.User, error)
@@ -57,7 +57,7 @@ func (s *UserService) GetUserByUUID(uuid string) (*UserModel.User, error) {
 }
 
 // CreateUser creates a new user or refreshes the verification token if user exists but is unverified.
-func (s *UserService) CreateUser(fullname, username, email, password string) (*UserModel.User, error) {
+func (s *UserService) CreateUser(fullname, username, email, password string, isVerified bool, isProfileCompleted bool) (*UserModel.User, error) {
 	// Check if a user with the same username or email already exists
 	existingUser, err := s.userRepo.FindByUsernameOrEmail(username, email)
 	if err != nil {
@@ -70,7 +70,7 @@ func (s *UserService) CreateUser(fullname, username, email, password string) (*U
 	}
 
 	// Create a new user instance using factory
-	newUser, err := factories.NewUser(fullname, username, email, password)
+	newUser, err := factories.NewUser(fullname, username, email, password, isVerified, isProfileCompleted)
 	if err != nil {
 		return nil, err
 	}

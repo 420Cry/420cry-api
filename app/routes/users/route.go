@@ -35,4 +35,8 @@ func RegisterRoutes(rg *gin.RouterGroup, db *gorm.DB) {
 
 	// Route for verifying reset password token to save new password
 	rg.POST("/verify-reset-password-token", userController.VerifyResetPasswordToken)
+
+	// Route for complete profile after signing up with oauth
+	rg.POST("/complete-profile", userController.HandleCompleteProfile)
+
 }

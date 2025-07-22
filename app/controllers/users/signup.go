@@ -31,7 +31,9 @@ func (h *UserController) Signup(c *gin.Context) {
 		return
 	}
 
-	createdUser, err := h.UserService.CreateUser(input.Fullname, input.Username, input.Email, input.Password)
+	isVerified := false
+	isProfileCompleted := true
+	createdUser, err := h.UserService.CreateUser(input.Fullname, input.Username, input.Email, input.Password, isVerified, isProfileCompleted)
 	if err == SignUpError.ErrUserConflict {
 		c.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
 		return
