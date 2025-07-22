@@ -3,7 +3,7 @@ package oauth
 import (
 	Email "cry-api/app/email"
 	Repository "cry-api/app/repositories"
-	EmailService "cry-api/app/services/email"
+	EmailServices "cry-api/app/services/email"
 	OAuthService "cry-api/app/services/oauth"
 	PasswordService "cry-api/app/services/password"
 	UserService "cry-api/app/services/users"
@@ -22,9 +22,11 @@ func NewOAuthController(db *gorm.DB, cfg *EnvTypes.EnvConfig) *OAuthController {
 	oauthRepository := Repository.NewGormOAuthRepository(db)
 
 	passwordService := PasswordService.NewPasswordService()
+	
+	emailCreator := &EmailServices.EmailCreatorImpl{}
 	emailSender := Email.NewSMTPEmailSender(cfg.SMTPConfig.Host, cfg.SMTPConfig.Port)
 
-	emailService := EmailService.NewEmailService(emailSender)
+	emailService := EmailServices.NewEmailService(emailSender, emailCreator)
 	authService := UserService.NewAuthService(userRepository, passwordService)
 	verificationService := UserService.NewVerificationService(userRepository)
 
