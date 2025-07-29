@@ -11,7 +11,6 @@ import (
 
 func (h *UserController) HandleCompleteProfile(c *gin.Context) {
 	var req UserTypes.IUserSignupRequest
-
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON format"})
 		return
@@ -53,7 +52,6 @@ func (h *UserController) HandleCompleteProfile(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Cannot generate token"})
 		return
 	}
-
 	c.JSON(http.StatusCreated, gin.H{
 		"jwt": jwt,
 		"user": gin.H{

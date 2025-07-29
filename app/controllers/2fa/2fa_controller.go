@@ -2,7 +2,7 @@ package controllers
 
 import (
 	Email "cry-api/app/email"
-	UserRepository "cry-api/app/repositories"
+	Repository "cry-api/app/repositories"
 	TwoFactorService "cry-api/app/services/2fa"
 	EmailServices "cry-api/app/services/email"
 	PasswordService "cry-api/app/services/password"
@@ -22,7 +22,9 @@ type TwoFactorController struct {
 // NewTwoFactorController initializes a new TwoFactorController with dependencies.
 func NewTwoFactorController(db *gorm.DB, cfg *EnvTypes.EnvConfig) *TwoFactorController {
 	passwordService := PasswordService.NewPasswordService()
-	userRepository := UserRepository.NewGormUserRepository(db)
+	userRepository := Repository.NewGormUserRepository(db)
+	transactionRepository := Repository.NewGormTransactionRepository(db)
+
 	emailSender := Email.NewSMTPEmailSender(cfg.SMTPConfig.Host, cfg.SMTPConfig.Port)
 	// Instantiate EmailCreator implementation
 	emailCreator := &EmailServices.EmailCreatorImpl{}
@@ -33,7 +35,7 @@ func NewTwoFactorController(db *gorm.DB, cfg *EnvTypes.EnvConfig) *TwoFactorCont
 	authService := UserService.NewAuthService(userRepository, passwordService)
 	verificationService := UserService.NewVerificationService(userRepository)
 
-	userService := UserService.NewUserService(userRepository, emailService, verificationService, authService)
+	userService := UserService.NewUserService(userRepository, transactionRepository, emailService, verificationService, authService)
 
 	// Initialize TwoFactorService here (make sure you have a constructor for it)
 	twoFactorService := TwoFactorService.NewTwoFactorService() // or pass required params

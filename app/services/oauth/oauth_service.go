@@ -5,6 +5,7 @@ import (
 	"cry-api/app/config"
 	"cry-api/app/factories"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -15,6 +16,7 @@ import (
 	OAuthType "cry-api/app/types/oauth"
 
 	"golang.org/x/oauth2"
+	"gorm.io/gorm"
 )
 
 type OAuthService struct {
@@ -25,6 +27,7 @@ type OAuthServiceInterface interface {
 	ExchangeToken(c context.Context, code string) (*oauth2.Token, error)
 	FetchUserInfo(token *oauth2.Token) (*OAuthType.IGoogleUserResponse, error)
 	CreateGoogleAccount(existingUser *Models.User, googleUserInfo *OAuthType.IGoogleUserResponse, token *oauth2.Token) error
+	FindAccountByProviderAndId(provider, providerId string) (*Models.Oauth_Accounts, error)
 }
 
 func NewOAuthService(oauthRepo Repositories.OAuthRepository) *OAuthService {
@@ -76,16 +79,29 @@ func (s *OAuthService) FetchUserInfo(token *oauth2.Token) (*OAuthType.IGoogleUse
 func (s *OAuthService) CreateGoogleAccount(existingUser *Models.User, googleUserInfo *OAuthType.IGoogleUserResponse, token *oauth2.Token) error {
 	provider := "Google"
 	providerId := googleUserInfo.Sub
-	oauthAccount, err := factories.NewOAuthAccount(existingUser, provider, providerId, token)
+	oauthAccount, err := factories.NewOAuthAccount(existingUser, provider, providerId, googleUserInfo.Email, token)
 
 	if err != nil {
 		log.Println("cannot create oauth account", err)
 	}
-	
+
 	if err := s.OAuthRepo.Save(oauthAccount); err != nil {
 		log.Println("cannot save oauth account:", err)
 		return err
 	}
 
 	return nil
+}
+
+func (s *OAuthService) FindAccountByProviderAndId(provider, providerId string) (*Models.Oauth_Accounts, error) {
+	oauthAccount, err := s.OAuthRepo.FindByProviderAndId(provider, providerId)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("record not found")
+		}
+
+		return nil, fmt.Errorf("error finding oauth account: %s", err)
+	}
+
+	return oauthAccount, nil
 }

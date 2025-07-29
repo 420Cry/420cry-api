@@ -2,7 +2,7 @@ package controllers
 
 import (
 	Email "cry-api/app/email"
-	UserRepository "cry-api/app/repositories"
+	Repository "cry-api/app/repositories"
 	EmailServices "cry-api/app/services/email"
 	PasswordService "cry-api/app/services/password"
 	UserServices "cry-api/app/services/users"
@@ -25,7 +25,8 @@ NewUserController initializes and returns a new NewUserController instance with 
 */
 func NewUserController(db *gorm.DB, cfg *EnvTypes.EnvConfig) *UserController {
 	passwordService := PasswordService.NewPasswordService()
-	userRepository := UserRepository.NewGormUserRepository(db)
+	userRepository := Repository.NewGormUserRepository(db)
+	transactionRepository := Repository.NewGormTransactionRepository(db)
 	emailSender := Email.NewSMTPEmailSender(cfg.SMTPConfig.Host, cfg.SMTPConfig.Port)
 
 	// Instantiate EmailCreator implementation
@@ -36,7 +37,7 @@ func NewUserController(db *gorm.DB, cfg *EnvTypes.EnvConfig) *UserController {
 
 	authService := UserServices.NewAuthService(userRepository, passwordService)
 	verificationService := UserServices.NewVerificationService(userRepository)
-	userService := UserServices.NewUserService(userRepository, emailService, verificationService, authService)
+	userService := UserServices.NewUserService(userRepository, transactionRepository, emailService, verificationService, authService)
 
 	return &UserController{
 		UserService:         userService,

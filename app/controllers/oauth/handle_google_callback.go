@@ -9,25 +9,25 @@ import (
 	"github.com/gin-gonic/gin"
 
 	cfg "cry-api/app/config"
-	"cry-api/app/factories"
 	jwtService "cry-api/app/services/jwt"
 )
 
+
 func (h *OAuthController) HandleGoogleCallback(c *gin.Context) {
+	log.Println("Go into the callback")
 	code := c.Query("code")
 	cryAppUrl := cfg.Get().CryAppURL
 	appEnv := cfg.Get().AppEnv
+	isSecured := appEnv == "production"
 
 	if code == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "authorization code invalid"})
-		log.Println("No code found")
+		c.Redirect(302, fmt.Sprintf("%s/auth/signup", cryAppUrl))
 		return
 	}
 
 	token, err := h.OAuthService.ExchangeToken(context.Background(), code)
 
 	if err != nil {
-		log.Println("error exchanging: ", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "failed oauth exchange"})
 		return
 	}
@@ -41,30 +41,16 @@ func (h *OAuthController) HandleGoogleCallback(c *gin.Context) {
 
 	existingUser, err := h.UserService.FindUserByEmail(googleUserInfo.Email)
 
-	if existingUser == nil || err != nil {
-		randomPassword, genErr := factories.Generate32ByteToken()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to find user"})
+		return
+	}
 
-		if genErr != nil {
-			log.Println("Error generating random password", genErr)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create user's data"})
-			return
-		}
+	if existingUser == nil {
+		createdUser, transactionErr := h.UserService.CreateUserByGoogleAuth(googleUserInfo, token)
 
-		isVerified := true
-		isProfileComplted := false
-
-		// TODO: Create transaction for two insert update
-		createdUser, userErr := h.UserService.CreateUser(googleUserInfo.GivenName, googleUserInfo.Email, googleUserInfo.Email, randomPassword, isVerified, isProfileComplted)
-
-		if userErr != nil {
+		if transactionErr != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot create user"})
-			return
-		}
-
-		oauthErr := h.OAuthService.CreateGoogleAccount(createdUser, googleUserInfo, token)
-
-		if oauthErr != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot save authorized account"})
 			return
 		}
 
@@ -73,12 +59,34 @@ func (h *OAuthController) HandleGoogleCallback(c *gin.Context) {
 		return
 	}
 
-	// Check if oauth account already exists and if user has not completed their profile
+	oauthAccount, err := h.OAuthService.FindAccountByProviderAndId("Google", googleUserInfo.Sub)
 
-	oauthErr := h.OAuthService.CreateGoogleAccount(existingUser, googleUserInfo, token)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Cannot find user's google account"})
+		return
+	}
 
-	if oauthErr != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot save the authorized account"})
+	if !existingUser.IsProfileCompleted && oauthAccount != nil {
+		signUpUrl := fmt.Sprintf("%s/auth/signup?email=%s&fullname=%s", cryAppUrl, existingUser.Email, existingUser.Fullname)
+		c.Redirect(302, signUpUrl)
+		return
+	}
+
+	if oauthAccount == nil {
+		if err := h.OAuthService.CreateGoogleAccount(existingUser, googleUserInfo, token); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot save the authorized account"})
+			return
+		}
+
+		jwt, err := jwtService.GenerateJWT(existingUser.UUID, existingUser.Email, existingUser.TwoFAEnabled, existingUser.TwoFAEnabled)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot generate jwt"})
+		}
+
+		// Wont work in local
+		c.SetCookie("jwt", jwt, 3000, "/", "localhost", isSecured, true)
+		c.Redirect(302, cryAppUrl)
 		return
 	}
 
@@ -88,8 +96,15 @@ func (h *OAuthController) HandleGoogleCallback(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot generate jwt"})
 	}
 
-	isSecured := appEnv == "production"
-
-	c.SetCookie("jwt", jwt, 3000, "/", cryAppUrl, isSecured, true)
+	// Wont work in local
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     "jwt",
+		Value:    jwt,
+		Path:     "/",
+		MaxAge:   3600,
+		Secure:   isSecured,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
 	c.Redirect(302, cryAppUrl)
 }

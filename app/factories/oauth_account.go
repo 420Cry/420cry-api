@@ -9,17 +9,17 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func NewOAuthAccount(existingUser *Models.User, provider string, providerId string, token *oauth2.Token) (*Models.Oauth_Accounts, error) {
+func NewOAuthAccount(existingUser *Models.User, provider string, providerId string, email string, token *oauth2.Token) (*Models.Oauth_Accounts, error) {
 	oauthEncryptedKey := config.Get().OAuthEncryptedKey
 	encryptedService := EncryptService.NewEncryptService()
 
-	hashedAccessToken, err := encryptedService.EncryptToken([]byte(token.AccessToken), oauthEncryptedKey)
+	encryptedAccessToken, err := encryptedService.EncryptToken([]byte(token.AccessToken), oauthEncryptedKey)
 	if err != nil {
 		log.Println("Cannot hash access token", err)
 		return nil, err
 	}
 
-	hashedRefreshToken, err := encryptedService.EncryptToken([]byte(token.RefreshToken), oauthEncryptedKey)
+	encryptedRefreshToken, err := encryptedService.EncryptToken([]byte(token.RefreshToken), oauthEncryptedKey)
 
 	if err != nil {
 		log.Println("Cannot hash refresh token", err)
@@ -28,10 +28,11 @@ func NewOAuthAccount(existingUser *Models.User, provider string, providerId stri
 
 	oauth_account := &Models.Oauth_Accounts{
 		UserId:       existingUser.ID,
+		Email:        email,
 		Provider:     provider,
 		ProviderId:   providerId,
-		AccessToken:  hashedAccessToken,
-		RefreshToken: hashedRefreshToken,
+		AccessToken:  encryptedAccessToken,
+		RefreshToken: encryptedRefreshToken,
 		TokenExpiry:  token.Expiry,
 	}
 	return oauth_account, nil
