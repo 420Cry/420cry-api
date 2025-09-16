@@ -38,9 +38,23 @@ func (m *MockUserService) FindUserByEmail(email string) (*UserModel.User, error)
 	return user, args.Error(1)
 }
 
-// FindUserByResetPasswordToken mocks FindUserByResetPasswordToken from userService
-func (m *MockUserService) FindUserByResetPasswordToken(token string) (*UserModel.User, error) {
-	args := m.Called(token)
+// FindUserByID mocks FindUserByID from UserService
+func (m *MockUserService) FindUserByID(id int) (*UserModel.User, error) {
+	args := m.Called(id)
 	user, _ := args.Get(0).(*UserModel.User)
 	return user, args.Error(1)
+}
+
+// FindUserTokenByPurpose mocks FindUserTokenByPurpose from UserService
+func (m *MockUserService) FindUserTokenByPurpose(userID int, purpose string) (*UserModel.UserToken, error) {
+	args := m.Called(userID, purpose)
+	token, _ := args.Get(0).(*UserModel.UserToken)
+	return token, args.Error(1)
+}
+
+// FindUserTokenByValueAndPurpose mocks FindUserTokenByValueAndPurpose from UserService
+func (m *MockUserService) FindUserTokenByValueAndPurpose(tokenValue, purpose string) (*UserModel.UserToken, error) {
+	args := m.Called(tokenValue, purpose)
+	token, _ := args.Get(0).(*UserModel.UserToken)
+	return token, args.Error(1)
 }

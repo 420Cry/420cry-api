@@ -28,6 +28,16 @@ func (m *MockUserRepository) FindByUUID(uuid string) (*models.User, error) {
 	return user.(*models.User), args.Error(1)
 }
 
+// FindByID mocks FindByID method from UserRepository
+func (m *MockUserRepository) FindByID(id int) (*models.User, error) {
+	args := m.Called(id)
+	user := args.Get(0)
+	if user == nil {
+		return nil, args.Error(1)
+	}
+	return user.(*models.User), args.Error(1)
+}
+
 // FindByEmail mocks FindByEmail method from UserRepository
 func (m *MockUserRepository) FindByEmail(email string) (*models.User, error) {
 	args := m.Called(email)
@@ -58,8 +68,18 @@ func (m *MockUserRepository) FindByUsername(username string) (*models.User, erro
 	return user.(*models.User), args.Error(1)
 }
 
-// FindByAccountVerificationToken mocks FindByAccountVerificationToken method from UserRepository
+// FindByAccountVerificationToken mocks FindByAccountVerificationToken method
 func (m *MockUserRepository) FindByAccountVerificationToken(token string) (*models.User, error) {
+	args := m.Called(token)
+	user := args.Get(0)
+	if user == nil {
+		return nil, args.Error(1)
+	}
+	return user.(*models.User), args.Error(1)
+}
+
+// FindByResetPasswordToken mocks FindByResetPasswordToken method
+func (m *MockUserRepository) FindByResetPasswordToken(token string) (*models.User, error) {
 	args := m.Called(token)
 	user := args.Get(0)
 	if user == nil {
@@ -72,16 +92,4 @@ func (m *MockUserRepository) FindByAccountVerificationToken(token string) (*mode
 func (m *MockUserRepository) Delete(userID int) error {
 	args := m.Called(userID)
 	return args.Error(0)
-}
-
-// FindByResetPasswordToken mocks FindByResetPasswordToken method from UserRepository
-func (m *MockUserRepository) FindByResetPasswordToken(token string) (*models.User, error) {
-	args := m.Called(token)
-
-	user, ok := args.Get(0).(*models.User)
-	if !ok {
-		return nil, args.Error(1)
-	}
-
-	return user, args.Error(1)
 }

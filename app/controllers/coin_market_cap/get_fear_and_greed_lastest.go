@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetFearAndGreed retrieves the Fear and Greed index
+// GetFearAndGreedLastest retrieves the Fear and Greed index
 func (h *CoinMarketCapController) GetFearAndGreedLastest(c *gin.Context) {
 	data, err := h.CoinMarketCapService.GetFearAndGreedLastest()
 	if err != nil {

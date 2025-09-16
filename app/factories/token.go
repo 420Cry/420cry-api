@@ -12,14 +12,14 @@ func Generate32ByteToken() (string, error) {
 	token := make([]byte, 32)
 	_, err := rand.Read(token)
 	if err != nil {
-		return "", fmt.Errorf("failed to generate signup token: %v", err)
+		return "", fmt.Errorf("failed to generate 32Byte token: %v", err)
 	}
 	return fmt.Sprintf("%x", token), nil
 }
 
-// GenerateVerificationToken creates a 6-character alphanumeric token using uppercase letters and digits.
+// GenerateOTP creates a 6-character alphanumeric token using uppercase letters and digits.
 // This token serves as a short verification code (OTP) typically sent to user emails.
-func GenerateVerificationToken() (string, error) {
+func GenerateOTP() (string, error) {
 	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	const length = 6
 

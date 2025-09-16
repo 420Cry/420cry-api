@@ -13,11 +13,11 @@ import (
 
 // UserController handles HTTP requests related to user operations
 type UserController struct {
-	VerificationService UserServices.VerificationServiceInterface
-	AuthService         UserServices.AuthServiceInterface
-	UserService         UserServices.UserServiceInterface
-	EmailService        EmailServices.EmailServiceInterface
-	PasswordService     PasswordService.PasswordServiceInterface
+	AuthService      UserServices.AuthServiceInterface
+	UserService      UserServices.UserServiceInterface
+	EmailService     EmailServices.EmailServiceInterface
+	PasswordService  PasswordService.PasswordServiceInterface
+	UserTokenService UserServices.UserTokenServiceInterface
 }
 
 /*
@@ -26,23 +26,26 @@ NewUserController initializes and returns a new NewUserController instance with 
 func NewUserController(db *gorm.DB, cfg *EnvTypes.EnvConfig) *UserController {
 	passwordService := PasswordService.NewPasswordService()
 	userRepository := UserRepository.NewGormUserRepository(db)
+	userTokenRepository := UserRepository.NewGormUserTokenRepository(db)
 	emailSender := Email.NewSMTPEmailSender(cfg.SMTPConfig.Host, cfg.SMTPConfig.Port)
 
-	// Instantiate EmailCreator implementation
 	emailCreator := &EmailServices.EmailCreatorImpl{}
-
-	// Pass both sender and creator
 	emailService := EmailServices.NewEmailService(emailSender, emailCreator)
 
 	authService := UserServices.NewAuthService(userRepository, passwordService)
-	verificationService := UserServices.NewVerificationService(userRepository)
-	userService := UserServices.NewUserService(userRepository, emailService, verificationService, authService)
+	userTokenService := UserServices.NewUserTokenService(userTokenRepository)
+	userService := UserServices.NewUserService(
+		userRepository,
+		userTokenRepository,
+		emailService,
+		authService,
+	)
 
 	return &UserController{
-		UserService:         userService,
-		EmailService:        emailService,
-		VerificationService: verificationService,
-		AuthService:         authService,
-		PasswordService:     passwordService,
+		UserService:      userService,
+		UserTokenService: userTokenService,
+		EmailService:     emailService,
+		AuthService:      authService,
+		PasswordService:  passwordService,
 	}
 }

@@ -226,52 +226,6 @@ func TestGormUserRepository_FindByUsername(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestGormUserRepository_FindByAccountVerificationToken(t *testing.T) {
-	db, mock, close := mocks.SetupMockDB(t)
-	defer close()
-
-	repo := repositorie.NewGormUserRepository(db)
-
-	token := "acctoken123"
-	user := models.User{
-		ID:                       1,
-		UUID:                     "uuid1",
-		AccountVerificationToken: &token,
-	}
-
-	rows := sqlmock.NewRows([]string{"id", "uuid", "account_verification_token"}).
-		AddRow(user.ID, user.UUID, token)
-
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE account_verification_token = $1 ORDER BY "users"."id" LIMIT $2`)).
-		WithArgs(token, 1).
-		WillReturnRows(rows)
-
-	result, err := repo.FindByAccountVerificationToken(token)
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.Equal(t, token, *result.AccountVerificationToken)
-
-	// Not found
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE account_verification_token = $1 ORDER BY "users"."id" LIMIT $2`)).
-		WithArgs("missingtoken", 1).
-		WillReturnError(gorm.ErrRecordNotFound)
-
-	result, err = repo.FindByAccountVerificationToken("missingtoken")
-	assert.NoError(t, err)
-	assert.Nil(t, result)
-
-	// DB error
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE account_verification_token = $1 ORDER BY "users"."id" LIMIT $2`)).
-		WithArgs("dberror", 1).
-		WillReturnError(fmt.Errorf("db error"))
-
-	result, err = repo.FindByAccountVerificationToken("dberror")
-	assert.Error(t, err)
-	assert.Nil(t, result)
-
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
-
 func TestGormUserRepository_Delete(t *testing.T) {
 	db, mock, close := mocks.SetupMockDB(t)
 	defer close()

@@ -14,9 +14,11 @@ func main() {
 		log.Fatal("Database connection failed: ", err)
 	}
 
-	// Run AutoMigrate for the User model (create tables if not already there)
-	err = dbConn.AutoMigrate(&UserModel.User{})
+	// Run AutoMigrate for the User and UserToken models
+	err = dbConn.AutoMigrate(&UserModel.User{}, &UserModel.UserToken{})
 	if err != nil {
 		log.Fatal("Auto-migration failed: ", err)
 	}
+
+	log.Println("Migration completed successfully")
 }

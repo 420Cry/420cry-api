@@ -33,10 +33,9 @@ func TestHandleResetPasswordRequest_Success(t *testing.T) {
 	bodyBytes, _ := json.Marshal(input)
 
 	dummyUser := &UserModel.User{
-		Email:                       input.Email,
-		Username:                    "testuser",
-		IsVerified:                  true,
-		ResetPasswordTokenCreatedAt: nil,
+		Email:      input.Email,
+		Username:   "testuser",
+		IsVerified: true,
 	}
 
 	mockUserService.

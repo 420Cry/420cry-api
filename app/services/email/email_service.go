@@ -10,8 +10,9 @@ import (
 
 // EmailServiceInterface provides all EmailService methods
 type EmailServiceInterface interface {
-	SendVerifyAccountEmail(to, from, username, verificationLink, verificationTokens string) error
+	SendVerifyAccountEmail(to, from, username, verificationLink, verificationToken string) error
 	SendResetPasswordEmail(to, from, username, resetPasswordLink, APIURL string) error
+	SendTwoFactorAlternativeEmail(to, from, username, otp string, expiryMinutes int) error
 }
 
 // EmailSender is an interface for sending emails
@@ -21,8 +22,9 @@ type EmailSender interface {
 
 // EmailCreator is an interface for creating email templates
 type EmailCreator interface {
-	CreateVerifyAccountEmail(to, from, userName, verificationLink, verificationTokens string) (Email.EmailMessage, error)
+	CreateVerifyAccountEmail(to, from, userName, verificationLink, verificationToken string) (Email.EmailMessage, error)
 	CreateResetPasswordRequestEmail(to, from, userName, resetPasswordLink, APIURL string) (Email.EmailMessage, error)
+	CreateTwoFactorAlternativeEmail(to, from, userName, otp string, expiryMinutes int) (Email.EmailMessage, error)
 }
 
 // EmailService provides operations for sending emails
@@ -40,12 +42,12 @@ func NewEmailService(emailSender EmailSender, emailCreator EmailCreator) *EmailS
 }
 
 // SendVerifyAccountEmail creates an email and sends it
-func (service *EmailService) SendVerifyAccountEmail(to, from, userName, verificationLink, verificationTokens string) error {
+func (service *EmailService) SendVerifyAccountEmail(to, from, userName, verificationLink, verificationToken string) error {
 	to = utils.SanitizeInput(to)
 	userName = utils.SanitizeInput(userName)
 	verificationLink = utils.SanitizeInput(verificationLink)
 
-	email, err := service.emailCreator.CreateVerifyAccountEmail(to, from, userName, verificationLink, verificationTokens)
+	email, err := service.emailCreator.CreateVerifyAccountEmail(to, from, userName, verificationLink, verificationToken)
 	if err != nil {
 		return err
 	}
@@ -70,5 +72,26 @@ func (service *EmailService) SendResetPasswordEmail(to, from, userName, resetPas
 	}
 
 	log.Printf("Email sent successfully to %s", email.To)
+	return nil
+}
+
+// SendTwoFactorAlternativeEmail creates the alternative 2FA OTP email and sends it
+func (service *EmailService) SendTwoFactorAlternativeEmail(to, from, userName, otp string, expiryMinutes int) error {
+	to = utils.SanitizeInput(to)
+	userName = utils.SanitizeInput(userName)
+
+	email, err := service.emailCreator.CreateTwoFactorAlternativeEmail(to, from, userName, otp, expiryMinutes)
+	if err != nil {
+		log.Printf("Error creating 2FA email template: %v", err)
+		return err
+	}
+
+	err = service.emailSender.Send(email)
+	if err != nil {
+		log.Printf("Error sending 2FA email: %v", err)
+		return err
+	}
+
+	log.Printf("2FA alternative email sent successfully to %s", email.To)
 	return nil
 }

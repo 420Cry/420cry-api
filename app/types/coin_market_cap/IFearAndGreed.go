@@ -22,6 +22,10 @@ type FearGreedEntry struct {
 // FlexibleInt can handle both string and int values during JSON unmarshal.
 type FlexibleInt int
 
+// UnmarshalJSON implements the json.Unmarshaler interface for FlexibleInt.
+// It attempts to unmarshal the JSON data into an integer, supporting both
+// numeric and string representations of integers. If unmarshaling fails,
+// it returns an error indicating the failure.
 func (f *FlexibleInt) UnmarshalJSON(data []byte) error {
 	// Try as int
 	var intVal int

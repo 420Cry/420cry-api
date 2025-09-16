@@ -17,30 +17,28 @@ type TwoFactorController struct {
 	UserService      UserService.UserServiceInterface
 	AuthService      UserService.AuthServiceInterface
 	TwoFactorService TwoFactorService.TwoFactorServiceInterface
+	EmailService     EmailServices.EmailServiceInterface
 }
 
 // NewTwoFactorController initializes a new TwoFactorController with dependencies.
 func NewTwoFactorController(db *gorm.DB, cfg *EnvTypes.EnvConfig) *TwoFactorController {
 	passwordService := PasswordService.NewPasswordService()
 	userRepository := UserRepository.NewGormUserRepository(db)
-	emailSender := Email.NewSMTPEmailSender(cfg.SMTPConfig.Host, cfg.SMTPConfig.Port)
-	// Instantiate EmailCreator implementation
-	emailCreator := &EmailServices.EmailCreatorImpl{}
+	userTokenRepository := UserRepository.NewGormUserTokenRepository(db)
 
-	// Pass both sender and creator
+	emailSender := Email.NewSMTPEmailSender(cfg.SMTPConfig.Host, cfg.SMTPConfig.Port)
+	emailCreator := &EmailServices.EmailCreatorImpl{}
 	emailService := EmailServices.NewEmailService(emailSender, emailCreator)
 
 	authService := UserService.NewAuthService(userRepository, passwordService)
-	verificationService := UserService.NewVerificationService(userRepository)
+	userService := UserService.NewUserService(userRepository, userTokenRepository, emailService, authService)
 
-	userService := UserService.NewUserService(userRepository, emailService, verificationService, authService)
-
-	// Initialize TwoFactorService here (make sure you have a constructor for it)
-	twoFactorService := TwoFactorService.NewTwoFactorService() // or pass required params
+	twoFactorService := TwoFactorService.NewTwoFactorService()
 
 	return &TwoFactorController{
 		UserService:      userService,
 		AuthService:      authService,
-		TwoFactorService: twoFactorService, // assign it here!
+		TwoFactorService: twoFactorService,
+		EmailService:     emailService,
 	}
 }

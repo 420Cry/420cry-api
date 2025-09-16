@@ -21,15 +21,13 @@ import (
 
 func TestSignIn_Success(t *testing.T) {
 	mockAuthService := new(testmocks.MockAuthService)
-	mockVerificationService := new(testmocks.MockVerificationService)
 	mockUserService := new(testmocks.MockUserService)
 	mockEmailService := new(testmocks.MockEmailService)
 
 	userController := &controller.UserController{
-		UserService:         mockUserService,
-		EmailService:        mockEmailService,
-		VerificationService: mockVerificationService,
-		AuthService:         mockAuthService,
+		UserService:  mockUserService,
+		EmailService: mockEmailService,
+		AuthService:  mockAuthService,
 	}
 
 	input := UserTypes.IUserSigninRequest{
@@ -81,15 +79,13 @@ func TestSignIn_Success(t *testing.T) {
 
 func TestSignIn_InvalidJSON(t *testing.T) {
 	mockAuthService := new(testmocks.MockAuthService)
-	mockVerificationService := new(testmocks.MockVerificationService)
 	mockUserService := new(testmocks.MockUserService)
 	mockEmailService := new(testmocks.MockEmailService)
 
 	userController := &controller.UserController{
-		UserService:         mockUserService,
-		EmailService:        mockEmailService,
-		VerificationService: mockVerificationService,
-		AuthService:         mockAuthService,
+		UserService:  mockUserService,
+		EmailService: mockEmailService,
+		AuthService:  mockAuthService,
 	}
 
 	invalidJSON := []byte(`{invalid-json}`) // malformed JSON
@@ -116,15 +112,13 @@ func TestSignIn_InvalidJSON(t *testing.T) {
 
 func TestSignIn_UserNotFound(t *testing.T) {
 	mockAuthService := new(testmocks.MockAuthService)
-	mockVerificationService := new(testmocks.MockVerificationService)
 	mockUserService := new(testmocks.MockUserService)
 	mockEmailService := new(testmocks.MockEmailService)
 
 	userController := &controller.UserController{
-		UserService:         mockUserService,
-		EmailService:        mockEmailService,
-		VerificationService: mockVerificationService,
-		AuthService:         mockAuthService,
+		UserService:  mockUserService,
+		EmailService: mockEmailService,
+		AuthService:  mockAuthService,
 	}
 
 	input := UserTypes.IUserSigninRequest{
@@ -162,15 +156,13 @@ func TestSignIn_UserNotFound(t *testing.T) {
 
 func TestSignIn_InvalidPassword(t *testing.T) {
 	mockAuthService := new(testmocks.MockAuthService)
-	mockVerificationService := new(testmocks.MockVerificationService)
 	mockUserService := new(testmocks.MockUserService)
 	mockEmailService := new(testmocks.MockEmailService)
 
 	userController := &controller.UserController{
-		UserService:         mockUserService,
-		EmailService:        mockEmailService,
-		VerificationService: mockVerificationService,
-		AuthService:         mockAuthService,
+		UserService:  mockUserService,
+		EmailService: mockEmailService,
+		AuthService:  mockAuthService,
 	}
 
 	input := UserTypes.IUserSigninRequest{

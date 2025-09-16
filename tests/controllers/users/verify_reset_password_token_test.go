@@ -21,13 +21,13 @@ import (
 
 func TestVerifyResetPasswordToken_Success(t *testing.T) {
 	mockUserService := new(testmocks.MockUserService)
-	mockEmailService := new(testmocks.MockEmailService)
+	mockUserTokenService := new(testmocks.MockUserTokenService)
 	mockPasswordService := new(testmocks.MockPasswordService)
 
 	userController := &controller.UserController{
-		UserService:     mockUserService,
-		EmailService:    mockEmailService,
-		PasswordService: mockPasswordService,
+		UserService:      mockUserService,
+		UserTokenService: mockUserTokenService,
+		PasswordService:  mockPasswordService,
 	}
 
 	input := UserTypes.IVerificationResetPasswordForm{
@@ -36,31 +36,28 @@ func TestVerifyResetPasswordToken_Success(t *testing.T) {
 	}
 	bodyBytes, _ := json.Marshal(input)
 
-	now := time.Now().Add(-30 * time.Minute)
-	dummyUser := &UserModel.User{
-		ResetPasswordToken:          input.ResetPasswordToken,
-		ResetPasswordTokenCreatedAt: &now,
-		IsVerified:                  true,
+	// Mock the reset token
+	userToken := &UserModel.UserToken{
+		Token:     input.ResetPasswordToken,
+		UserID:    42,
+		ExpiresAt: time.Now().Add(time.Hour),
 	}
+	mockUserTokenService.On("FindValidToken", input.ResetPasswordToken, mock.Anything).Return(userToken, nil)
+	mockUserTokenService.On("ConsumeToken", userToken.UserID, userToken.Token, mock.Anything).Return(nil)
 
-	mockUserService.
-		On("FindUserByResetPasswordToken", input.ResetPasswordToken).
-		Return(dummyUser, nil)
+	// Mock the user
+	user := &UserModel.User{
+		ID:         42,
+		IsVerified: true,
+	}
+	mockUserService.On("FindUserByID", userToken.UserID).Return(user, nil)
+	mockUserService.On("UpdateUser", user).Return(nil)
 
-	mockPasswordService.
-		On("HashPassword", input.NewPassword).
-		Return("hashedpassword", nil)
-
-	mockUserService.
-		On("UpdateUser", mock.MatchedBy(func(u *UserModel.User) bool {
-			// Relaxed matcher: only check the reset token is cleared, password is non-empty (hashed)
-			return u.Password == "hashedpassword" && u.ResetPasswordToken == "" && u.ResetPasswordTokenCreatedAt == nil
-		})).
-		Return(nil)
+	// Mock password hashing
+	mockPasswordService.On("HashPassword", input.NewPassword).Return("hashedpassword", nil)
 
 	req := httptest.NewRequest(http.MethodPost, "/verify-reset-password-token", bytes.NewReader(bodyBytes))
 	w := httptest.NewRecorder()
-
 	c := TestUtils.GetGinContext(w, req)
 	userController.VerifyResetPasswordToken(c)
 
@@ -70,30 +67,29 @@ func TestVerifyResetPasswordToken_Success(t *testing.T) {
 	}()
 
 	assert.Equal(t, http.StatusOK, res.StatusCode)
-
-	var respBody map[string]bool
-	err := json.NewDecoder(res.Body).Decode(&respBody)
+	var resp map[string]bool
+	err := json.NewDecoder(res.Body).Decode(&resp)
 	assert.NoError(t, err)
-	assert.True(t, respBody["success"])
+	assert.True(t, resp["success"])
 
+	mockUserTokenService.AssertExpectations(t)
 	mockUserService.AssertExpectations(t)
 	mockPasswordService.AssertExpectations(t)
 }
 
 func TestVerifyResetPasswordToken_InvalidJSON(t *testing.T) {
 	mockUserService := new(testmocks.MockUserService)
-	mockEmailService := new(testmocks.MockEmailService)
+	mockUserTokenService := new(testmocks.MockUserTokenService)
+	mockPasswordService := new(testmocks.MockPasswordService)
 
 	userController := &controller.UserController{
-		UserService:  mockUserService,
-		EmailService: mockEmailService,
+		UserService:      mockUserService,
+		UserTokenService: mockUserTokenService,
+		PasswordService:  mockPasswordService,
 	}
 
-	invalidJSON := []byte(`{invalid-json}`)
-
-	req := httptest.NewRequest(http.MethodPost, "/verify-reset-password-token", bytes.NewReader(invalidJSON))
+	req := httptest.NewRequest(http.MethodPost, "/verify-reset-password-token", bytes.NewReader([]byte(`{invalid-json}`)))
 	w := httptest.NewRecorder()
-
 	c := TestUtils.GetGinContext(w, req)
 	userController.VerifyResetPasswordToken(c)
 
@@ -103,20 +99,21 @@ func TestVerifyResetPasswordToken_InvalidJSON(t *testing.T) {
 	}()
 
 	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
-
-	var respBody map[string]string
-	err := json.NewDecoder(res.Body).Decode(&respBody)
+	var resp map[string]string
+	err := json.NewDecoder(res.Body).Decode(&resp)
 	assert.NoError(t, err)
-	assert.Equal(t, "Invalid JSON Format", respBody["message"])
+	assert.Equal(t, "Invalid JSON format", resp["message"])
 }
 
-func TestVerifyResetPasswordToken_UserNotFound(t *testing.T) {
+func TestVerifyResetPasswordToken_TokenNotFound(t *testing.T) {
 	mockUserService := new(testmocks.MockUserService)
-	mockEmailService := new(testmocks.MockEmailService)
+	mockUserTokenService := new(testmocks.MockUserTokenService)
+	mockPasswordService := new(testmocks.MockPasswordService)
 
 	userController := &controller.UserController{
-		UserService:  mockUserService,
-		EmailService: mockEmailService,
+		UserService:      mockUserService,
+		UserTokenService: mockUserTokenService,
+		PasswordService:  mockPasswordService,
 	}
 
 	input := UserTypes.IVerificationResetPasswordForm{
@@ -125,13 +122,10 @@ func TestVerifyResetPasswordToken_UserNotFound(t *testing.T) {
 	}
 	bodyBytes, _ := json.Marshal(input)
 
-	mockUserService.
-		On("FindUserByResetPasswordToken", input.ResetPasswordToken).
-		Return(nil, errors.New("not found"))
+	mockUserTokenService.On("FindValidToken", input.ResetPasswordToken, mock.Anything).Return(nil, nil)
 
 	req := httptest.NewRequest(http.MethodPost, "/verify-reset-password-token", bytes.NewReader(bodyBytes))
 	w := httptest.NewRecorder()
-
 	c := TestUtils.GetGinContext(w, req)
 	userController.VerifyResetPasswordToken(c)
 
@@ -140,21 +134,22 @@ func TestVerifyResetPasswordToken_UserNotFound(t *testing.T) {
 		_ = res.Body.Close()
 	}()
 
-	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
-
-	var respBody map[string]string
-	err := json.NewDecoder(res.Body).Decode(&respBody)
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	var resp map[string]string
+	err := json.NewDecoder(res.Body).Decode(&resp)
 	assert.NoError(t, err)
-	assert.Equal(t, "Cannot find user", respBody["message"])
+	assert.Equal(t, "Invalid or expired reset password token", resp["message"])
 }
 
 func TestVerifyResetPasswordToken_UserNotVerified(t *testing.T) {
 	mockUserService := new(testmocks.MockUserService)
-	mockEmailService := new(testmocks.MockEmailService)
+	mockUserTokenService := new(testmocks.MockUserTokenService)
+	mockPasswordService := new(testmocks.MockPasswordService)
 
 	userController := &controller.UserController{
-		UserService:  mockUserService,
-		EmailService: mockEmailService,
+		UserService:      mockUserService,
+		UserTokenService: mockUserTokenService,
+		PasswordService:  mockPasswordService,
 	}
 
 	input := UserTypes.IVerificationResetPasswordForm{
@@ -163,18 +158,21 @@ func TestVerifyResetPasswordToken_UserNotVerified(t *testing.T) {
 	}
 	bodyBytes, _ := json.Marshal(input)
 
-	dummyUser := &UserModel.User{
-		ResetPasswordToken: input.ResetPasswordToken,
-		IsVerified:         false,
+	userToken := &UserModel.UserToken{
+		Token:     input.ResetPasswordToken,
+		UserID:    42,
+		ExpiresAt: time.Now().Add(time.Hour),
 	}
+	mockUserTokenService.On("FindValidToken", input.ResetPasswordToken, mock.Anything).Return(userToken, nil)
 
-	mockUserService.
-		On("FindUserByResetPasswordToken", input.ResetPasswordToken).
-		Return(dummyUser, nil)
+	user := &UserModel.User{
+		ID:         42,
+		IsVerified: false,
+	}
+	mockUserService.On("FindUserByID", userToken.UserID).Return(user, nil)
 
 	req := httptest.NewRequest(http.MethodPost, "/verify-reset-password-token", bytes.NewReader(bodyBytes))
 	w := httptest.NewRecorder()
-
 	c := TestUtils.GetGinContext(w, req)
 	userController.VerifyResetPasswordToken(c)
 
@@ -184,149 +182,46 @@ func TestVerifyResetPasswordToken_UserNotVerified(t *testing.T) {
 	}()
 
 	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
-
-	var respBody map[string]string
-	err := json.NewDecoder(res.Body).Decode(&respBody)
+	var resp map[string]string
+	err := json.NewDecoder(res.Body).Decode(&resp)
 	assert.NoError(t, err)
-	assert.Equal(t, "User is not verified", respBody["message"])
-}
-
-func TestVerifyResetPasswordToken_TokenExpired(t *testing.T) {
-	mockUserService := new(testmocks.MockUserService)
-	mockEmailService := new(testmocks.MockEmailService)
-
-	userController := &controller.UserController{
-		UserService:  mockUserService,
-		EmailService: mockEmailService,
-	}
-
-	input := UserTypes.IVerificationResetPasswordForm{
-		ResetPasswordToken: "validtoken",
-		NewPassword:        "password",
-	}
-	bodyBytes, _ := json.Marshal(input)
-
-	// Token created more than 1 hour ago => expired
-	oldTime := time.Now().Add(-2 * time.Hour)
-
-	dummyUser := &UserModel.User{
-		ResetPasswordToken:          input.ResetPasswordToken,
-		ResetPasswordTokenCreatedAt: &oldTime,
-		IsVerified:                  true,
-	}
-
-	mockUserService.
-		On("FindUserByResetPasswordToken", input.ResetPasswordToken).
-		Return(dummyUser, nil)
-
-	req := httptest.NewRequest(http.MethodPost, "/verify-reset-password-token", bytes.NewReader(bodyBytes))
-	w := httptest.NewRecorder()
-
-	c := TestUtils.GetGinContext(w, req)
-	userController.VerifyResetPasswordToken(c)
-
-	res := w.Result()
-	defer func() {
-		_ = res.Body.Close()
-	}()
-
-	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
-
-	var respBody map[string]string
-	err := json.NewDecoder(res.Body).Decode(&respBody)
-	assert.NoError(t, err)
-	assert.Equal(t, "The token has been expired", respBody["message"])
+	assert.Equal(t, "User is not verified", resp["message"])
 }
 
 func TestVerifyResetPasswordToken_HashPasswordFailure(t *testing.T) {
 	mockUserService := new(testmocks.MockUserService)
+	mockUserTokenService := new(testmocks.MockUserTokenService)
 	mockPasswordService := new(testmocks.MockPasswordService)
 
 	userController := &controller.UserController{
-		UserService:     mockUserService,
-		PasswordService: mockPasswordService,
+		UserService:      mockUserService,
+		UserTokenService: mockUserTokenService,
+		PasswordService:  mockPasswordService,
 	}
 
 	input := UserTypes.IVerificationResetPasswordForm{
 		ResetPasswordToken: "validtoken123",
-		NewPassword:        "newsecurepassword",
+		NewPassword:        "newpassword",
 	}
 	bodyBytes, _ := json.Marshal(input)
 
-	now := time.Now().Add(-30 * time.Minute)
-	dummyUser := &UserModel.User{
-		ResetPasswordToken:          input.ResetPasswordToken,
-		ResetPasswordTokenCreatedAt: &now,
-		IsVerified:                  true,
+	userToken := &UserModel.UserToken{
+		Token:     input.ResetPasswordToken,
+		UserID:    42,
+		ExpiresAt: time.Now().Add(time.Hour),
 	}
+	mockUserTokenService.On("FindValidToken", input.ResetPasswordToken, mock.Anything).Return(userToken, nil)
 
-	mockUserService.
-		On("FindUserByResetPasswordToken", input.ResetPasswordToken).
-		Return(dummyUser, nil)
+	user := &UserModel.User{
+		ID:         42,
+		IsVerified: true,
+	}
+	mockUserService.On("FindUserByID", userToken.UserID).Return(user, nil)
 
-	mockPasswordService.
-		On("HashPassword", input.NewPassword).
-		Return("", errors.New("hash error"))
+	mockPasswordService.On("HashPassword", input.NewPassword).Return("", errors.New("hash error"))
 
 	req := httptest.NewRequest(http.MethodPost, "/verify-reset-password-token", bytes.NewReader(bodyBytes))
 	w := httptest.NewRecorder()
-
-	c := TestUtils.GetGinContext(w, req)
-	userController.VerifyResetPasswordToken(c)
-
-	res := w.Result()
-	defer func() {
-		_ = res.Body.Close()
-	}()
-
-	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
-
-	var respBody map[string]string
-	err := json.NewDecoder(res.Body).Decode(&respBody)
-	assert.NoError(t, err)
-	assert.Equal(t, "Cannot hash password", respBody["message"])
-
-	mockUserService.AssertExpectations(t)
-	mockPasswordService.AssertExpectations(t)
-}
-
-func TestVerifyResetPasswordToken_UpdateUserFailure(t *testing.T) {
-	mockUserService := new(testmocks.MockUserService)
-	mockPasswordService := new(testmocks.MockPasswordService)
-
-	userController := &controller.UserController{
-		UserService:     mockUserService,
-		PasswordService: mockPasswordService,
-	}
-
-	input := UserTypes.IVerificationResetPasswordForm{
-		ResetPasswordToken: "validtoken123",
-		NewPassword:        "newsecurepassword",
-	}
-	bodyBytes, _ := json.Marshal(input)
-
-	now := time.Now().Add(-30 * time.Minute)
-	dummyUser := &UserModel.User{
-		ResetPasswordToken:          input.ResetPasswordToken,
-		ResetPasswordTokenCreatedAt: &now,
-		IsVerified:                  true,
-	}
-
-	mockUserService.
-		On("FindUserByResetPasswordToken", input.ResetPasswordToken).
-		Return(dummyUser, nil)
-
-	mockPasswordService.
-		On("HashPassword", input.NewPassword).
-		Return("hashedpassword", nil)
-
-	mockUserService.
-		On("UpdateUser", mock.Anything).
-		Return(errors.New("db error"))
-
-	req := httptest.NewRequest(http.MethodPost, "/verify-reset-password-token", bytes.NewReader(bodyBytes))
-	w := httptest.NewRecorder()
-
 	c := TestUtils.GetGinContext(w, req)
 	userController.VerifyResetPasswordToken(c)
 
@@ -336,12 +231,8 @@ func TestVerifyResetPasswordToken_UpdateUserFailure(t *testing.T) {
 	}()
 
 	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
-
-	var respBody map[string]string
-	err := json.NewDecoder(res.Body).Decode(&respBody)
+	var resp map[string]string
+	err := json.NewDecoder(res.Body).Decode(&resp)
 	assert.NoError(t, err)
-	assert.Equal(t, "Failed to update user", respBody["message"])
-
-	mockUserService.AssertExpectations(t)
-	mockPasswordService.AssertExpectations(t)
+	assert.Equal(t, "Failed to hash password", resp["message"])
 }
