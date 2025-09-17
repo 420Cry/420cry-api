@@ -1,15 +1,15 @@
-package password
+package auth_test
 
 import (
 	"testing"
 
-	services "cry-api/app/services/password"
+	PasswordService "cry-api/app/services/auth"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestHashPassword_Success(t *testing.T) {
-	ps := services.NewPasswordService()
+	ps := PasswordService.NewPasswordService()
 
 	password := "mysecretpassword"
 	hashed, err := ps.HashPassword(password)
@@ -20,7 +20,7 @@ func TestHashPassword_Success(t *testing.T) {
 }
 
 func TestCheckPassword_Success(t *testing.T) {
-	ps := services.NewPasswordService()
+	ps := PasswordService.NewPasswordService()
 
 	password := "mypassword"
 	hashed, err := ps.HashPassword(password)
@@ -31,7 +31,7 @@ func TestCheckPassword_Success(t *testing.T) {
 }
 
 func TestCheckPassword_Failure(t *testing.T) {
-	ps := services.NewPasswordService()
+	ps := PasswordService.NewPasswordService()
 
 	password := "mypassword"
 	hashed, err := ps.HashPassword(password)
@@ -43,7 +43,7 @@ func TestCheckPassword_Failure(t *testing.T) {
 }
 
 func TestHashPassword_EmptyPassword(t *testing.T) {
-	ps := services.NewPasswordService()
+	ps := PasswordService.NewPasswordService()
 
 	// Hashing empty password should still work, bcrypt allows it
 	hashed, err := ps.HashPassword("")

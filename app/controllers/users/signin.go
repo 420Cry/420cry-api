@@ -24,7 +24,7 @@ func (h *UserController) SignIn(c *gin.Context) {
 	if err != nil {
 		switch err {
 		case SignInError.ErrUserNotFound, SignInError.ErrInvalidPassword:
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
 		}

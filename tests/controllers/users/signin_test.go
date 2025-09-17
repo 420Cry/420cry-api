@@ -1,5 +1,5 @@
 // Package tests provides tests for user routes.
-package tests
+package user_controller_test
 
 import (
 	"bytes"
@@ -149,7 +149,7 @@ func TestSignIn_UserNotFound(t *testing.T) {
 	var respBody map[string]string
 	err := json.NewDecoder(res.Body).Decode(&respBody)
 	assert.NoError(t, err)
-	assert.Contains(t, respBody["error"], "Invalid email or password")
+	assert.Contains(t, respBody["error"], "Invalid username or password")
 
 	mockAuthService.AssertExpectations(t)
 }
@@ -193,7 +193,7 @@ func TestSignIn_InvalidPassword(t *testing.T) {
 	var respBody map[string]string
 	err := json.NewDecoder(res.Body).Decode(&respBody)
 	assert.NoError(t, err)
-	assert.Contains(t, respBody["error"], "Invalid email or password")
+	assert.Contains(t, respBody["error"], "Invalid username or password")
 
 	mockAuthService.AssertExpectations(t)
 }

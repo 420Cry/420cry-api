@@ -1,4 +1,4 @@
-package tests
+package user_controller_test
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	controller "cry-api/app/controllers/users"
 	UserModel "cry-api/app/models"
@@ -22,10 +23,12 @@ import (
 func TestSignup_Success(t *testing.T) {
 	mockUserService := new(testmocks.MockUserService)
 	mockEmailService := new(testmocks.MockEmailService)
+	mockUserTokenService := new(testmocks.MockUserTokenService)
 
 	userController := &controller.UserController{
-		UserService:  mockUserService,
-		EmailService: mockEmailService,
+		UserService:      mockUserService,
+		EmailService:     mockEmailService,
+		UserTokenService: mockUserTokenService,
 	}
 
 	input := UserTypes.IUserSignupRequest{
@@ -44,24 +47,24 @@ func TestSignup_Success(t *testing.T) {
 
 	done := make(chan struct{})
 
-	// Mock CreateUser
+	// Mock: CreateUser
 	mockUserService.
 		On("CreateUser", input.Fullname, input.Username, input.Email, input.Password).
 		Return(dummyUser, nil)
 
-	// Mock Save for link and OTP tokens
-	mockUserService.
-		On("SaveUserToken", mock.AnythingOfType("*models.UserToken")).
+	// Mock: SaveUserToken for both link and OTP tokens
+	mockUserTokenService.
+		On("Save", mock.AnythingOfType("*models.UserToken")).
 		Return(nil)
 
-	// Mock email service
+	// Mock: email service
 	mockEmailService.
 		On("SendVerifyAccountEmail",
 			dummyUser.Email,
-			mock.Anything, // from
+			mock.Anything,
 			dummyUser.Username,
-			mock.Anything, // verification link
-			mock.Anything, // OTP token
+			mock.Anything,
+			mock.Anything,
 		).
 		Return(nil).
 		Run(func(_ mock.Arguments) {
@@ -70,16 +73,20 @@ func TestSignup_Success(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewReader(bodyBytes))
 	w := httptest.NewRecorder()
-
 	c := TestUtils.GetGinContext(w, req)
+
 	userController.Signup(c)
 
-	<-done // wait for async email call
+	// wait for the async email goroutine
+	select {
+	case <-done:
+	case <-time.After(500 * time.Millisecond):
+		t.Fatal("expected SendVerifyAccountEmail to be called, but it wasn’t")
+	}
 
+	// verify response
 	res := w.Result()
-	defer func() {
-		_ = res.Body.Close()
-	}()
+	defer res.Body.Close()
 
 	assert.Equal(t, http.StatusCreated, res.StatusCode)
 
@@ -88,7 +95,9 @@ func TestSignup_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, respBody["success"])
 
+	// assert all expectations
 	mockUserService.AssertExpectations(t)
+	mockUserTokenService.AssertExpectations(t)
 	mockEmailService.AssertExpectations(t)
 }
 

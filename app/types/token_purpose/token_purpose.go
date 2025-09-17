@@ -17,6 +17,6 @@ const (
 	// a verified user to reset their password securely.
 	ResetPassword TokenPurpose = "reset_password"
 
-	// TwoFactorAuth is used for two-factor authentication (2FA) tokens,
-	TwoFactorAuth TokenPurpose = "two_factor_auth"
+	// TwoFactorAuthAlternativeOTP is used for two-factor authentication (2FA) alternative (when users can not access to their auth app),
+	TwoFactorAuthAlternativeOTP TokenPurpose = "two_factor_auth_alternative_otp"
 )

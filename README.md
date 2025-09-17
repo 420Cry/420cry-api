@@ -154,6 +154,10 @@ You can access MailHog at
     http://localhost:8025/#
 ```
 
+## Docs
+- [DB Structure Documentation](./docs/db_structure/DB_STRUCTURE.md)
+- [API Documentation](./docs/routes/API_DOCS.md)
+
 ## Frequently asked questions
 ### How can I see which application uses a port?
 You can easily check this with the command below.

@@ -1,4 +1,4 @@
-package tests
+package user_controller_test
 
 import (
 	"bytes"

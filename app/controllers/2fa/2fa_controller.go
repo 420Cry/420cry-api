@@ -4,8 +4,9 @@ import (
 	Email "cry-api/app/email"
 	UserRepository "cry-api/app/repositories"
 	TwoFactorService "cry-api/app/services/2fa"
-	EmailServices "cry-api/app/services/email"
-	PasswordService "cry-api/app/services/password"
+	AuthService "cry-api/app/services/auth"
+	PasswordService "cry-api/app/services/auth"
+	EmailService "cry-api/app/services/email"
 	UserService "cry-api/app/services/users"
 	EnvTypes "cry-api/app/types/env"
 
@@ -15,9 +16,10 @@ import (
 // TwoFactorController handles 2FA-related HTTP requests.
 type TwoFactorController struct {
 	UserService      UserService.UserServiceInterface
-	AuthService      UserService.AuthServiceInterface
+	UserTokenService UserService.UserTokenServiceInterface
+	AuthService      AuthService.AuthServiceInterface
 	TwoFactorService TwoFactorService.TwoFactorServiceInterface
-	EmailService     EmailServices.EmailServiceInterface
+	EmailService     EmailService.EmailServiceInterface
 }
 
 // NewTwoFactorController initializes a new TwoFactorController with dependencies.
@@ -27,16 +29,18 @@ func NewTwoFactorController(db *gorm.DB, cfg *EnvTypes.EnvConfig) *TwoFactorCont
 	userTokenRepository := UserRepository.NewGormUserTokenRepository(db)
 
 	emailSender := Email.NewSMTPEmailSender(cfg.SMTPConfig.Host, cfg.SMTPConfig.Port)
-	emailCreator := &EmailServices.EmailCreatorImpl{}
-	emailService := EmailServices.NewEmailService(emailSender, emailCreator)
+	emailCreator := &EmailService.EmailCreatorImpl{}
+	emailService := EmailService.NewEmailService(emailSender, emailCreator)
 
-	authService := UserService.NewAuthService(userRepository, passwordService)
+	authService := AuthService.NewAuthService(userRepository, passwordService)
 	userService := UserService.NewUserService(userRepository, userTokenRepository, emailService, authService)
 
 	twoFactorService := TwoFactorService.NewTwoFactorService()
+	userTokenService := UserService.NewUserTokenService(userTokenRepository)
 
 	return &TwoFactorController{
 		UserService:      userService,
+		UserTokenService: userTokenService,
 		AuthService:      authService,
 		TwoFactorService: twoFactorService,
 		EmailService:     emailService,

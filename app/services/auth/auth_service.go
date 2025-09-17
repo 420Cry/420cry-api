@@ -6,18 +6,17 @@ import (
 	UserModel "cry-api/app/models"
 	UserRepository "cry-api/app/repositories"
 	TwoFactorService "cry-api/app/services/2fa"
-	PasswordService "cry-api/app/services/password"
 	SignInError "cry-api/app/types/errors"
 )
 
 // AuthService handles user authentication.
 type AuthService struct {
 	userRepo        UserRepository.UserRepository
-	passwordService PasswordService.PasswordServiceInterface
+	passwordService PasswordServiceInterface
 }
 
 // NewAuthService creates a new AuthService instance.
-func NewAuthService(userRepo UserRepository.UserRepository, passwordService PasswordService.PasswordServiceInterface) *AuthService {
+func NewAuthService(userRepo UserRepository.UserRepository, passwordService PasswordServiceInterface) *AuthService {
 	return &AuthService{
 		userRepo:        userRepo,
 		passwordService: passwordService,

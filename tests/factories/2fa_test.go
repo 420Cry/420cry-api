@@ -1,5 +1,5 @@
 // Package tests provides tests for 2fa
-package tests
+package factory_test
 
 import (
 	"strings"

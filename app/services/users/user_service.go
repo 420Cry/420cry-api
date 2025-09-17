@@ -8,6 +8,7 @@ import (
 	"cry-api/app/factories"
 	UserModel "cry-api/app/models"
 	UserRepository "cry-api/app/repositories"
+	AuthService "cry-api/app/services/auth"
 	EmailService "cry-api/app/services/email"
 	SignUpError "cry-api/app/types/errors"
 
@@ -20,7 +21,7 @@ type UserService struct {
 	userRepo      UserRepository.UserRepository // User data repository interface
 	userTokenRepo UserRepository.UserTokenRepository
 	emailService  EmailService.EmailServiceInterface // Email service interface for sending emails
-	authService   AuthServiceInterface
+	authService   AuthService.AuthServiceInterface
 }
 
 // UserServiceInterface defines the contract for user service methods.
@@ -39,7 +40,7 @@ func NewUserService(
 	userRepo UserRepository.UserRepository,
 	userTokenRepo UserRepository.UserTokenRepository,
 	emailService EmailService.EmailServiceInterface,
-	authService AuthServiceInterface,
+	authService AuthService.AuthServiceInterface,
 ) *UserService {
 	return &UserService{
 		userRepo:      userRepo,

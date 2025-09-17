@@ -1,4 +1,4 @@
-package tests
+package email_test
 
 import (
 	"errors"
