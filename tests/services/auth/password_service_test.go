@@ -1,9 +1,9 @@
-package auth_test
+package tests
 
 import (
 	"testing"
 
-	PasswordService "cry-api/app/services/auth"
+	PasswordService "cry-api/app/services/auth/password"
 
 	"github.com/stretchr/testify/assert"
 )

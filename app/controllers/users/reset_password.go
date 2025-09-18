@@ -1,4 +1,3 @@
-// Package controllers handles HTTP requests and responses
 package controllers
 
 import (

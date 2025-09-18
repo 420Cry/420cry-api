@@ -1,4 +1,5 @@
-// Package controllers handles HTTP requests and responses
+// Package controllers handles incoming HTTP requests, orchestrates business logic
+// through services and repositories, and returns appropriate HTTP responses.
 package controllers
 
 import (

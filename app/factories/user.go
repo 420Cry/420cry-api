@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"cry-api/app/models"
-	PasswordService "cry-api/app/services/auth"
+	PasswordService "cry-api/app/services/auth/password"
 
 	"github.com/google/uuid"
 )

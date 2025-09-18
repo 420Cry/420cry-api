@@ -3,17 +3,19 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 
 	JWT "cry-api/app/services/jwt"
-	TwoFactorTypes "cry-api/app/types/2fa"
+	Types "cry-api/app/types/2fa"
+	TokenType "cry-api/app/types/token_purpose"
 
 	"github.com/gin-gonic/gin"
 )
 
-// VerifyOTP validates the OTP and returns a new JWT if successful.
-func (h *TwoFactorController) VerifyOTP(c *gin.Context) {
-	var req TwoFactorTypes.ITwoFactorVerifyRequest
+// AlternativeVerifyOTP validates the alternative OTP (from user's email) and returns a new JWT if successful.
+func (h *TwoFactorController) AlternativeVerifyOTP(c *gin.Context) {
+	var req Types.ITwoFactorVerifyRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
@@ -40,31 +42,33 @@ func (h *TwoFactorController) VerifyOTP(c *gin.Context) {
 		return
 	}
 
-	// Verify OTP using provided secret
-	isValid, err := h.AuthService.VerifyOTP(*user.TwoFASecret, req.OTP)
-	if err != nil || !isValid {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid OTP"})
+	if !user.TwoFAEnabled {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User has not enabled 2FA"})
 		return
 	}
 
-	// Enable 2FA flag if not already set
-	if !user.TwoFAEnabled {
-		user.TwoFAEnabled = true
-		if err := h.UserService.UpdateUser(user); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to enable 2FA"})
-			return
-		}
+	// Verify OTP
+	existingToken, err := h.UserTokenService.FindLatestValidToken(user.ID, string(TokenType.TwoFactorAuthAlternativeOTP))
+	if err != nil {
+		log.Printf("error finding OTP token: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal error"})
+		return
+	}
+
+	if existingToken == nil || existingToken.Token != req.OTP {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired OTP"})
+		return
 	}
 
 	// Generate JWT
-	jwt, err := JWT.GenerateJWT(user.UUID, user.Email, user.TwoFAEnabled, true)
+	newJWT, err := JWT.GenerateJWT(user.UUID, user.Email, user.TwoFAEnabled, true)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate JWT"})
 		return
 	}
 
-	// Respond with new JWT and user info
+	// Respond with new JWT
 	c.JSON(http.StatusOK, gin.H{
-		"jwt": jwt,
+		"jwt": newJWT,
 	})
 }

@@ -1,4 +1,4 @@
-package repositorie_test
+package tests
 
 import (
 	"fmt"

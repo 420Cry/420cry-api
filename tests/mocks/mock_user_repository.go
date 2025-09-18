@@ -1,4 +1,3 @@
-// Package mocks provides mocks for repositories.
 package mocks
 
 import (

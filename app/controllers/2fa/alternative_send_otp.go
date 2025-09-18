@@ -1,4 +1,5 @@
-// Package controllers handles HTTP requests and responses.
+// Package controllers handles incoming HTTP requests, orchestrates business logic
+// through services and repositories, and returns appropriate HTTP responses.
 package controllers
 
 import (
@@ -9,8 +10,8 @@ import (
 	"cry-api/app/config"
 	"cry-api/app/factories"
 	UserModel "cry-api/app/models"
-	TwoFactorType "cry-api/app/types/2fa"
-	types "cry-api/app/types/token_purpose"
+	TwoFactorTypes "cry-api/app/types/2fa"
+	TokenTypes "cry-api/app/types/token_purpose"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,7 +20,7 @@ import (
 // and sends it to the user via email. The OTP is stored as a user token with
 // purpose TwoFactorAuthAlternativeOTP and expires in 5 minutes.
 func (h *TwoFactorController) AlternativeSendOtp(c *gin.Context) {
-	var req TwoFactorType.ITwoFactorAlternativeRequest
+	var req TwoFactorTypes.ITwoFactorAlternativeRequest
 
 	// 1️⃣ Parse request
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -44,7 +45,7 @@ func (h *TwoFactorController) AlternativeSendOtp(c *gin.Context) {
 	}
 
 	// 3️⃣ Check if an unexpired OTP already exists
-	existingToken, err := h.UserTokenService.FindLatestValidToken(user.ID, string(types.TwoFactorAuthAlternativeOTP))
+	existingToken, err := h.UserTokenService.FindLatestValidToken(user.ID, string(TokenTypes.TwoFactorAuthAlternativeOTP))
 	if err != nil {
 		log.Printf("[AlternativeSendOtp] error checking existing token: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
@@ -53,7 +54,7 @@ func (h *TwoFactorController) AlternativeSendOtp(c *gin.Context) {
 
 	// 4️⃣ Create a new OTP if no valid token exists
 	if existingToken == nil {
-		otpToken, err := factories.NewUserToken(user.ID, string(types.TwoFactorAuthAlternativeOTP), 5*time.Minute, factories.OTP)
+		otpToken, err := factories.NewUserToken(user.ID, string(TokenTypes.TwoFactorAuthAlternativeOTP), 5*time.Minute, factories.OTP)
 		if err != nil {
 			log.Printf("[AlternativeSendOtp] could not generate OTP: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate OTP"})

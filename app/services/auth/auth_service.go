@@ -1,3 +1,4 @@
+// Package services provide auth services for authenticate users and verify 2fa OTP.
 package services
 
 import (
@@ -6,17 +7,18 @@ import (
 	UserModel "cry-api/app/models"
 	UserRepository "cry-api/app/repositories"
 	TwoFactorService "cry-api/app/services/2fa"
+	PasswordService "cry-api/app/services/auth/password"
 	SignInError "cry-api/app/types/errors"
 )
 
 // AuthService handles user authentication.
 type AuthService struct {
 	userRepo        UserRepository.UserRepository
-	passwordService PasswordServiceInterface
+	passwordService PasswordService.PasswordServiceInterface
 }
 
 // NewAuthService creates a new AuthService instance.
-func NewAuthService(userRepo UserRepository.UserRepository, passwordService PasswordServiceInterface) *AuthService {
+func NewAuthService(userRepo UserRepository.UserRepository, passwordService PasswordService.PasswordServiceInterface) *AuthService {
 	return &AuthService{
 		userRepo:        userRepo,
 		passwordService: passwordService,

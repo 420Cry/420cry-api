@@ -1,3 +1,5 @@
+// Package controllers handles incoming HTTP requests, orchestrates business logic
+// through services and repositories, and returns appropriate HTTP responses.
 package controllers
 
 import (
@@ -5,7 +7,7 @@ import (
 	UserRepository "cry-api/app/repositories"
 	TwoFactorService "cry-api/app/services/2fa"
 	AuthService "cry-api/app/services/auth"
-	PasswordService "cry-api/app/services/auth"
+	PasswordService "cry-api/app/services/auth/password"
 	EmailService "cry-api/app/services/email"
 	UserService "cry-api/app/services/users"
 	EnvTypes "cry-api/app/types/env"

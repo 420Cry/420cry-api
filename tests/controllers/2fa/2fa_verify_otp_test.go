@@ -1,4 +1,4 @@
-package two_factor_controller_test
+package tests
 
 import (
 	"bytes"

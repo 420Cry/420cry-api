@@ -1,5 +1,5 @@
 // Package tests provides tests for user routes.
-package user_controller_test
+package tests
 
 import (
 	"bytes"

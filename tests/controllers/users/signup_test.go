@@ -1,4 +1,4 @@
-package user_controller_test
+package tests
 
 import (
 	"bytes"
@@ -86,7 +86,9 @@ func TestSignup_Success(t *testing.T) {
 
 	// verify response
 	res := w.Result()
-	defer res.Body.Close()
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	assert.Equal(t, http.StatusCreated, res.StatusCode)
 
