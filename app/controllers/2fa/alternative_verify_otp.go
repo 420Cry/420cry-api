@@ -3,7 +3,6 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
 
 	JWT "cry-api/app/services/jwt"
@@ -22,13 +21,11 @@ func (h *TwoFactorController) AlternativeVerifyOTP(c *gin.Context) {
 	}
 
 	if req.UserUUID == "" {
-		log.Println("[DEBUG] Missing UserUUID in request")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User UUID is required"})
 		return
 	}
 
 	if req.OTP == "" {
-		log.Println("[DEBUG] Missing OTP in request")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "OTP is required for verification"})
 		return
 	}
