@@ -20,7 +20,7 @@ type CoinMarketCapService struct {
 // CoinMarketCapServiceInterface defines the methods for the CoinMarketCapService.
 type CoinMarketCapServiceInterface interface {
 	GetFearAndGreedLastest() (*CoinMarketCap.FearGreedData, error)
-	GetFearAndGreedHistorical() (*CoinMarketCap.FearGreedHistorical, error)
+	GetFearAndGreedHistorical(start, limit int) (*CoinMarketCap.FearGreedHistorical, error)
 }
 
 // NewCoinMarketCapServiceService initializes and returns an CoinMarketCapService instance
@@ -67,16 +67,26 @@ func (s *CoinMarketCapService) GetFearAndGreedLastest() (*CoinMarketCap.FearGree
 }
 
 // GetFearAndGreedHistorical fetches fear and greed index data from CoinMarketCap API.
-func (s *CoinMarketCapService) GetFearAndGreedHistorical() (*CoinMarketCap.FearGreedHistorical, error) {
+func (s *CoinMarketCapService) GetFearAndGreedHistorical(start, limit int) (*CoinMarketCap.FearGreedHistorical, error) {
+	// Ensure the limit does not exceed 500
+	if limit > 500 {
+		limit = 500
+	}
+	if limit < 1 {
+		limit = 1
+	}
+	if start < 1 {
+		start = 1
+	}
+
 	baseURL := s.Config.CoinMarketCapConfig.API
-	url := fmt.Sprintf("%s/v3/fear-and-greed/historical", baseURL)
+	url := fmt.Sprintf("%s/v3/fear-and-greed/historical?start=%d&limit=%d", baseURL, start, limit)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create HTTP request: %w", err)
 	}
 
-	// Use the correct custom header for API key authentication
 	req.Header.Set("X-CMC_PRO_API_KEY", s.Config.CoinMarketCapConfig.APIKey)
 
 	client := &http.Client{Timeout: 10 * time.Second}

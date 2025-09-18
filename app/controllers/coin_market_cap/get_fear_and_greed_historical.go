@@ -10,7 +10,7 @@ import (
 
 // GetFearAndGreedHistorical retrieves the Fear and Greed index
 func (h *CoinMarketCapController) GetFearAndGreedHistorical(c *gin.Context) {
-	data, err := h.CoinMarketCapService.GetFearAndGreedHistorical()
+	data, err := h.CoinMarketCapService.GetFearAndGreedHistorical(1, 500)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

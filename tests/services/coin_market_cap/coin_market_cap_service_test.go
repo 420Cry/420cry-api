@@ -120,7 +120,7 @@ func TestGetFearAndGreedHistorical_Success(t *testing.T) {
 	cfg := makeTestEnvConfig(server.URL, "test-api-key")
 	svc := services.NewCoinMarketCapServiceService(cfg)
 
-	data, err := svc.GetFearAndGreedHistorical()
+	data, err := svc.GetFearAndGreedHistorical(1, 50)
 	assert.NoError(t, err)
 	assert.NotNil(t, data)
 	assert.Len(t, data.Data, 1)
@@ -141,7 +141,7 @@ func TestGetFearAndGreedHistorical_Non200Status(t *testing.T) {
 	cfg := makeTestEnvConfig(server.URL, "test-api-key")
 	svc := services.NewCoinMarketCapServiceService(cfg)
 
-	data, err := svc.GetFearAndGreedHistorical()
+	data, err := svc.GetFearAndGreedHistorical(1, 50)
 	assert.Error(t, err)
 	assert.Nil(t, data)
 	assert.Contains(t, err.Error(), "API request failed with status 500")
@@ -159,7 +159,7 @@ func TestGetFearAndGreedHistorical_InvalidJSON(t *testing.T) {
 	cfg := makeTestEnvConfig(server.URL, "test-api-key")
 	svc := services.NewCoinMarketCapServiceService(cfg)
 
-	data, err := svc.GetFearAndGreedHistorical()
+	data, err := svc.GetFearAndGreedHistorical(1, 50)
 	assert.Error(t, err)
 	assert.Nil(t, data)
 	assert.Contains(t, err.Error(), "failed to decode response body")
