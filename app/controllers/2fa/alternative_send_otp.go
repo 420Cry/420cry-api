@@ -24,22 +24,17 @@ func (h *TwoFactorController) AlternativeSendOtp(c *gin.Context) {
 
 	// 1️⃣ Parse request
 	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Printf("[AlternativeSendOtp] invalid request payload: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
 
-	log.Printf("[AlternativeSendOtp] request received for email: %s", req.Email)
-
 	// 2️⃣ Find user
 	user, err := h.UserService.FindUserByEmail(req.Email)
 	if err != nil || user == nil {
-		log.Printf("[AlternativeSendOtp] user not found: %s", req.Email)
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 	if !user.IsVerified {
-		log.Printf("[AlternativeSendOtp] user not verified: %s", req.Email)
 		c.JSON(http.StatusForbidden, gin.H{"error": "User not verified"})
 		return
 	}
@@ -47,7 +42,6 @@ func (h *TwoFactorController) AlternativeSendOtp(c *gin.Context) {
 	// 3️⃣ Check if an unexpired OTP already exists
 	existingToken, err := h.UserTokenService.FindLatestValidToken(user.ID, string(TokenTypes.TwoFactorAuthAlternativeOTP))
 	if err != nil {
-		log.Printf("[AlternativeSendOtp] error checking existing token: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
@@ -62,7 +56,6 @@ func (h *TwoFactorController) AlternativeSendOtp(c *gin.Context) {
 		}
 
 		if err := h.UserTokenService.Save(otpToken); err != nil {
-			log.Printf("[AlternativeSendOtp] could not save OTP: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not save OTP"})
 			return
 		}

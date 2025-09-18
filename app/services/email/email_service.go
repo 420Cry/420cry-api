@@ -71,7 +71,6 @@ func (service *EmailService) SendResetPasswordEmail(to, from, userName, resetPas
 		log.Printf("error sending the email: %v", err)
 	}
 
-	log.Printf("Email sent successfully to %s", email.To)
 	return nil
 }
 

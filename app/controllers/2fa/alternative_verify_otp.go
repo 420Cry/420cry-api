@@ -22,11 +22,13 @@ func (h *TwoFactorController) AlternativeVerifyOTP(c *gin.Context) {
 	}
 
 	if req.UserUUID == "" {
+		log.Println("[DEBUG] Missing UserUUID in request")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User UUID is required"})
 		return
 	}
 
 	if req.OTP == "" {
+		log.Println("[DEBUG] Missing OTP in request")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "OTP is required for verification"})
 		return
 	}
@@ -50,12 +52,16 @@ func (h *TwoFactorController) AlternativeVerifyOTP(c *gin.Context) {
 	// Verify OTP
 	existingToken, err := h.UserTokenService.FindLatestValidToken(user.ID, string(TokenType.TwoFactorAuthAlternativeOTP))
 	if err != nil {
-		log.Printf("error finding OTP token: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal error"})
 		return
 	}
 
-	if existingToken == nil || existingToken.Token != req.OTP {
+	if existingToken == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired OTP"})
+		return
+	}
+
+	if existingToken.Token != req.OTP {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired OTP"})
 		return
 	}
