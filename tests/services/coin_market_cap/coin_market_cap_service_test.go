@@ -53,7 +53,9 @@ func TestGetFearAndGreedLastest_Success(t *testing.T) {
 	assert.NotNil(t, data)
 	assert.Equal(t, 70, data.Data.Value)
 	assert.Equal(t, "Greed", data.Data.ValueClassification)
-	assert.Equal(t, time.Unix(1695000000, 0), data.Data.UpdateTime)
+
+	// Compare using Unix timestamp to avoid timezone issues
+	assert.Equal(t, int64(1695000000), data.Data.UpdateTime.Unix())
 }
 
 func TestGetFearAndGreedLastest_Non200Status(t *testing.T) {
