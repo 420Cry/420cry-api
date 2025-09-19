@@ -26,4 +26,10 @@ func RegisterRoutes(rg *gin.RouterGroup, db *gorm.DB) {
 
 	// Route for verify 2fa (AUTH)
 	rg.POST("/auth/verify-otp", TwoFactorController.VerifyOTP)
+
+	// Route for alternative - send otp to user email
+	rg.POST("/alternative/send-email-otp", TwoFactorController.AlternativeSendOtp)
+
+	// Route for verify alternative otp from user email
+	rg.POST("/alternative/verify-email-otp", TwoFactorController.AlternativeVerifyOTP)
 }

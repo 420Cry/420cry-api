@@ -26,7 +26,7 @@ func TestSendVerifyAccountEmail_Success(t *testing.T) {
 	from := "no-reply@example.com"
 	userName := "testuser"
 	verificationLink := "https://example.com/verify"
-	verificationTokens := "token123"
+	verificationToken := "token123"
 
 	// Expect sanitization call (optional, if utils.SanitizeInput is mocked)
 	// Or you can trust it works and test only the email service logic here.
@@ -39,7 +39,7 @@ func TestSendVerifyAccountEmail_Success(t *testing.T) {
 	}
 
 	mockCreator.
-		On("CreateVerifyAccountEmail", to, from, userName, verificationLink, verificationTokens).
+		On("CreateVerifyAccountEmail", to, from, userName, verificationLink, verificationToken).
 		Return(expectedEmail, nil).
 		Once()
 
@@ -48,7 +48,7 @@ func TestSendVerifyAccountEmail_Success(t *testing.T) {
 		Return(nil).
 		Once()
 
-	err := service.SendVerifyAccountEmail(to, from, userName, verificationLink, verificationTokens)
+	err := service.SendVerifyAccountEmail(to, from, userName, verificationLink, verificationToken)
 	assert.NoError(t, err)
 
 	mockCreator.AssertExpectations(t)

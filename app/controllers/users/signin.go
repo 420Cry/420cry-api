@@ -1,4 +1,5 @@
-// Package controllers handles HTTP requests and responses,
+// Package controllers handles incoming HTTP requests, orchestrates business logic
+// through services and repositories, and returns appropriate HTTP responses.
 package controllers
 
 import (
@@ -24,7 +25,7 @@ func (h *UserController) SignIn(c *gin.Context) {
 	if err != nil {
 		switch err {
 		case SignInError.ErrUserNotFound, SignInError.ErrInvalidPassword:
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
 		}

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	controller "cry-api/app/controllers/users"
 	UserModel "cry-api/app/models"
@@ -21,10 +22,12 @@ import (
 func TestHandleResetPasswordRequest_Success(t *testing.T) {
 	mockUserService := new(testmocks.MockUserService)
 	mockEmailService := new(testmocks.MockEmailService)
+	mockUserTokenService := new(testmocks.MockUserTokenService)
 
 	userController := &controller.UserController{
-		UserService:  mockUserService,
-		EmailService: mockEmailService,
+		UserService:      mockUserService,
+		EmailService:     mockEmailService,
+		UserTokenService: mockUserTokenService,
 	}
 
 	input := UserTypes.IVerificationResetPasswordRequest{
@@ -33,22 +36,41 @@ func TestHandleResetPasswordRequest_Success(t *testing.T) {
 	bodyBytes, _ := json.Marshal(input)
 
 	dummyUser := &UserModel.User{
-		Email:                       input.Email,
-		Username:                    "testuser",
-		IsVerified:                  true,
-		ResetPasswordTokenCreatedAt: nil,
+		ID:         1,
+		Email:      input.Email,
+		Username:   "testuser",
+		IsVerified: true,
 	}
 
+	dummyToken := &UserModel.UserToken{
+		UserID:    dummyUser.ID,
+		Token:     "dummy-reset-token",
+		ExpiresAt: time.Now().Add(time.Hour),
+	}
+
+	// channel to signal async email
+	done := make(chan struct{})
+
+	// Mock: user lookup
 	mockUserService.
 		On("FindUserByEmail", input.Email).
 		Return(dummyUser, nil)
 
+	// Mock: no existing token (match string exactly as controller uses)
 	mockUserService.
-		On("UpdateUser", mock.AnythingOfType("*models.User")).
-		Return(nil)
+		On("FindUserTokenByPurpose", dummyUser.ID, "reset_password").
+		Return(nil, nil)
 
-	done := make(chan struct{})
+	// Mock: saving new token
+	mockUserTokenService.
+		On("Save", mock.AnythingOfType("*models.UserToken")).
+		Return(nil).
+		Run(func(args mock.Arguments) {
+			token := args.Get(0).(*UserModel.UserToken)
+			token.Token = dummyToken.Token
+		})
 
+	// Mock: sending email asynchronously
 	mockEmailService.
 		On("SendResetPasswordEmail",
 			dummyUser.Email,
@@ -62,14 +84,21 @@ func TestHandleResetPasswordRequest_Success(t *testing.T) {
 			close(done) // signal email sent
 		})
 
+	// Make HTTP request
 	req := httptest.NewRequest(http.MethodPost, "/reset-password-request", bytes.NewReader(bodyBytes))
 	w := httptest.NewRecorder()
-
 	c := TestUtils.GetGinContext(w, req)
+
 	userController.HandleResetPasswordRequest(c)
 
-	<-done // wait for SendResetPasswordEmail call
+	// wait until the goroutine fires (or timeout)
+	select {
+	case <-done:
+	case <-time.After(500 * time.Millisecond):
+		t.Fatal("expected SendResetPasswordEmail to be called, but it wasn’t")
+	}
 
+	// verify response
 	res := w.Result()
 	defer func() {
 		_ = res.Body.Close()
@@ -82,7 +111,9 @@ func TestHandleResetPasswordRequest_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, respBody["success"])
 
+	// assert that all mock expectations were met
 	mockUserService.AssertExpectations(t)
+	mockUserTokenService.AssertExpectations(t)
 	mockEmailService.AssertExpectations(t)
 }
 

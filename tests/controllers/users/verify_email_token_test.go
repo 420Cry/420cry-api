@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	controller "cry-api/app/controllers/users"
 	UserModel "cry-api/app/models"
@@ -14,19 +15,16 @@ import (
 	testmocks "cry-api/tests/mocks"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestVerifyEmailToken_Success(t *testing.T) {
-	mockAuthService := new(testmocks.MockAuthService)
-	mockVerificationService := new(testmocks.MockVerificationService)
 	mockUserService := new(testmocks.MockUserService)
-	mockEmailService := new(testmocks.MockEmailService)
+	mockUserTokenService := new(testmocks.MockUserTokenService)
 
 	userController := &controller.UserController{
-		UserService:         mockUserService,
-		EmailService:        mockEmailService,
-		VerificationService: mockVerificationService,
-		AuthService:         mockAuthService,
+		UserService:      mockUserService,
+		UserTokenService: mockUserTokenService,
 	}
 
 	reqBody := UserTypes.IVerificationTokenCheckRequest{
@@ -35,13 +33,34 @@ func TestVerifyEmailToken_Success(t *testing.T) {
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
 
-	dummyUser := &UserModel.User{
-		IsVerified: true,
+	// 1️⃣ Mock the long-link token
+	userTokenObj := &UserModel.UserToken{
+		Token:     reqBody.UserToken,
+		UserID:    42,
+		ExpiresAt: time.Now().Add(time.Hour),
 	}
+	mockUserService.
+		On("FindUserTokenByValueAndPurpose", reqBody.UserToken, mock.Anything).
+		Return(userTokenObj, nil)
 
-	mockVerificationService.
-		On("VerifyUserWithTokens", reqBody.UserToken, reqBody.VerifyToken).
-		Return(dummyUser, nil)
+	// 2️⃣ Mock the OTP token
+	otpTokenObj := &UserModel.UserToken{
+		Token:     reqBody.VerifyToken,
+		UserID:    42,
+		ExpiresAt: time.Now().Add(10 * time.Minute),
+	}
+	mockUserTokenService.
+		On("FindLatestValidToken", userTokenObj.UserID, mock.Anything).
+		Return(otpTokenObj, nil)
+
+	// 3️⃣ Mock ConsumeToken calls
+	mockUserTokenService.On("ConsumeToken", userTokenObj.UserID, userTokenObj.Token, mock.Anything).Return(nil)
+	mockUserTokenService.On("ConsumeToken", otpTokenObj.UserID, otpTokenObj.Token, mock.Anything).Return(nil)
+
+	// 4️⃣ Mock updating user
+	dummyUser := &UserModel.User{ID: userTokenObj.UserID}
+	mockUserService.On("FindUserByID", userTokenObj.UserID).Return(dummyUser, nil)
+	mockUserService.On("UpdateUser", dummyUser).Return(nil)
 
 	req := httptest.NewRequest(http.MethodPost, "/verify-email-token", bytes.NewReader(bodyBytes))
 	w := httptest.NewRecorder()
@@ -61,20 +80,16 @@ func TestVerifyEmailToken_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, resp["verified"])
 
-	mockVerificationService.AssertExpectations(t)
+	mockUserService.AssertExpectations(t)
+	mockUserTokenService.AssertExpectations(t)
 }
 
 func TestVerifyEmailToken_InvalidJSON(t *testing.T) {
-	mockAuthService := new(testmocks.MockAuthService)
-	mockVerificationService := new(testmocks.MockVerificationService)
 	mockUserService := new(testmocks.MockUserService)
-	mockEmailService := new(testmocks.MockEmailService)
-
+	mockUserTokenService := new(testmocks.MockUserTokenService)
 	userController := &controller.UserController{
-		UserService:         mockUserService,
-		EmailService:        mockEmailService,
-		VerificationService: mockVerificationService,
-		AuthService:         mockAuthService,
+		UserService:      mockUserService,
+		UserTokenService: mockUserTokenService,
 	}
 
 	req := httptest.NewRequest(http.MethodPost, "/verify-email-token", bytes.NewReader([]byte(`{invalid-json}`)))
@@ -97,16 +112,11 @@ func TestVerifyEmailToken_InvalidJSON(t *testing.T) {
 }
 
 func TestVerifyEmailToken_VerificationFails(t *testing.T) {
-	mockAuthService := new(testmocks.MockAuthService)
-	mockVerificationService := new(testmocks.MockVerificationService)
 	mockUserService := new(testmocks.MockUserService)
-	mockEmailService := new(testmocks.MockEmailService)
-
+	mockUserTokenService := new(testmocks.MockUserTokenService)
 	userController := &controller.UserController{
-		UserService:         mockUserService,
-		EmailService:        mockEmailService,
-		VerificationService: mockVerificationService,
-		AuthService:         mockAuthService,
+		UserService:      mockUserService,
+		UserTokenService: mockUserTokenService,
 	}
 
 	reqBody := UserTypes.IVerificationTokenCheckRequest{
@@ -115,9 +125,10 @@ func TestVerifyEmailToken_VerificationFails(t *testing.T) {
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
 
-	mockVerificationService.
-		On("VerifyUserWithTokens", reqBody.UserToken, reqBody.VerifyToken).
-		Return((*UserModel.User)(nil), assert.AnError)
+	// Simulate missing long-link token
+	mockUserService.
+		On("FindUserTokenByValueAndPurpose", reqBody.UserToken, mock.Anything).
+		Return(nil, nil)
 
 	req := httptest.NewRequest(http.MethodPost, "/verify-email-token", bytes.NewReader(bodyBytes))
 	w := httptest.NewRecorder()
@@ -135,7 +146,8 @@ func TestVerifyEmailToken_VerificationFails(t *testing.T) {
 	var resp map[string]string
 	err := json.NewDecoder(res.Body).Decode(&resp)
 	assert.NoError(t, err)
-	assert.Contains(t, resp["error"], assert.AnError.Error())
+	assert.Contains(t, resp["error"], "invalid or expired account verification link")
 
-	mockVerificationService.AssertExpectations(t)
+	mockUserService.AssertExpectations(t)
+	mockUserTokenService.AssertExpectations(t)
 }

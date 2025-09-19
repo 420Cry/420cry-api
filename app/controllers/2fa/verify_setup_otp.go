@@ -1,18 +1,19 @@
-// Package controllers handles HTTP requests and responses.
+// Package controllers handles incoming HTTP requests, orchestrates business logic
+// through services and repositories, and returns appropriate HTTP responses.
 package controllers
 
 import (
 	"net/http"
 
 	JWT "cry-api/app/services/jwt"
-	types "cry-api/app/types/2fa"
+	TwoFactorTypes "cry-api/app/types/2fa"
 
 	"github.com/gin-gonic/gin"
 )
 
 // VerifySetUpOTP validates the OTP and returns a new JWT if successful.
 func (h *TwoFactorController) VerifySetUpOTP(c *gin.Context) {
-	var req types.ITwoFactorSetupRequest
+	var req TwoFactorTypes.ITwoFactorSetupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return

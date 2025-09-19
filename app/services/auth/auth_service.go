@@ -1,3 +1,4 @@
+// Package services provide auth services for authenticate users and verify 2fa OTP.
 package services
 
 import (
@@ -6,7 +7,7 @@ import (
 	UserModel "cry-api/app/models"
 	UserRepository "cry-api/app/repositories"
 	TwoFactorService "cry-api/app/services/2fa"
-	PasswordService "cry-api/app/services/password"
+	PasswordService "cry-api/app/services/auth/password"
 	SignInError "cry-api/app/types/errors"
 )
 

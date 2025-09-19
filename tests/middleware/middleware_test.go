@@ -1,4 +1,4 @@
-package tests
+package middleware_test
 
 import (
 	"net/http"
@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"cry-api/app/middleware"
-	services "cry-api/app/services/jwt"
+	JwtServices "cry-api/app/services/jwt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -18,7 +18,7 @@ func generateTestJWT(t *testing.T, twoFAEnabled bool, twoFAVerified bool) string
 	err := os.Setenv("JWT_SECRET", "testsecretkey1234567890")
 	assert.NoError(t, err)
 
-	token, err := services.GenerateJWT(
+	token, err := JwtServices.GenerateJWT(
 		"test-uuid-1234",
 		"user@example.com",
 		twoFAEnabled,
@@ -34,7 +34,7 @@ func TestJWTAuthMiddleware(t *testing.T) {
 	handler := func(c *gin.Context) {
 		claims, exists := c.Get("user")
 		assert.True(t, exists)
-		userClaims := claims.(*services.Claims)
+		userClaims := claims.(*JwtServices.Claims)
 		assert.Equal(t, "test-uuid-1234", userClaims.UUID)
 		assert.Equal(t, "user@example.com", userClaims.Email)
 		c.JSON(http.StatusOK, gin.H{"message": "authorized"})

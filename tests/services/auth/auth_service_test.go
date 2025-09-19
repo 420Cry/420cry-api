@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	UserModel "cry-api/app/models"
-	services "cry-api/app/services/users"
+	AuthService "cry-api/app/services/auth"
 	mocks "cry-api/tests/mocks"
 
 	"github.com/stretchr/testify/assert"
@@ -15,7 +15,7 @@ func TestAuthService_AuthenticateUser_Success(t *testing.T) {
 	mockUserRepo := new(mocks.MockUserRepository)
 	mockPasswordSvc := new(mocks.MockPasswordService)
 
-	authSvc := services.NewAuthService(mockUserRepo, mockPasswordSvc)
+	authSvc := AuthService.NewAuthService(mockUserRepo, mockPasswordSvc)
 
 	user := &UserModel.User{
 		Username:   "johndoe",
@@ -39,7 +39,7 @@ func TestAuthService_AuthenticateUser_UserNotFound(t *testing.T) {
 	mockUserRepo := new(mocks.MockUserRepository)
 	mockPasswordSvc := new(mocks.MockPasswordService)
 
-	authSvc := services.NewAuthService(mockUserRepo, mockPasswordSvc)
+	authSvc := AuthService.NewAuthService(mockUserRepo, mockPasswordSvc)
 
 	mockUserRepo.On("FindByUsername", "unknown").Return(nil, nil)
 	// No need to mock CheckPassword here because it won't be called
@@ -58,7 +58,7 @@ func TestAuthService_AuthenticateUser_PasswordMismatch(t *testing.T) {
 	mockUserRepo := new(mocks.MockUserRepository)
 	mockPasswordSvc := new(mocks.MockPasswordService)
 
-	authSvc := services.NewAuthService(mockUserRepo, mockPasswordSvc)
+	authSvc := AuthService.NewAuthService(mockUserRepo, mockPasswordSvc)
 
 	user := &UserModel.User{
 		Username:   "johndoe",
@@ -83,7 +83,7 @@ func TestAuthService_AuthenticateUser_UserNotVerified(t *testing.T) {
 	mockUserRepo := new(mocks.MockUserRepository)
 	mockPasswordSvc := new(mocks.MockPasswordService)
 
-	authSvc := services.NewAuthService(mockUserRepo, mockPasswordSvc)
+	authSvc := AuthService.NewAuthService(mockUserRepo, mockPasswordSvc)
 
 	user := &UserModel.User{
 		Username:   "johndoe",

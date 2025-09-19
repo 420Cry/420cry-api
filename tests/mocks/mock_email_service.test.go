@@ -24,6 +24,12 @@ func (m *MockEmailService) SendResetPasswordEmail(to, from, username, resetPassw
 	return args.Error(0)
 }
 
+// SendTwoFactorAlternativeEmail mocks SendTwoFactorAlternativeEmail from EmailService
+func (m *MockEmailService) SendTwoFactorAlternativeEmail(to, from, username, otp string, expiryMinutes int) error {
+	args := m.Called(to, from, username, otp, expiryMinutes)
+	return args.Error(0)
+}
+
 // MockEmailSender mocks the EmailSender interface
 type MockEmailSender struct {
 	mock.Mock
@@ -41,13 +47,19 @@ type MockEmailCreator struct {
 }
 
 // CreateVerifyAccountEmail mocks CreateVerifyAccountEmail from EmailCreator
-func (m *MockEmailCreator) CreateVerifyAccountEmail(to, from, userName, verificationLink, verificationTokens string) (Email.EmailMessage, error) {
-	args := m.Called(to, from, userName, verificationLink, verificationTokens)
+func (m *MockEmailCreator) CreateVerifyAccountEmail(to, from, userName, verificationLink, verificationToken string) (Email.EmailMessage, error) {
+	args := m.Called(to, from, userName, verificationLink, verificationToken)
 	return args.Get(0).(Email.EmailMessage), args.Error(1)
 }
 
 // CreateResetPasswordRequestEmail mocks CreateResetPasswordRequestEmail from EmailCreator
 func (m *MockEmailCreator) CreateResetPasswordRequestEmail(to, from, userName, resetPasswordLink, APIURL string) (Email.EmailMessage, error) {
 	args := m.Called(to, from, userName, resetPasswordLink, APIURL)
+	return args.Get(0).(Email.EmailMessage), args.Error(1)
+}
+
+// CreateTwoFactorAlternativeEmail mocks CreateTwoFactorAlternativeEmail from EmailCreator
+func (m *MockEmailCreator) CreateTwoFactorAlternativeEmail(to, from, userName, otp string, expiryMinutes int) (Email.EmailMessage, error) {
+	args := m.Called(to, from, userName, otp, expiryMinutes)
 	return args.Get(0).(Email.EmailMessage), args.Error(1)
 }

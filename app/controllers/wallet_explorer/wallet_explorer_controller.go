@@ -1,4 +1,5 @@
-// Package controllers handles HTTP requests and responses,
+// Package controllers handles incoming HTTP requests, orchestrates business logic
+// through services and repositories, and returns appropriate HTTP responses.
 package controllers
 
 import (
@@ -8,13 +9,13 @@ import (
 
 // WalletExplorerController handles wallet explorer related requests.
 type WalletExplorerController struct {
-	Cfg             *EnvTypes.EnvConfig
-	ExternalService walletExplorerService.ExternalServiceInterface
+	Cfg                *EnvTypes.EnvConfig
+	TransactionService walletExplorerService.TransactionServiceInterface
 }
 
 // NewWalletExplorer initializes a new WalletExplorerController with the given configuration.
 func NewWalletExplorer(cfg *EnvTypes.EnvConfig) *WalletExplorerController {
 	return &WalletExplorerController{
-		ExternalService: walletExplorerService.NewExternalService(cfg),
+		TransactionService: walletExplorerService.NewTransactionService(cfg),
 	}
 }

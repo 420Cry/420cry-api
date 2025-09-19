@@ -8,6 +8,7 @@ import (
 	"cry-api/app/factories"
 	UserModel "cry-api/app/models"
 	UserRepository "cry-api/app/repositories"
+	AuthService "cry-api/app/services/auth"
 	EmailService "cry-api/app/services/email"
 	SignUpError "cry-api/app/types/errors"
 
@@ -17,10 +18,10 @@ import (
 // UserService handles user-related business logic such as
 // creating users, authenticating, and verifying accounts.
 type UserService struct {
-	userRepo            UserRepository.UserRepository      // User data repository interface
-	emailService        EmailService.EmailServiceInterface // Email service interface for sending emails
-	VerificationService VerificationServiceInterface
-	AuthService         AuthServiceInterface
+	userRepo      UserRepository.UserRepository // User data repository interface
+	userTokenRepo UserRepository.UserTokenRepository
+	emailService  EmailService.EmailServiceInterface // Email service interface for sending emails
+	authService   AuthService.AuthServiceInterface
 }
 
 // UserServiceInterface defines the contract for user service methods.
@@ -29,21 +30,23 @@ type UserServiceInterface interface {
 	GetUserByUUID(uuid string) (*UserModel.User, error)
 	UpdateUser(user *UserModel.User) error
 	FindUserByEmail(email string) (*UserModel.User, error)
-	FindUserByResetPasswordToken(token string) (*UserModel.User, error)
+	FindUserByID(id int) (*UserModel.User, error)
+	FindUserTokenByPurpose(userID int, purpose string) (*UserModel.UserToken, error)
+	FindUserTokenByValueAndPurpose(tokenValue, purpose string) (*UserModel.UserToken, error)
 }
 
 // NewUserService creates a new instance of UserService with provided user repository and email service.
 func NewUserService(
 	userRepo UserRepository.UserRepository,
+	userTokenRepo UserRepository.UserTokenRepository,
 	emailService EmailService.EmailServiceInterface,
-	verificationService VerificationServiceInterface,
-	authService AuthServiceInterface,
+	authService AuthService.AuthServiceInterface,
 ) *UserService {
 	return &UserService{
-		userRepo:            userRepo,
-		emailService:        emailService,
-		VerificationService: verificationService,
-		AuthService:         authService,
+		userRepo:      userRepo,
+		userTokenRepo: userTokenRepo,
+		emailService:  emailService,
+		authService:   authService,
 	}
 }
 
@@ -101,16 +104,24 @@ func (s *UserService) FindUserByEmail(email string) (*UserModel.User, error) {
 	return foundUser, nil
 }
 
-// FindUserByResetPasswordToken finds users based on reset password token
-func (s *UserService) FindUserByResetPasswordToken(token string) (*UserModel.User, error) {
-	foundUser, err := s.userRepo.FindByResetPasswordToken(token)
+/* FindUserByID returns user by id */
+func (s *UserService) FindUserByID(id int) (*UserModel.User, error) {
+	user, err := s.userRepo.FindByID(id)
 	if err != nil {
-		return nil, fmt.Errorf("error finding the user for this token")
+		return nil, err
 	}
-
-	if foundUser == nil {
-		return nil, fmt.Errorf("no user found using this email")
+	if user == nil {
+		return nil, fmt.Errorf("user not found")
 	}
+	return user, nil
+}
 
-	return foundUser, nil
+// FindUserTokenByPurpose finds a valid token for a given user ID and purpose
+func (s *UserService) FindUserTokenByPurpose(userID int, purpose string) (*UserModel.UserToken, error) {
+	return s.userTokenRepo.FindLatestValidToken(userID, purpose)
+}
+
+// FindUserTokenByValueAndPurpose returns user if tokenValue and purpose are matched
+func (s *UserService) FindUserTokenByValueAndPurpose(tokenValue, purpose string) (*UserModel.UserToken, error) {
+	return s.userTokenRepo.FindValidToken(tokenValue, purpose)
 }
