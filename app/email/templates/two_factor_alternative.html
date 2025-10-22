@@ -20,12 +20,12 @@
         <div class="content">
             <h2>Your Login Code</h2>
             <p>Use the following code to complete your login:</p>
-            <div class="otp-code">{{.OTPCode}}</div>
-            <p>This code will expire in 10 minutes.</p>
+            <div class="otp-code">{{.Otp}}</div>
+            <p>This code will expire in {{.ExpiryMinutes}} minutes.</p>
             <p>If you didn't request this code, please ignore this email and secure your account.</p>
         </div>
         <div class="footer">
-            <p>© 2024 420cry. All rights reserved.</p>
+            <p>© {{.Year}} 420cry. All rights reserved.</p>
         </div>
     </div>
 </body>
