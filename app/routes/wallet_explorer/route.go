@@ -2,7 +2,7 @@
 package routes
 
 import (
-	"cry-api/app/config"
+	"cry-api/app/container"
 	WalletExplorerController "cry-api/app/controllers/wallet_explorer"
 	"cry-api/app/middleware"
 
@@ -10,10 +10,8 @@ import (
 )
 
 // RegisterRoutes sets up the wallet explorer routes.
-func RegisterRoutes(rg *gin.RouterGroup) {
-	cfg := config.Get()
-
-	walletExplorerController := WalletExplorerController.NewWalletExplorer(cfg)
+func RegisterRoutes(rg *gin.RouterGroup, container *container.Container) {
+	walletExplorerController := WalletExplorerController.NewWalletExplorer(container)
 
 	// Use JWT middleware on this group
 	authGroup := rg.Group("")

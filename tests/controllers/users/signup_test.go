@@ -10,12 +10,14 @@ import (
 	"time"
 
 	controller "cry-api/app/controllers/users"
+	"cry-api/app/middleware"
 	UserModel "cry-api/app/models"
 	SignUpError "cry-api/app/types/errors"
 	UserTypes "cry-api/app/types/users"
 	TestUtils "cry-api/app/utils/tests"
 	testmocks "cry-api/tests/mocks"
 
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -35,7 +37,7 @@ func TestSignup_Success(t *testing.T) {
 		Fullname: "John Doe",
 		Username: "johndoe",
 		Email:    "john@example.com",
-		Password: "securepassword",
+		Password: "SecurePass123!",
 	}
 	bodyBytes, _ := json.Marshal(input)
 
@@ -111,12 +113,18 @@ func TestSignup_InvalidJSON(t *testing.T) {
 		EmailService: mockEmailService,
 	}
 
+	// Setup router with middleware
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.Use(middleware.ErrorHandler())
+	router.POST("/signup", userController.Signup)
+
 	invalidJSON := []byte(`{invalid-json}`) // malformed JSON
 	req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewReader(invalidJSON))
+	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
-	c := TestUtils.GetGinContext(w, req)
-	userController.Signup(c)
+	router.ServeHTTP(w, req)
 
 	res := w.Result()
 	defer func() {
@@ -139,11 +147,17 @@ func TestSignup_UserConflict(t *testing.T) {
 		EmailService: mockEmailService,
 	}
 
+	// Setup router with middleware
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.Use(middleware.ErrorHandler())
+	router.POST("/signup", userController.Signup)
+
 	input := UserTypes.IUserSignupRequest{
 		Fullname: "Jane Doe",
 		Username: "janedoe",
 		Email:    "jane@example.com",
-		Password: "password123",
+		Password: "SecurePass123!",
 	}
 	bodyBytes, _ := json.Marshal(input)
 
@@ -153,10 +167,10 @@ func TestSignup_UserConflict(t *testing.T) {
 		Return(nil, SignUpError.ErrUserConflict)
 
 	req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
-	c := TestUtils.GetGinContext(w, req)
-	userController.Signup(c)
+	router.ServeHTTP(w, req)
 
 	res := w.Result()
 	defer func() {
@@ -181,11 +195,17 @@ func TestSignup_UserCreationFails(t *testing.T) {
 		EmailService: mockEmailService,
 	}
 
+	// Setup router with middleware
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.Use(middleware.ErrorHandler())
+	router.POST("/signup", userController.Signup)
+
 	input := UserTypes.IUserSignupRequest{
 		Fullname: "Jane Doe",
 		Username: "janedoe",
 		Email:    "jane@example.com",
-		Password: "password123",
+		Password: "SecurePass123!",
 	}
 	bodyBytes, _ := json.Marshal(input)
 
@@ -195,17 +215,17 @@ func TestSignup_UserCreationFails(t *testing.T) {
 		Return(nil, fmt.Errorf("db error"))
 
 	req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
-	c := TestUtils.GetGinContext(w, req)
-	userController.Signup(c)
+	router.ServeHTTP(w, req)
 
 	res := w.Result()
 	defer func() {
 		_ = res.Body.Close()
 	}()
 
-	assert.NotEqual(t, http.StatusCreated, res.StatusCode)
+	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
 
 	var respBody map[string]string
 	err := json.NewDecoder(res.Body).Decode(&respBody)
@@ -223,11 +243,17 @@ func TestSignup_EmptyRequestBody(t *testing.T) {
 		EmailService: mockEmailService,
 	}
 
+	// Setup router with middleware
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.Use(middleware.ErrorHandler())
+	router.POST("/signup", userController.Signup)
+
 	req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewReader([]byte{}))
+	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
-	c := TestUtils.GetGinContext(w, req)
-	userController.Signup(c)
+	router.ServeHTTP(w, req)
 
 	res := w.Result()
 	defer func() {

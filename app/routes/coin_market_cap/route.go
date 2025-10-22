@@ -2,18 +2,16 @@
 package routes
 
 import (
-	"cry-api/app/config"
+	"cry-api/app/container"
 	CoinMarketCapController "cry-api/app/controllers/coin_market_cap"
 	"cry-api/app/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-// RegisterRoutes sets up the wallet explorer routes.
-func RegisterRoutes(rg *gin.RouterGroup) {
-	cfg := config.Get()
-
-	coinMarketCapController := CoinMarketCapController.NewCoinMarketCapController(cfg)
+// RegisterRoutes sets up the coin market cap routes.
+func RegisterRoutes(rg *gin.RouterGroup, container *container.Container) {
+	coinMarketCapController := CoinMarketCapController.NewCoinMarketCapController(container)
 
 	// Use JWT middleware on this group
 	authGroup := rg.Group("")

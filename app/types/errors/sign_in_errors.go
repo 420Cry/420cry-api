@@ -1,13 +1,11 @@
 // Package errors defines error msgs
 package errors
 
-import "errors"
-
 var (
 	// ErrUserNotFound returns "user not found" as error
-	ErrUserNotFound = errors.New("user not found")
-	// ErrInvalidPassword returns "nvalid password" as error
-	ErrInvalidPassword = errors.New("invalid password")
+	ErrUserNotFound = NewNotFoundError("User", "user not found")
+	// ErrInvalidPassword returns "invalid password" as error
+	ErrInvalidPassword = NewUnauthorizedError("invalid password")
 	// ErrUserNotVerified returns "user not verified" as error
-	ErrUserNotVerified = errors.New("user not verified")
+	ErrUserNotVerified = NewUnauthorizedError("user not verified")
 )
