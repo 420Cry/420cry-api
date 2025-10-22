@@ -5,17 +5,17 @@ package controllers
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
-	SignUpError "cry-api/app/types/errors"
-	types "cry-api/app/types/token_purpose"
-
 	"cry-api/app/config"
+	"cry-api/app/logger"
+	"cry-api/app/middleware"
 	UserModel "cry-api/app/models"
 	EnvTypes "cry-api/app/types/env"
-	UserTypes "cry-api/app/types/users"
+	app_errors "cry-api/app/types/errors"
+	types "cry-api/app/types/token_purpose"
+	"cry-api/app/validators"
 
 	"cry-api/app/factories"
 
@@ -24,31 +24,36 @@ import (
 
 /*
 Signup handles user registration requests.
-It decodes the incoming JSON request, creates a new user,
+It validates the incoming request, creates a new user,
 generates an account verification link token and OTP, saves them,
 and sends a verification email containing both asynchronously.
 */
 func (h *UserController) Signup(c *gin.Context) {
 	cfg := config.Get()
+	logger := logger.GetLogger()
 
-	var input UserTypes.IUserSignupRequest
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON format"})
+	// Validate request input
+	input, err := validators.ValidateUserSignup(c)
+	if err != nil {
+		logger.WithError(err).Warn("User signup validation failed")
+		middleware.AbortWithError(c, err)
 		return
 	}
 
-	// 1️⃣ Create the user
+	// Create the user
 	createdUser, err := h.UserService.CreateUser(input.Fullname, input.Username, input.Email, input.Password)
-	if errors.Is(err, SignUpError.ErrUserConflict) {
-		c.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
+	if errors.Is(err, app_errors.ErrUserConflict) {
+		logger.WithField("email", input.Email).Warn("User signup failed - user already exists")
+		middleware.AbortWithError(c, app_errors.ErrUserConflict)
 		return
 	}
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create user"})
+		logger.WithError(err).Error("Failed to create user")
+		middleware.AbortWithError(c, app_errors.NewInternalServerError("Could not create user"))
 		return
 	}
 
-	// 2️⃣ Generate account verification link token (long link)
+	// Generate account verification link token (long link)
 	linkToken, err := factories.NewUserToken(
 		createdUser.ID,
 		string(types.AccountVerification),
@@ -56,12 +61,12 @@ func (h *UserController) Signup(c *gin.Context) {
 		factories.LongLink,
 	)
 	if err != nil {
-		log.Printf("failed to generate account verification link token: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate verification token"})
+		logger.WithError(err).Error("Failed to generate account verification link token")
+		middleware.AbortWithError(c, app_errors.ErrTokenGeneration)
 		return
 	}
 
-	// 3️⃣ Generate OTP token
+	// Generate OTP token
 	otpToken, err := factories.NewUserToken(
 		createdUser.ID,
 		string(types.AccountVerificationOTP),
@@ -69,24 +74,24 @@ func (h *UserController) Signup(c *gin.Context) {
 		factories.OTP,
 	)
 	if err != nil {
-		log.Printf("failed to generate OTP token: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate OTP"})
+		logger.WithError(err).Error("Failed to generate OTP token")
+		middleware.AbortWithError(c, app_errors.ErrTokenGeneration)
 		return
 	}
 
-	// 4️⃣ Save both tokens
+	// Save both tokens
 	if err := h.UserTokenService.Save(linkToken); err != nil {
-		log.Printf("failed to save account verification link token for user %d: %v", createdUser.ID, err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not save verification token"})
+		logger.WithError(err).WithField("user_id", createdUser.ID).Error("Failed to save account verification link token")
+		middleware.AbortWithError(c, app_errors.ErrDatabaseError)
 		return
 	}
 	if err := h.UserTokenService.Save(otpToken); err != nil {
-		log.Printf("failed to save OTP token for user %d: %v", createdUser.ID, err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not save OTP"})
+		logger.WithError(err).WithField("user_id", createdUser.ID).Error("Failed to save OTP token")
+		middleware.AbortWithError(c, app_errors.ErrDatabaseError)
 		return
 	}
 
-	// 5️⃣ Send email asynchronously with both link and OTP
+	// Send email asynchronously with both link and OTP
 	go func(user *UserModel.User, linkToken, otpToken *UserModel.UserToken, cfg *EnvTypes.EnvConfig) {
 		verificationLink := fmt.Sprintf("%s/auth/signup/verify?token=%s", cfg.CryAppURL, linkToken.Token)
 		err := h.EmailService.SendVerifyAccountEmail(
@@ -97,9 +102,12 @@ func (h *UserController) Signup(c *gin.Context) {
 			otpToken.Token,
 		)
 		if err != nil {
-			log.Printf("Failed to send verification email to %s: %v", user.Email, err)
+			logger.WithError(err).WithField("email", user.Email).Error("Failed to send verification email")
+		} else {
+			logger.WithField("email", user.Email).Info("Verification email sent successfully")
 		}
 	}(createdUser, linkToken, otpToken, cfg)
 
+	logger.WithField("user_id", createdUser.ID).Info("User signup completed successfully")
 	c.JSON(http.StatusCreated, gin.H{"success": true})
 }

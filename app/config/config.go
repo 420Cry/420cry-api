@@ -38,7 +38,10 @@ func Load() *types.EnvConfig {
 	}
 
 	if err := godotenv.Load(); err != nil {
-		log.Printf("Warning: Error loading .env file: %v", err)
+		// Only warn if not in test mode
+		if os.Getenv("APP_ENV") != "test" {
+			log.Printf("Warning: Error loading .env file: %v", err)
+		}
 	}
 
 	// AppEnv
@@ -113,6 +116,14 @@ func Load() *types.EnvConfig {
 	}
 
 	configLoaded = true
+
+	// Validate configuration only if not in test mode and config is properly set
+	if configInstance.AppEnv != "test" && configInstance.DBHost != "" {
+		if err := configInstance.Validate(); err != nil {
+			log.Fatalf("Configuration validation failed: %v", err)
+		}
+	}
+
 	return configInstance
 }
 
@@ -120,6 +131,12 @@ func Load() *types.EnvConfig {
 func Reload() {
 	configLoaded = false
 	Load()
+}
+
+// SetTestConfig sets the config instance for testing
+func SetTestConfig(cfg *types.EnvConfig) {
+	configInstance = cfg
+	configLoaded = true
 }
 
 // Helper function to get an environment variable as a string with a fallback value

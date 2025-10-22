@@ -3,19 +3,24 @@
 package controllers
 
 import (
+	"cry-api/app/container"
 	coinMarketCapService "cry-api/app/services/coin_market_cap"
 	EnvTypes "cry-api/app/types/env"
 )
 
-// CoinMarketCapController handles wallet explorer related requests.
+// CoinMarketCapController handles coin market cap related requests.
 type CoinMarketCapController struct {
 	Cfg                  *EnvTypes.EnvConfig
 	CoinMarketCapService coinMarketCapService.CoinMarketCapServiceInterface
 }
 
-// NewCoinMarketCapController initializes a new CoinMarketCapController with the given configuration.
-func NewCoinMarketCapController(cfg *EnvTypes.EnvConfig) *CoinMarketCapController {
+// NewCoinMarketCapController initializes a new CoinMarketCapController with dependencies from the container.
+func NewCoinMarketCapController(container *container.Container) *CoinMarketCapController {
+	// Get config from container
+	cfg := container.Get("config").(*EnvTypes.EnvConfig)
+
 	return &CoinMarketCapController{
+		Cfg:                  cfg,
 		CoinMarketCapService: coinMarketCapService.NewCoinMarketCapServiceService(cfg),
 	}
 }

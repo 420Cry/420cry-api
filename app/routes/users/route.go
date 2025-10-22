@@ -2,21 +2,17 @@
 package routes
 
 import (
-	"cry-api/app/config"
+	"cry-api/app/container"
 	UserController "cry-api/app/controllers/users"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 // RegisterRoutes registers the user-related HTTP endpoints to the given Gin router group.
-// It initializes the user controller with the database and configuration dependencies.
-func RegisterRoutes(rg *gin.RouterGroup, db *gorm.DB) {
-	// Load application config
-	cfg := config.Get()
-
-	// Initialize user controller with database and config
-	userController := UserController.NewUserController(db, cfg)
+// It initializes the user controller with dependencies from the container.
+func RegisterRoutes(rg *gin.RouterGroup, container *container.Container) {
+	// Initialize user controller with container dependencies
+	userController := UserController.NewUserController(container)
 
 	// Route for user signup
 	rg.POST("/signup", userController.Signup)

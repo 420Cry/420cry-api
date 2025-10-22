@@ -2,21 +2,17 @@
 package routes
 
 import (
-	"cry-api/app/config"
+	"cry-api/app/container"
 	controller "cry-api/app/controllers/2fa"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
-// RegisterRoutes registers the user-related HTTP endpoints to the given Gin router group.
-// It initializes the user controller with the database and configuration dependencies.
-func RegisterRoutes(rg *gin.RouterGroup, db *gorm.DB) {
-	// Load application config
-	cfg := config.Get()
-
-	// Initialize user controller with database and config
-	TwoFactorController := controller.NewTwoFactorController(db, cfg)
+// RegisterRoutes registers the 2FA-related HTTP endpoints to the given Gin router group.
+// It initializes the 2FA controller with dependencies from the container.
+func RegisterRoutes(rg *gin.RouterGroup, container *container.Container) {
+	// Initialize 2FA controller with container dependencies
+	TwoFactorController := controller.NewTwoFactorController(container)
 
 	// Route for user setup
 	rg.POST("/setup", TwoFactorController.Setup)
