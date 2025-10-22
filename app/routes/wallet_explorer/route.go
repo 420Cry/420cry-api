@@ -4,7 +4,6 @@ package routes
 import (
 	"cry-api/app/container"
 	WalletExplorerController "cry-api/app/controllers/wallet_explorer"
-	"cry-api/app/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,11 +12,7 @@ import (
 func RegisterRoutes(rg *gin.RouterGroup, container *container.Container) {
 	walletExplorerController := WalletExplorerController.NewWalletExplorer(container)
 
-	// Use JWT middleware on this group
-	authGroup := rg.Group("")
-	authGroup.Use(middleware.JWTAuthMiddleware())
-
-	// Authenticated route
-	authGroup.GET("/tx", walletExplorerController.GetTransactionInfo)
-	authGroup.GET("/xpub", walletExplorerController.GetTransactionByXPUB)
+	// Public routes (no authentication required)
+	rg.GET("/tx", walletExplorerController.GetTransactionInfo)
+	rg.GET("/xpub", walletExplorerController.GetTransactionByXPUB)
 }

@@ -4,7 +4,6 @@ package routes
 import (
 	"cry-api/app/container"
 	CoinMarketCapController "cry-api/app/controllers/coin_market_cap"
-	"cry-api/app/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,11 +12,7 @@ import (
 func RegisterRoutes(rg *gin.RouterGroup, container *container.Container) {
 	coinMarketCapController := CoinMarketCapController.NewCoinMarketCapController(container)
 
-	// Use JWT middleware on this group
-	authGroup := rg.Group("")
-	authGroup.Use(middleware.JWTAuthMiddleware())
-
-	// Authenticated route
-	authGroup.GET("/fear-and-greed-lastest", coinMarketCapController.GetFearAndGreedLastest)
-	authGroup.GET("/fear-and-greed-historical", coinMarketCapController.GetFearAndGreedHistorical)
+	// Public routes (no authentication required)
+	rg.GET("/fear-and-greed-lastest", coinMarketCapController.GetFearAndGreedLastest)
+	rg.GET("/fear-and-greed-historical", coinMarketCapController.GetFearAndGreedHistorical)
 }
