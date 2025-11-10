@@ -2,10 +2,11 @@
 package validators
 
 import (
-	app_errors "cry-api/app/types/errors"
 	"regexp"
 	"strings"
 	"unicode"
+
+	app_errors "cry-api/app/types/errors"
 
 	"github.com/gin-gonic/gin"
 )

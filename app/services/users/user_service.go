@@ -30,6 +30,7 @@ type UserServiceInterface interface {
 	GetUserByUUID(uuid string) (*UserModel.User, error)
 	UpdateUser(user *UserModel.User) error
 	FindUserByEmail(email string) (*UserModel.User, error)
+	FindUserByUsername(username string) (*UserModel.User, error)
 	FindUserByID(id int) (*UserModel.User, error)
 	FindUserTokenByPurpose(userID int, purpose string) (*UserModel.UserToken, error)
 	FindUserTokenByValueAndPurpose(tokenValue, purpose string) (*UserModel.UserToken, error)
@@ -102,6 +103,18 @@ func (s *UserService) FindUserByEmail(email string) (*UserModel.User, error) {
 	}
 
 	return foundUser, nil
+}
+
+/* FindUserByUsername returns user by username */
+func (s *UserService) FindUserByUsername(username string) (*UserModel.User, error) {
+	user, err := s.userRepo.FindByUsername(username)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("error finding the user for this username: %w", err)
+	}
+	return user, nil
 }
 
 /* FindUserByID returns user by id */
