@@ -61,6 +61,13 @@ func (h *UserController) UpdateAccountName(c *gin.Context) {
 		return
 	}
 
+	// Check if user exists
+	if user == nil {
+		logger.WithField("user_uuid", claims.UUID).Error("User not found in database")
+		middleware.AbortWithError(c, app_errors.NewNotFoundError("user", "User not found"))
+		return
+	}
+
 	// Check if the new username is already in use by another user
 	existingUser, err := h.UserService.FindUserByUsername(input.AccountName)
 	if err != nil {
