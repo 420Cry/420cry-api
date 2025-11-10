@@ -4,6 +4,7 @@ package controllers
 
 import (
 	"net/http"
+	"strings"
 
 	"cry-api/app/logger"
 	"cry-api/app/middleware"
@@ -37,6 +38,9 @@ func (h *UserController) UpdateAccountName(c *gin.Context) {
 		middleware.AbortWithError(c, err)
 		return
 	}
+
+	// Trim whitespace from username to ensure consistency with validation
+	input.AccountName = strings.TrimSpace(input.AccountName)
 
 	// Get user from JWT context
 	userClaims, exists := c.Get("user")
