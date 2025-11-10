@@ -63,6 +63,12 @@ func (h *TwoFactorController) AlternativeVerifyOTP(c *gin.Context) {
 		return
 	}
 
+	// Consume the token to prevent reuse
+	if err := h.UserTokenService.ConsumeToken(user.ID, req.OTP, string(TokenType.TwoFactorAuthAlternativeOTP)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to consume OTP token"})
+		return
+	}
+
 	// Generate JWT
 	newJWT, err := JWT.GenerateJWT(user.UUID, user.Email, user.TwoFAEnabled, true)
 	if err != nil {

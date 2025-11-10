@@ -58,3 +58,10 @@ func (m *MockUserService) FindUserTokenByValueAndPurpose(tokenValue, purpose str
 	token, _ := args.Get(0).(*UserModel.UserToken)
 	return token, args.Error(1)
 }
+
+// FindUserByUsername mocks FindUserByUsername from UserService
+func (m *MockUserService) FindUserByUsername(username string) (*UserModel.User, error) {
+	args := m.Called(username)
+	user, _ := args.Get(0).(*UserModel.User)
+	return user, args.Error(1)
+}

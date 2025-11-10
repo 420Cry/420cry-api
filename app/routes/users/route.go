@@ -4,6 +4,7 @@ package routes
 import (
 	"cry-api/app/container"
 	UserController "cry-api/app/controllers/users"
+	"cry-api/app/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,4 +32,11 @@ func RegisterRoutes(rg *gin.RouterGroup, container *container.Container) {
 
 	// Route for verifying reset password token to save new password
 	rg.POST("/verify-reset-password-token", userController.VerifyResetPasswordToken)
+
+	// Use JWT middleware on this group for authenticated routes
+	authGroup := rg.Group("")
+	authGroup.Use(middleware.JWTAuthMiddleware())
+
+	// Protected routes for user settings
+	authGroup.PUT("/update-account-name", userController.UpdateAccountName)
 }

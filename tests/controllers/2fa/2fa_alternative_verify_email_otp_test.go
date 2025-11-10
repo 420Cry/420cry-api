@@ -53,6 +53,8 @@ func TestAlternativeVerifyOTP_Success(t *testing.T) {
 	mockUserService.On("GetUserByUUID", input.UserUUID).Return(user, nil)
 	mockUserTokenService.On("FindLatestValidToken", user.ID, string(TokenType.TwoFactorAuthAlternativeOTP)).
 		Return(token, nil)
+	mockUserTokenService.On("ConsumeToken", user.ID, input.OTP, string(TokenType.TwoFactorAuthAlternativeOTP)).
+		Return(nil)
 
 	// Mock JWT
 	oldGenerateJWT := JWT.GenerateJWT

@@ -2,9 +2,10 @@
 package utils
 
 import (
-	"cry-api/app/config"
 	"os"
 	"path/filepath"
+
+	"cry-api/app/config"
 )
 
 // GenerateEmailTemplatePrefix generates email directory prefix based on environment
