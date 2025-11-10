@@ -142,8 +142,8 @@ func validateFullname(fullname string) error {
 	return nil
 }
 
-// validateUsername validates the username field
-func validateUsername(username string) error {
+// ValidateUsername validates the username field
+func ValidateUsername(username string) error {
 	username = strings.TrimSpace(username)
 
 	if len(username) < 3 {
@@ -161,6 +161,11 @@ func validateUsername(username string) error {
 	}
 
 	return nil
+}
+
+// validateUsername is a private wrapper for backward compatibility
+func validateUsername(username string) error {
+	return ValidateUsername(username)
 }
 
 // validateEmail validates the email field

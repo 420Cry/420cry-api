@@ -583,3 +583,214 @@ func TestUpdateAccountName_EmptyUsername(t *testing.T) {
 
 	mockUserService.AssertNotCalled(t, "GetUserByUUID", mock.Anything)
 }
+
+func TestUpdateAccountName_UsernameTooShort(t *testing.T) {
+	mockUserService := new(testmocks.MockUserService)
+	mockEmailService := new(testmocks.MockEmailService)
+
+	userController := &controller.UserController{
+		UserService:  mockUserService,
+		EmailService: mockEmailService,
+	}
+
+	input := UserTypes.IUserUpdateAccountNameRequest{
+		AccountName: "ab", // Only 2 characters (minimum is 3)
+	}
+	bodyBytes, _ := json.Marshal(input)
+
+	claims := &services.Claims{
+		UUID:  "test-uuid-1234",
+		Email: "test@example.com",
+	}
+
+	router := setupTestRouter(userController, claims)
+
+	req := httptest.NewRequest(http.MethodPut, "/update-account-name", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	res := w.Result()
+	defer func() {
+		_ = res.Body.Close()
+	}()
+
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+
+	var respBody map[string]string
+	err := json.NewDecoder(res.Body).Decode(&respBody)
+	assert.NoError(t, err)
+	assert.Contains(t, respBody["error"], "Username must be at least 3 characters long")
+
+	mockUserService.AssertNotCalled(t, "GetUserByUUID", mock.Anything)
+}
+
+func TestUpdateAccountName_UsernameTooLong(t *testing.T) {
+	mockUserService := new(testmocks.MockUserService)
+	mockEmailService := new(testmocks.MockEmailService)
+
+	userController := &controller.UserController{
+		UserService:  mockUserService,
+		EmailService: mockEmailService,
+	}
+
+	// Create a username with 51 characters (maximum is 50)
+	longUsername := "a123456789012345678901234567890123456789012345678901"
+	input := UserTypes.IUserUpdateAccountNameRequest{
+		AccountName: longUsername,
+	}
+	bodyBytes, _ := json.Marshal(input)
+
+	claims := &services.Claims{
+		UUID:  "test-uuid-1234",
+		Email: "test@example.com",
+	}
+
+	router := setupTestRouter(userController, claims)
+
+	req := httptest.NewRequest(http.MethodPut, "/update-account-name", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	res := w.Result()
+	defer func() {
+		_ = res.Body.Close()
+	}()
+
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+
+	var respBody map[string]string
+	err := json.NewDecoder(res.Body).Decode(&respBody)
+	assert.NoError(t, err)
+	assert.Contains(t, respBody["error"], "Username must not exceed 50 characters")
+
+	mockUserService.AssertNotCalled(t, "GetUserByUUID", mock.Anything)
+}
+
+func TestUpdateAccountName_UsernameInvalidCharacters(t *testing.T) {
+	mockUserService := new(testmocks.MockUserService)
+	mockEmailService := new(testmocks.MockEmailService)
+
+	userController := &controller.UserController{
+		UserService:  mockUserService,
+		EmailService: mockEmailService,
+	}
+
+	// Test with various invalid characters
+	testCases := []struct {
+		name     string
+		username string
+	}{
+		{"with spaces", "user name"},
+		{"with hyphens", "user-name"},
+		{"with dots", "user.name"},
+		{"with special chars", "user@name"},
+		{"with symbols", "user$name"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			input := UserTypes.IUserUpdateAccountNameRequest{
+				AccountName: tc.username,
+			}
+			bodyBytes, _ := json.Marshal(input)
+
+			claims := &services.Claims{
+				UUID:  "test-uuid-1234",
+				Email: "test@example.com",
+			}
+
+			router := setupTestRouter(userController, claims)
+
+			req := httptest.NewRequest(http.MethodPut, "/update-account-name", bytes.NewReader(bodyBytes))
+			req.Header.Set("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+
+			router.ServeHTTP(w, req)
+
+			res := w.Result()
+			defer func() {
+				_ = res.Body.Close()
+			}()
+
+			assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+
+			var respBody map[string]string
+			err := json.NewDecoder(res.Body).Decode(&respBody)
+			assert.NoError(t, err)
+			assert.Contains(t, respBody["error"], "Username can only contain letters, numbers, and underscores")
+
+			mockUserService.AssertNotCalled(t, "GetUserByUUID", mock.Anything)
+		})
+	}
+}
+
+func TestUpdateAccountName_ValidUsernameWithUnderscores(t *testing.T) {
+	mockUserService := new(testmocks.MockUserService)
+	mockEmailService := new(testmocks.MockEmailService)
+
+	userController := &controller.UserController{
+		UserService:  mockUserService,
+		EmailService: mockEmailService,
+	}
+
+	input := UserTypes.IUserUpdateAccountNameRequest{
+		AccountName: "user_name_123", // Valid username with underscores and numbers
+	}
+	bodyBytes, _ := json.Marshal(input)
+
+	existingUser := &UserModel.User{
+		UUID:     "test-uuid-1234",
+		Fullname: "John Doe",
+		Email:    "john@example.com",
+		Username: "oldusername",
+	}
+
+	claims := &services.Claims{
+		UUID:  existingUser.UUID,
+		Email: existingUser.Email,
+	}
+
+	// Mock: Get user by UUID
+	mockUserService.
+		On("GetUserByUUID", existingUser.UUID).
+		Return(existingUser, nil)
+
+	// Mock: Check if username already exists (should return nil = not found)
+	mockUserService.
+		On("FindUserByUsername", input.AccountName).
+		Return((*UserModel.User)(nil), nil)
+
+	// Mock: Update user
+	mockUserService.
+		On("UpdateUser", mock.MatchedBy(func(u *UserModel.User) bool {
+			return u.UUID == existingUser.UUID && u.Username == input.AccountName
+		})).
+		Return(nil)
+
+	router := setupTestRouter(userController, claims)
+
+	req := httptest.NewRequest(http.MethodPut, "/update-account-name", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	res := w.Result()
+	defer func() {
+		_ = res.Body.Close()
+	}()
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+
+	var respBody map[string]interface{}
+	err := json.NewDecoder(res.Body).Decode(&respBody)
+	assert.NoError(t, err)
+	assert.True(t, respBody["success"].(bool))
+	assert.Equal(t, "Username updated successfully", respBody["message"])
+
+	mockUserService.AssertExpectations(t)
+}

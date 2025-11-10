@@ -10,6 +10,7 @@ import (
 	services "cry-api/app/services/jwt"
 	app_errors "cry-api/app/types/errors"
 	UserTypes "cry-api/app/types/users"
+	"cry-api/app/validators"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,6 +28,13 @@ func (h *UserController) UpdateAccountName(c *gin.Context) {
 	if err := c.ShouldBindJSON(&input); err != nil {
 		logger.WithError(err).Warn("User account name update validation failed")
 		middleware.AbortWithError(c, app_errors.ErrInvalidInput)
+		return
+	}
+
+	// Validate username content (length, allowed characters)
+	if err := validators.ValidateUsername(input.AccountName); err != nil {
+		logger.WithError(err).WithField("username", input.AccountName).Warn("Username validation failed")
+		middleware.AbortWithError(c, err)
 		return
 	}
 
