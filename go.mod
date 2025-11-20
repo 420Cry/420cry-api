@@ -1,6 +1,6 @@
 module cry-api
 
-go 1.23.5
+go 1.24.0
 
 require (
 	github.com/gin-gonic/gin v1.10.1
@@ -8,7 +8,7 @@ require (
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/crypto v0.39.0
+	golang.org/x/crypto v0.45.0
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/driver/sqlite v1.5.6
 	gorm.io/gorm v1.30.0
@@ -46,9 +46,9 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.0 // indirect
 	golang.org/x/arch v0.18.0 // indirect
-	golang.org/x/net v0.41.0 // indirect
-	golang.org/x/sync v0.15.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/sync v0.18.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
@@ -63,6 +63,6 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/pquerna/otp v1.5.0
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
-	golang.org/x/text v0.26.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
 	gorm.io/driver/postgres v1.6.0
 )
