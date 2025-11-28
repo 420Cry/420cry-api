@@ -2,8 +2,10 @@ package mocks
 
 import (
 	"github.com/stretchr/testify/mock"
+	"golang.org/x/oauth2"
 
 	UserModel "cry-api/app/models"
+	OAuthType "cry-api/app/types/oauth"
 )
 
 // MockUserService mocks UserServiceInterface
@@ -12,8 +14,8 @@ type MockUserService struct {
 }
 
 // CreateUser mocks CreateUser from UserService
-func (m *MockUserService) CreateUser(fullname, username, email, password string) (*UserModel.User, error) {
-	args := m.Called(fullname, username, email, password)
+func (m *MockUserService) CreateUser(fullname, username, email, password string, isVerified, isProfileCompleted bool) (*UserModel.User, error) {
+	args := m.Called(fullname, username, email, password, isVerified, isProfileCompleted)
 	user, _ := args.Get(0).(*UserModel.User)
 	return user, args.Error(1)
 }
@@ -38,9 +40,37 @@ func (m *MockUserService) FindUserByEmail(email string) (*UserModel.User, error)
 	return user, args.Error(1)
 }
 
-// FindUserByResetPasswordToken mocks FindUserByResetPasswordToken from userService
-func (m *MockUserService) FindUserByResetPasswordToken(token string) (*UserModel.User, error) {
-	args := m.Called(token)
+// FindUserByID mocks FindUserByID from UserService
+func (m *MockUserService) FindUserByID(id int) (*UserModel.User, error) {
+	args := m.Called(id)
+	user, _ := args.Get(0).(*UserModel.User)
+	return user, args.Error(1)
+}
+
+// FindUserTokenByPurpose mocks FindUserTokenByPurpose from UserService
+func (m *MockUserService) FindUserTokenByPurpose(userID int, purpose string) (*UserModel.UserToken, error) {
+	args := m.Called(userID, purpose)
+	token, _ := args.Get(0).(*UserModel.UserToken)
+	return token, args.Error(1)
+}
+
+// FindUserTokenByValueAndPurpose mocks FindUserTokenByValueAndPurpose from UserService
+func (m *MockUserService) FindUserTokenByValueAndPurpose(tokenValue, purpose string) (*UserModel.UserToken, error) {
+	args := m.Called(tokenValue, purpose)
+	token, _ := args.Get(0).(*UserModel.UserToken)
+	return token, args.Error(1)
+}
+
+// FindUserByUsername mocks FindUserByUsername from UserService
+func (m *MockUserService) FindUserByUsername(username string) (*UserModel.User, error) {
+	args := m.Called(username)
+	user, _ := args.Get(0).(*UserModel.User)
+	return user, args.Error(1)
+}
+
+// CreateUserByGoogleAuth mocks CreateUserByGoogleAuth from UserService
+func (m *MockUserService) CreateUserByGoogleAuth(googleUserInfo *OAuthType.IGoogleUserResponse, token *oauth2.Token) (*UserModel.User, error) {
+	args := m.Called(googleUserInfo, token)
 	user, _ := args.Get(0).(*UserModel.User)
 	return user, args.Error(1)
 }

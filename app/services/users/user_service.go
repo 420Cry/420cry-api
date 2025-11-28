@@ -9,8 +9,9 @@ import (
 	"gorm.io/gorm"
 
 	"cry-api/app/factories"
-	Models "cry-api/app/models"
-	Repository "cry-api/app/repositories"
+	UserModel "cry-api/app/models"
+	UserRepository "cry-api/app/repositories"
+	AuthService "cry-api/app/services/auth"
 	EmailService "cry-api/app/services/email"
 	SignUpError "cry-api/app/types/errors"
 	OAuthType "cry-api/app/types/oauth"
@@ -19,42 +20,45 @@ import (
 // UserService handles user-related business logic such as
 // creating users, authenticating, and verifying accounts.
 type UserService struct {
-	userRepo            Repository.UserRepository // User data repository interface
-	transactionRepo     Repository.TransactionRepository
-	emailService        EmailService.EmailServiceInterface // Email service interface for sending emails
-	VerificationService VerificationServiceInterface
-	AuthService         AuthServiceInterface
+	userRepo        UserRepository.UserRepository // User data repository interface
+	userTokenRepo   UserRepository.UserTokenRepository
+	transactionRepo UserRepository.TransactionRepository
+	emailService    EmailService.EmailServiceInterface // Email service interface for sending emails
+	authService     AuthService.AuthServiceInterface
 }
 
 // UserServiceInterface defines the contract for user service methods.
 type UserServiceInterface interface {
-	CreateUser(fullname, username, email, password string, isVerified bool, isProfileCompleted bool) (*Models.User, error)
-	CreateUserByGoogleAuth(googleUserInfo *OAuthType.IGoogleUserResponse, token *oauth2.Token) (*Models.User, error)
-	GetUserByUUID(uuid string) (*Models.User, error)
-	UpdateUser(user *Models.User) error
-	FindUserByEmail(email string) (*Models.User, error)
-	FindUserByResetPasswordToken(token string) (*Models.User, error)
+	CreateUser(fullname, username, email, password string, isVerified bool, isProfileCompleted bool) (*UserModel.User, error)
+	CreateUserByGoogleAuth(googleUserInfo *OAuthType.IGoogleUserResponse, token *oauth2.Token) (*UserModel.User, error)
+	GetUserByUUID(uuid string) (*UserModel.User, error)
+	UpdateUser(user *UserModel.User) error
+	FindUserByEmail(email string) (*UserModel.User, error)
+	FindUserByUsername(username string) (*UserModel.User, error)
+	FindUserByID(id int) (*UserModel.User, error)
+	FindUserTokenByPurpose(userID int, purpose string) (*UserModel.UserToken, error)
+	FindUserTokenByValueAndPurpose(tokenValue, purpose string) (*UserModel.UserToken, error)
 }
 
 // NewUserService creates a new instance of UserService with provided user repository and email service.
 func NewUserService(
-	userRepo Repository.UserRepository,
-	transactionRepo Repository.TransactionRepository,
+	userRepo UserRepository.UserRepository,
+	userTokenRepo UserRepository.UserTokenRepository,
+	transactionRepo UserRepository.TransactionRepository,
 	emailService EmailService.EmailServiceInterface,
-	verificationService VerificationServiceInterface,
-	authService AuthServiceInterface,
+	authService AuthService.AuthServiceInterface,
 ) *UserService {
 	return &UserService{
-		userRepo:            userRepo,
-		transactionRepo:     transactionRepo,
-		emailService:        emailService,
-		VerificationService: verificationService,
-		AuthService:         authService,
+		userRepo:        userRepo,
+		userTokenRepo:   userTokenRepo,
+		transactionRepo: transactionRepo,
+		emailService:    emailService,
+		authService:     authService,
 	}
 }
 
 // GetUserByUUID returns user or nil
-func (s *UserService) GetUserByUUID(uuid string) (*Models.User, error) {
+func (s *UserService) GetUserByUUID(uuid string) (*UserModel.User, error) {
 	user, err := s.userRepo.FindByUUID(uuid)
 	if err != nil {
 		return nil, err
@@ -63,7 +67,7 @@ func (s *UserService) GetUserByUUID(uuid string) (*Models.User, error) {
 }
 
 // CreateUser creates a new user or refreshes the verification token if user exists but is unverified.
-func (s *UserService) CreateUser(fullname, username, email, password string, isVerified bool, isProfileCompleted bool) (*Models.User, error) {
+func (s *UserService) CreateUser(fullname, username, email, password string, isVerified bool, isProfileCompleted bool) (*UserModel.User, error) {
 	// Check if a user with the same username or email already exists
 	existingUser, err := s.userRepo.FindByUsernameOrEmail(username, email)
 	if err != nil {
@@ -90,12 +94,12 @@ func (s *UserService) CreateUser(fullname, username, email, password string, isV
 }
 
 // UpdateUser updates the user in the repository.
-func (s *UserService) UpdateUser(user *Models.User) error {
+func (s *UserService) UpdateUser(user *UserModel.User) error {
 	return s.userRepo.Save(user)
 }
 
 /* FindUserByEmail checks the user information by email address and return accordinglyy*/
-func (s *UserService) FindUserByEmail(email string) (*Models.User, error) {
+func (s *UserService) FindUserByEmail(email string) (*UserModel.User, error) {
 	foundUser, err := s.userRepo.FindByEmail(email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -107,21 +111,41 @@ func (s *UserService) FindUserByEmail(email string) (*Models.User, error) {
 	return foundUser, nil
 }
 
-// FindUserByResetPasswordToken finds users based on reset password token
-func (s *UserService) FindUserByResetPasswordToken(token string) (*Models.User, error) {
-	foundUser, err := s.userRepo.FindByResetPasswordToken(token)
+/* FindUserByUsername returns user by username */
+func (s *UserService) FindUserByUsername(username string) (*UserModel.User, error) {
+	user, err := s.userRepo.FindByUsername(username)
 	if err != nil {
-		return nil, fmt.Errorf("error finding the user for this token")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("error finding the user for this username: %w", err)
 	}
-
-	if foundUser == nil {
-		return nil, fmt.Errorf("no user found using this email")
-	}
-
-	return foundUser, nil
+	return user, nil
 }
 
-func (s *UserService) CreateUserByGoogleAuth(googleUserInfo *OAuthType.IGoogleUserResponse, token *oauth2.Token) (*Models.User, error) {
+/* FindUserByID returns user by id */
+func (s *UserService) FindUserByID(id int) (*UserModel.User, error) {
+	user, err := s.userRepo.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, fmt.Errorf("user not found")
+	}
+	return user, nil
+}
+
+// FindUserTokenByPurpose finds a valid token for a given user ID and purpose
+func (s *UserService) FindUserTokenByPurpose(userID int, purpose string) (*UserModel.UserToken, error) {
+	return s.userTokenRepo.FindLatestValidToken(userID, purpose)
+}
+
+// FindUserTokenByValueAndPurpose returns user if tokenValue and purpose are matched
+func (s *UserService) FindUserTokenByValueAndPurpose(tokenValue, purpose string) (*UserModel.UserToken, error) {
+	return s.userTokenRepo.FindValidToken(tokenValue, purpose)
+}
+
+func (s *UserService) CreateUserByGoogleAuth(googleUserInfo *OAuthType.IGoogleUserResponse, token *oauth2.Token) (*UserModel.User, error) {
 	randomPassword, err := factories.Generate32ByteToken()
 
 	if err != nil {

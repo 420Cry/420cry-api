@@ -1,48 +1,40 @@
+// Package controllers handles incoming HTTP requests, orchestrates business logic
+// through services and repositories, and returns appropriate HTTP responses.
 package controllers
 
 import (
-	Email "cry-api/app/email"
-	Repository "cry-api/app/repositories"
+	"cry-api/app/container"
 	TwoFactorService "cry-api/app/services/2fa"
-	EmailServices "cry-api/app/services/email"
-	PasswordService "cry-api/app/services/password"
+	AuthService "cry-api/app/services/auth"
+	EmailService "cry-api/app/services/email"
 	UserService "cry-api/app/services/users"
-	EnvTypes "cry-api/app/types/env"
-
-	"gorm.io/gorm"
 )
 
 // TwoFactorController handles 2FA-related HTTP requests.
 type TwoFactorController struct {
 	UserService      UserService.UserServiceInterface
-	AuthService      UserService.AuthServiceInterface
+	UserTokenService UserService.UserTokenServiceInterface
+	AuthService      AuthService.AuthServiceInterface
 	TwoFactorService TwoFactorService.TwoFactorServiceInterface
+	EmailService     EmailService.EmailServiceInterface
 }
 
-// NewTwoFactorController initializes a new TwoFactorController with dependencies.
-func NewTwoFactorController(db *gorm.DB, cfg *EnvTypes.EnvConfig) *TwoFactorController {
-	passwordService := PasswordService.NewPasswordService()
-	userRepository := Repository.NewGormUserRepository(db)
-	transactionRepository := Repository.NewGormTransactionRepository(db)
+// NewTwoFactorController initializes a new TwoFactorController with dependencies from the container.
+func NewTwoFactorController(container *container.Container) *TwoFactorController {
+	// Get services from container
+	userService := container.GetUserService()
+	userTokenService := container.GetUserTokenService()
+	authService := container.GetAuthService()
+	emailService := container.GetEmailService()
 
-	emailSender := Email.NewSMTPEmailSender(cfg.SMTPConfig.Host, cfg.SMTPConfig.Port)
-	// Instantiate EmailCreator implementation
-	emailCreator := &EmailServices.EmailCreatorImpl{}
-
-	// Pass both sender and creator
-	emailService := EmailServices.NewEmailService(emailSender, emailCreator)
-
-	authService := UserService.NewAuthService(userRepository, passwordService)
-	verificationService := UserService.NewVerificationService(userRepository)
-
-	userService := UserService.NewUserService(userRepository, transactionRepository, emailService, verificationService, authService)
-
-	// Initialize TwoFactorService here (make sure you have a constructor for it)
-	twoFactorService := TwoFactorService.NewTwoFactorService() // or pass required params
+	// Create 2FA service
+	twoFactorService := TwoFactorService.NewTwoFactorService()
 
 	return &TwoFactorController{
 		UserService:      userService,
+		UserTokenService: userTokenService,
 		AuthService:      authService,
-		TwoFactorService: twoFactorService, // assign it here!
+		TwoFactorService: twoFactorService,
+		EmailService:     emailService,
 	}
 }

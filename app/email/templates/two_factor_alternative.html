@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Two-Factor Authentication Code</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #f4f4f4; padding: 20px; text-align: center; }
+        .content { padding: 20px; }
+        .otp-code { background-color: #e9ecef; padding: 20px; text-align: center; font-size: 24px; font-weight: bold; border-radius: 5px; margin: 20px 0; }
+        .footer { background-color: #f4f4f4; padding: 20px; text-align: center; font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Two-Factor Authentication</h1>
+        </div>
+        <div class="content">
+            <h2>Your Login Code</h2>
+            <p>Use the following code to complete your login:</p>
+            <div class="otp-code">{{.Otp}}</div>
+            <p>This code will expire in {{.ExpiryMinutes}} minutes.</p>
+            <p>If you didn't request this code, please ignore this email and secure your account.</p>
+        </div>
+        <div class="footer">
+            <p>© {{.Year}} 420cry. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

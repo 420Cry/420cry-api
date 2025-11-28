@@ -1,17 +1,18 @@
-// Package controllers handles HTTP requests and responses.
+// Package controllers handles incoming HTTP requests, orchestrates business logic
+// through services and repositories, and returns appropriate HTTP responses.
 package controllers
 
 import (
 	"net/http"
 
-	TwoFactorType "cry-api/app/types/2fa"
+	TwoFactorTypes "cry-api/app/types/2fa"
 
 	"github.com/gin-gonic/gin"
 )
 
 // Setup generates a 2FA secret and QR code for the authenticated user.
 func (h *TwoFactorController) Setup(c *gin.Context) {
-	var req TwoFactorType.ITwoFactorSetupRequest
+	var req TwoFactorTypes.ITwoFactorSetupRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})

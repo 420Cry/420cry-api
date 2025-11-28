@@ -1,4 +1,5 @@
-// Package controllers handles HTTP requests and responses,
+// Package controllers handles incoming HTTP requests, orchestrates business logic
+// through services and repositories, and returns appropriate HTTP responses.
 package controllers
 
 import (
@@ -16,8 +17,7 @@ func (h *WalletExplorerController) GetTransactionInfo(c *gin.Context) {
 		return
 	}
 
-	// Call external service
-	data, err := h.ExternalService.GetTransactionByTxID(txid)
+	data, err := h.TransactionService.GetTransactionByTxID(txid)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
