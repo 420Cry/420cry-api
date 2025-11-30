@@ -30,17 +30,21 @@ type CoinMarketCapConfig struct {
 
 // EnvConfig maps environment variables to application configuration fields.
 type EnvConfig struct {
-	AppEnv               string
-	CryAppURL            string
-	CryAPIURL            string
-	APIPort              int
-	DBHost               string
-	DBPort               int
-	DBDatabase           string
-	DBUserName           string
-	DBPassword           string
-	SMTPConfig           SMTPConfig
-	NoReplyEmail         string
+	AppEnv                     string
+	CryAppURL                  string
+	CryAPIURL                  string
+	APIPort                    int
+	DBHost                     string
+	DBPort                     int
+	DBDatabase                 string
+	DBUserName                 string
+	DBPassword                 string
+	SMTPConfig                 SMTPConfig
+	NoReplyEmail               string
+	GoogleClientId     string
+	GoogleClientSecret string
+	GoogleRedirectUrl  string
+	OAuthEncryptedKey  string
 	WalletExplorerConfig WalletExplorerConfig
 	BlockchainConfig     BlockchainConfig
 	CoinMarketCapConfig  CoinMarketCapConfig

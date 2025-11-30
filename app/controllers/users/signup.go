@@ -41,7 +41,9 @@ func (h *UserController) Signup(c *gin.Context) {
 	}
 
 	// Create the user
-	createdUser, err := h.UserService.CreateUser(input.Fullname, input.Username, input.Email, input.Password)
+	isVerified := false
+	isProfileCompleted := true
+	createdUser, err := h.UserService.CreateUser(input.Fullname, input.Username, input.Email, input.Password, isVerified, isProfileCompleted)
 	if errors.Is(err, app_errors.ErrUserConflict) {
 		logger.WithField("email", input.Email).Warn("User signup failed - user already exists")
 		middleware.AbortWithError(c, app_errors.ErrUserConflict)

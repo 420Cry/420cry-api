@@ -33,6 +33,10 @@ func RegisterRoutes(rg *gin.RouterGroup, container *container.Container) {
 	// Route for verifying reset password token to save new password
 	rg.POST("/verify-reset-password-token", userController.VerifyResetPasswordToken)
 
+	// Route for complete profile after signing up with oauth
+	rg.POST("/complete-profile", userController.HandleCompleteProfile)
+
+
 	// Use JWT middleware on this group for authenticated routes
 	authGroup := rg.Group("")
 	authGroup.Use(middleware.JWTAuthMiddleware())

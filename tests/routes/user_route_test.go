@@ -28,12 +28,27 @@ func (m *MockUserController) SignIn(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "signin called"})
 }
 
+func (m *MockUserController) ResetPassword(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"message": "reset-password called"})
+}
+
+func (m *MockUserController) VerifyResetPasswordToken(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"message": "verify-reset-password-token called"})
+}
+
+func (m *MockUserController) CompleteProfile(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"message": "complete-profile called"})
+}
+
 // A helper to register routes with mocked controller
 func registerTestRoutes(rg *gin.RouterGroup, controller *MockUserController) {
 	rg.POST("/signup", controller.Signup)
 	rg.POST("/verify-email-token", controller.VerifyEmailToken)
 	rg.POST("/verify-account-token", controller.VerifyAccountToken)
 	rg.POST("/signin", controller.SignIn)
+	rg.POST("/reset-password", controller.ResetPassword)
+	rg.POST("/verify-reset-password-token", controller.VerifyResetPasswordToken)
+	rg.POST("/complete-profile", controller.CompleteProfile)
 }
 
 func TestUserRoutes(t *testing.T) {
@@ -54,6 +69,9 @@ func TestUserRoutes(t *testing.T) {
 		{"POST", "/users/verify-email-token", http.StatusOK, `{"message":"verify-email-token called"}`},
 		{"POST", "/users/verify-account-token", http.StatusOK, `{"message":"verify-account-token called"}`},
 		{"POST", "/users/signin", http.StatusOK, `{"message":"signin called"}`},
+		{"POST", "/users/reset-password", http.StatusOK, `{"message":"reset-password called"}`},
+		{"POST", "/users/verify-reset-password-token", http.StatusOK, `{"message":"verify-reset-password-token called"}`},
+		{"POST", "/users/complete-profile", http.StatusOK, `{"message":"complete-profile called"}`},
 	}
 
 	for _, tc := range testCases {

@@ -15,7 +15,7 @@ func main() {
 	}
 
 	// Run AutoMigrate for the User and UserToken models
-	err = dbConn.AutoMigrate(&UserModel.User{}, &UserModel.UserToken{})
+	err = dbConn.AutoMigrate(&UserModel.User{}, &UserModel.UserToken{}, &UserModel.Oauth_Accounts{})
 	if err != nil {
 		log.Fatal("Auto-migration failed: ", err)
 	}

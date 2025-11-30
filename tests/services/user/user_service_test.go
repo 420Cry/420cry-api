@@ -20,18 +20,21 @@ func TestUserService_CreateUser_NewUser_Success(t *testing.T) {
 	mockUserTokenRepo := new(mocks.MockUserTokenRepository)
 	mockEmailSvc := new(mocks.MockEmailService)
 	mockAuthService := new(mocks.MockAuthService)
+	MockOAuthTransactionRepo := new(mocks.MockOAuthTransactionRepository)
 
-	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, mockEmailSvc, mockAuthService)
+	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, MockOAuthTransactionRepo, mockEmailSvc, mockAuthService)
 
 	fullname := "John Doe"
 	username := "johndoe"
 	email := "john@example.com"
 	password := "password123"
+	isVerified := false
+	isProfileCompleted := true
 
 	mockUserRepo.On("FindByUsernameOrEmail", username, email).Return(nil, nil)
 	mockUserRepo.On("Save", mock.AnythingOfType("*models.User")).Return(nil)
 
-	user, err := userSvc.CreateUser(fullname, username, email, password)
+	user, err := userSvc.CreateUser(fullname, username, email, password, isVerified, isProfileCompleted)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
@@ -47,13 +50,16 @@ func TestUserService_CreateUser_UserExists_ReturnsConflict(t *testing.T) {
 	mockEmailSvc := new(mocks.MockEmailService)
 	mockAuthService := new(mocks.MockAuthService)
 
-	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, mockEmailSvc, mockAuthService)
+	MockOAuthTransactionRepo := new(mocks.MockOAuthTransactionRepository)
+	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, MockOAuthTransactionRepo, mockEmailSvc, mockAuthService)
 
 	existingUser := &UserModel.User{Username: "johndoe"}
 
 	mockUserRepo.On("FindByUsernameOrEmail", "johndoe", "john@example.com").Return(existingUser, nil)
 
-	user, err := userSvc.CreateUser("John Doe", "johndoe", "john@example.com", "password123")
+	isVerified := false
+	isProfileCompleted := true
+	user, err := userSvc.CreateUser("John Doe", "johndoe", "john@example.com", "password123", isVerified, isProfileCompleted)
 
 	assert.Error(t, err)
 	assert.Nil(t, user)
@@ -68,12 +74,15 @@ func TestUserService_CreateUser_FindByUsernameOrEmail_Error(t *testing.T) {
 	mockUserTokenRepo := new(mocks.MockUserTokenRepository)
 	mockEmailSvc := new(mocks.MockEmailService)
 	mockAuthService := new(mocks.MockAuthService)
+	MockOAuthTransactionRepo := new(mocks.MockOAuthTransactionRepository)
 
-	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, mockEmailSvc, mockAuthService)
+	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, MockOAuthTransactionRepo, mockEmailSvc, mockAuthService)
 
 	mockUserRepo.On("FindByUsernameOrEmail", mock.Anything, mock.Anything).Return(nil, errors.New("db error"))
 
-	user, err := userSvc.CreateUser("John Doe", "johndoe", "john@example.com", "password123")
+	isVerified := false
+	isProfileCompleted := true
+	user, err := userSvc.CreateUser("John Doe", "johndoe", "john@example.com", "password123", isVerified, isProfileCompleted)
 
 	assert.Error(t, err)
 	assert.Nil(t, user)
@@ -87,13 +96,16 @@ func TestUserService_CreateUser_Save_Error(t *testing.T) {
 	mockUserTokenRepo := new(mocks.MockUserTokenRepository)
 	mockEmailSvc := new(mocks.MockEmailService)
 	mockAuthService := new(mocks.MockAuthService)
+	MockOAuthTransactionRepo := new(mocks.MockOAuthTransactionRepository)
 
-	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, mockEmailSvc, mockAuthService)
+	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, MockOAuthTransactionRepo, mockEmailSvc, mockAuthService)
 
 	mockUserRepo.On("FindByUsernameOrEmail", mock.Anything, mock.Anything).Return(nil, nil)
 	mockUserRepo.On("Save", mock.AnythingOfType("*models.User")).Return(errors.New("save error"))
 
-	user, err := userSvc.CreateUser("John Doe", "johndoe", "john@example.com", "password123")
+	isVerified := false
+	isProfileCompleted := true
+	user, err := userSvc.CreateUser("John Doe", "johndoe", "john@example.com", "password123", isVerified, isProfileCompleted)
 
 	assert.Error(t, err)
 	assert.Nil(t, user)
@@ -107,8 +119,9 @@ func TestUserService_GetUserByUUID_Success(t *testing.T) {
 	mockUserTokenRepo := new(mocks.MockUserTokenRepository)
 	mockEmailSvc := new(mocks.MockEmailService)
 	mockAuthService := new(mocks.MockAuthService)
+	MockOAuthTransactionRepo := new(mocks.MockOAuthTransactionRepository)
 
-	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, mockEmailSvc, mockAuthService)
+	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, MockOAuthTransactionRepo, mockEmailSvc, mockAuthService)
 
 	expectedUser := &UserModel.User{UUID: "uuid-1234"}
 
@@ -128,8 +141,8 @@ func TestUserService_GetUserByUUID_Error(t *testing.T) {
 	mockUserTokenRepo := new(mocks.MockUserTokenRepository)
 	mockEmailSvc := new(mocks.MockEmailService)
 	mockAuthService := new(mocks.MockAuthService)
-
-	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, mockEmailSvc, mockAuthService)
+	MockOAuthTransactionRepo := new(mocks.MockOAuthTransactionRepository)
+	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, MockOAuthTransactionRepo, mockEmailSvc, mockAuthService)
 
 	mockUserRepo.On("FindByUUID", "uuid-1234").Return(nil, errors.New("db error"))
 

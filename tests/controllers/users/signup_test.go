@@ -49,9 +49,11 @@ func TestSignup_Success(t *testing.T) {
 
 	done := make(chan struct{})
 
+	isVerified := false
+	isProfileCompleted := true
 	// Mock: CreateUser
 	mockUserService.
-		On("CreateUser", input.Fullname, input.Username, input.Email, input.Password).
+		On("CreateUser", input.Fullname, input.Username, input.Email, input.Password, isVerified, isProfileCompleted).
 		Return(dummyUser, nil)
 
 	// Mock: SaveUserToken for both link and OTP tokens
@@ -161,9 +163,11 @@ func TestSignup_UserConflict(t *testing.T) {
 	}
 	bodyBytes, _ := json.Marshal(input)
 
+	isVerified := false
+	isProfileCompleted := true
 	// Return ErrUserConflict
 	mockUserService.
-		On("CreateUser", input.Fullname, input.Username, input.Email, input.Password).
+		On("CreateUser", input.Fullname, input.Username, input.Email, input.Password, isVerified, isProfileCompleted).
 		Return(nil, SignUpError.ErrUserConflict)
 
 	req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewReader(bodyBytes))
@@ -209,9 +213,11 @@ func TestSignup_UserCreationFails(t *testing.T) {
 	}
 	bodyBytes, _ := json.Marshal(input)
 
+	isVerified := false
+	isProfileCompleted := true
 	// Return generic error
 	mockUserService.
-		On("CreateUser", input.Fullname, input.Username, input.Email, input.Password).
+		On("CreateUser", input.Fullname, input.Username, input.Email, input.Password, isVerified, isProfileCompleted).
 		Return(nil, fmt.Errorf("db error"))
 
 	req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewReader(bodyBytes))

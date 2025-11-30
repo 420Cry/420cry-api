@@ -2,8 +2,10 @@ package mocks
 
 import (
 	"github.com/stretchr/testify/mock"
+	"golang.org/x/oauth2"
 
 	UserModel "cry-api/app/models"
+	OAuthType "cry-api/app/types/oauth"
 )
 
 // MockUserService mocks UserServiceInterface
@@ -12,8 +14,8 @@ type MockUserService struct {
 }
 
 // CreateUser mocks CreateUser from UserService
-func (m *MockUserService) CreateUser(fullname, username, email, password string) (*UserModel.User, error) {
-	args := m.Called(fullname, username, email, password)
+func (m *MockUserService) CreateUser(fullname, username, email, password string, isVerified, isProfileCompleted bool) (*UserModel.User, error) {
+	args := m.Called(fullname, username, email, password, isVerified, isProfileCompleted)
 	user, _ := args.Get(0).(*UserModel.User)
 	return user, args.Error(1)
 }
@@ -62,6 +64,13 @@ func (m *MockUserService) FindUserTokenByValueAndPurpose(tokenValue, purpose str
 // FindUserByUsername mocks FindUserByUsername from UserService
 func (m *MockUserService) FindUserByUsername(username string) (*UserModel.User, error) {
 	args := m.Called(username)
+	user, _ := args.Get(0).(*UserModel.User)
+	return user, args.Error(1)
+}
+
+// CreateUserByGoogleAuth mocks CreateUserByGoogleAuth from UserService
+func (m *MockUserService) CreateUserByGoogleAuth(googleUserInfo *OAuthType.IGoogleUserResponse, token *oauth2.Token) (*UserModel.User, error) {
+	args := m.Called(googleUserInfo, token)
 	user, _ := args.Get(0).(*UserModel.User)
 	return user, args.Error(1)
 }

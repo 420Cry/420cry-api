@@ -12,7 +12,7 @@ import (
 )
 
 // NewUser creates a new instance of models.User with hashed password
-func NewUser(fullname, username, email, password string) (*models.User, error) {
+func NewUser(fullname, username, email, password string, isVerified bool, isProfileCompleted bool) (*models.User, error) {
 	passwordService := PasswordService.NewPasswordService()
 
 	hashedPassword, err := passwordService.HashPassword(password)
@@ -21,13 +21,14 @@ func NewUser(fullname, username, email, password string) (*models.User, error) {
 	}
 
 	user := &models.User{
-		UUID:       uuid.New().String(),
-		Username:   username,
-		Fullname:   fullname,
-		Email:      email,
-		Password:   hashedPassword,
-		IsVerified: false,
-		CreatedAt:  time.Now(),
+		UUID:               uuid.New().String(),
+		Username:           username,
+		Fullname:           fullname,
+		Email:              email,
+		Password:           hashedPassword,
+		IsVerified:         isVerified,
+		IsProfileCompleted: isProfileCompleted,
+		CreatedAt:          time.Now(),
 	}
 
 	return user, nil

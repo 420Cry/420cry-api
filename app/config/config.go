@@ -77,6 +77,18 @@ func Load() *types.EnvConfig {
 	// Load NoReplyEmail
 	noReplyEmail := os.Getenv("NO_REPLY_EMAIL")
 
+	// Load GoogleClientID
+	googleClientId := os.Getenv("GOOGLE_CLIENT_ID")
+
+	// Load GoogleCLientSecret
+	googleClientSecret := os.Getenv("GOOGLE_CLIENT_SECRET")
+
+	// Load GoogleRedirectUrl
+	googleRedirectUrl := os.Getenv("GOOGLE_REDIRECT_URL")
+
+	// Load OAuthEncryptedKey
+	oauthEncryptedKey := os.Getenv("OAUTH_SECRET_KEY")
+
 	// Load WALLET_EXPLORER_API
 	walletExplorerAPI := os.Getenv("WALLET_EXPLORER_API")
 
@@ -89,16 +101,20 @@ func Load() *types.EnvConfig {
 
 	// Set the config instance
 	configInstance = &types.EnvConfig{
-		AppEnv:       appEnv,
-		CryAppURL:    cryAppURL,
-		CryAPIURL:    CryAPIURL,
-		APIPort:      apiPort,
-		DBHost:       dbHost,
-		DBPort:       dbPort,
-		DBDatabase:   db,
-		DBUserName:   mysqlUser,
-		DBPassword:   dbPassword,
-		NoReplyEmail: noReplyEmail,
+		AppEnv:             appEnv,
+		GoogleClientId:     googleClientId,
+		GoogleClientSecret: googleClientSecret,
+		GoogleRedirectUrl:  googleRedirectUrl,
+		CryAppURL:          cryAppURL,
+		CryAPIURL:          CryAPIURL,
+		APIPort:            apiPort,
+		DBHost:             dbHost,
+		DBPort:             dbPort,
+		DBDatabase:         db,
+		DBUserName:         mysqlUser,
+		DBPassword:         dbPassword,
+		NoReplyEmail:       noReplyEmail,
+		OAuthEncryptedKey:  oauthEncryptedKey,
 		SMTPConfig: types.SMTPConfig{
 			Host: smtpHost,
 			Port: smtpPort,

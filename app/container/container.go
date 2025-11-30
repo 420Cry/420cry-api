@@ -8,6 +8,7 @@ import (
 	AuthService "cry-api/app/services/auth"
 	PasswordService "cry-api/app/services/auth/password"
 	EmailService "cry-api/app/services/email"
+	OAuthService "cry-api/app/services/oauth"
 	UserService "cry-api/app/services/users"
 	EnvTypes "cry-api/app/types/env"
 
@@ -50,8 +51,12 @@ func InitializeContainer(cfg *EnvTypes.EnvConfig, db *gorm.DB) *Container {
 	// Register repositories
 	userRepo := UserRepository.NewGormUserRepository(db)
 	userTokenRepo := UserRepository.NewGormUserTokenRepository(db)
+	oauthRepo := UserRepository.NewGormOAuthRepository(db)
+	transactionRepo := UserRepository.NewGormTransactionRepository(db)
 	container.Register("userRepository", userRepo)
 	container.Register("userTokenRepository", userTokenRepo)
+	container.Register("oauthRepository", oauthRepo)
+	container.Register("transactionRepository", transactionRepo)
 
 	// Register services
 	passwordService := PasswordService.NewPasswordService()
@@ -71,10 +76,13 @@ func InitializeContainer(cfg *EnvTypes.EnvConfig, db *gorm.DB) *Container {
 	userService := UserService.NewUserService(
 		userRepo,
 		userTokenRepo,
+		transactionRepo,
 		emailService,
 		authService,
 	)
 	container.Register("userService", userService)
+	oauthService := OAuthService.NewOAuthService(oauthRepo)
+	container.Register("oauthService", oauthService)
 
 	return container
 }
@@ -87,6 +95,16 @@ func (c *Container) GetUserRepository() UserRepository.UserRepository {
 // GetUserTokenRepository returns the user token repository from container
 func (c *Container) GetUserTokenRepository() UserRepository.UserTokenRepository {
 	return c.Get("userTokenRepository").(UserRepository.UserTokenRepository)
+}
+
+// GetTransactionRepository returns the transaction repository from container
+func (c *Container) GetTransactionRepository() UserRepository.TransactionRepository {
+	return c.Get("transactionRepository").(UserRepository.TransactionRepository)
+}
+
+// GetOAuthRepository returns the oauth repository from container
+func (c *Container) GetOAuthRepository() UserRepository.OAuthRepository {
+	return c.Get("oauthRepository").(UserRepository.OAuthRepository)
 }
 
 // GetUserService returns the user service from container
@@ -112,4 +130,9 @@ func (c *Container) GetAuthService() AuthService.AuthServiceInterface {
 // GetPasswordService returns the password service from container
 func (c *Container) GetPasswordService() PasswordService.PasswordServiceInterface {
 	return c.Get("passwordService").(PasswordService.PasswordServiceInterface)
+}
+
+// GetOAuthService returns the oauth service from container
+func (c *Container) GetOAuthService() OAuthService.OAuthServiceInterface {
+	return c.Get("oauthService").(OAuthService.OAuthServiceInterface)
 }

@@ -5,28 +5,32 @@ import (
 	"errors"
 	"fmt"
 
+	"golang.org/x/oauth2"
+	"gorm.io/gorm"
+
 	"cry-api/app/factories"
 	UserModel "cry-api/app/models"
 	UserRepository "cry-api/app/repositories"
 	AuthService "cry-api/app/services/auth"
 	EmailService "cry-api/app/services/email"
 	SignUpError "cry-api/app/types/errors"
-
-	"gorm.io/gorm"
+	OAuthType "cry-api/app/types/oauth"
 )
 
 // UserService handles user-related business logic such as
 // creating users, authenticating, and verifying accounts.
 type UserService struct {
-	userRepo      UserRepository.UserRepository // User data repository interface
-	userTokenRepo UserRepository.UserTokenRepository
-	emailService  EmailService.EmailServiceInterface // Email service interface for sending emails
-	authService   AuthService.AuthServiceInterface
+	userRepo        UserRepository.UserRepository // User data repository interface
+	userTokenRepo   UserRepository.UserTokenRepository
+	transactionRepo UserRepository.TransactionRepository
+	emailService    EmailService.EmailServiceInterface // Email service interface for sending emails
+	authService     AuthService.AuthServiceInterface
 }
 
 // UserServiceInterface defines the contract for user service methods.
 type UserServiceInterface interface {
-	CreateUser(fullname, username, email, password string) (*UserModel.User, error)
+	CreateUser(fullname, username, email, password string, isVerified bool, isProfileCompleted bool) (*UserModel.User, error)
+	CreateUserByGoogleAuth(googleUserInfo *OAuthType.IGoogleUserResponse, token *oauth2.Token) (*UserModel.User, error)
 	GetUserByUUID(uuid string) (*UserModel.User, error)
 	UpdateUser(user *UserModel.User) error
 	FindUserByEmail(email string) (*UserModel.User, error)
@@ -40,14 +44,16 @@ type UserServiceInterface interface {
 func NewUserService(
 	userRepo UserRepository.UserRepository,
 	userTokenRepo UserRepository.UserTokenRepository,
+	transactionRepo UserRepository.TransactionRepository,
 	emailService EmailService.EmailServiceInterface,
 	authService AuthService.AuthServiceInterface,
 ) *UserService {
 	return &UserService{
-		userRepo:      userRepo,
-		userTokenRepo: userTokenRepo,
-		emailService:  emailService,
-		authService:   authService,
+		userRepo:        userRepo,
+		userTokenRepo:   userTokenRepo,
+		transactionRepo: transactionRepo,
+		emailService:    emailService,
+		authService:     authService,
 	}
 }
 
@@ -61,7 +67,7 @@ func (s *UserService) GetUserByUUID(uuid string) (*UserModel.User, error) {
 }
 
 // CreateUser creates a new user or refreshes the verification token if user exists but is unverified.
-func (s *UserService) CreateUser(fullname, username, email, password string) (*UserModel.User, error) {
+func (s *UserService) CreateUser(fullname, username, email, password string, isVerified bool, isProfileCompleted bool) (*UserModel.User, error) {
 	// Check if a user with the same username or email already exists
 	existingUser, err := s.userRepo.FindByUsernameOrEmail(username, email)
 	if err != nil {
@@ -74,7 +80,7 @@ func (s *UserService) CreateUser(fullname, username, email, password string) (*U
 	}
 
 	// Create a new user instance using factory
-	newUser, err := factories.NewUser(fullname, username, email, password)
+	newUser, err := factories.NewUser(fullname, username, email, password, isVerified, isProfileCompleted)
 	if err != nil {
 		return nil, err
 	}
@@ -137,4 +143,35 @@ func (s *UserService) FindUserTokenByPurpose(userID int, purpose string) (*UserM
 // FindUserTokenByValueAndPurpose returns user if tokenValue and purpose are matched
 func (s *UserService) FindUserTokenByValueAndPurpose(tokenValue, purpose string) (*UserModel.UserToken, error) {
 	return s.userTokenRepo.FindValidToken(tokenValue, purpose)
+}
+
+func (s *UserService) CreateUserByGoogleAuth(googleUserInfo *OAuthType.IGoogleUserResponse, token *oauth2.Token) (*UserModel.User, error) {
+	randomPassword, err := factories.Generate32ByteToken()
+
+	if err != nil {
+		return nil, err
+	}
+
+	isVerified := true
+	isProfileCompleted := false
+
+	createdUser, err := factories.NewUser(googleUserInfo.GivenName, googleUserInfo.Email, googleUserInfo.Email, randomPassword, isVerified, isProfileCompleted)
+
+	if err != nil {
+		return nil, err
+	}
+
+	provider := "Google"
+	providerId := googleUserInfo.Sub
+	oauthAccount, err := factories.NewOAuthAccount(createdUser, provider, providerId, googleUserInfo.Email, token)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.transactionRepo.CreateUserByOAuth(createdUser, oauthAccount); err != nil {
+		return nil, err
+	}
+
+	return createdUser, nil
 }
