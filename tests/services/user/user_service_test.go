@@ -20,9 +20,9 @@ func TestUserService_CreateUser_NewUser_Success(t *testing.T) {
 	mockUserTokenRepo := new(mocks.MockUserTokenRepository)
 	mockEmailSvc := new(mocks.MockEmailService)
 	mockAuthService := new(mocks.MockAuthService)
-	mockTransactionRepo := new(mocks.MockTransactionRepository)
+	MockOAuthTransactionRepo := new(mocks.MockOAuthTransactionRepository)
 
-	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, mockTransactionRepo, mockEmailSvc, mockAuthService)
+	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, MockOAuthTransactionRepo, mockEmailSvc, mockAuthService)
 
 	fullname := "John Doe"
 	username := "johndoe"
@@ -50,8 +50,8 @@ func TestUserService_CreateUser_UserExists_ReturnsConflict(t *testing.T) {
 	mockEmailSvc := new(mocks.MockEmailService)
 	mockAuthService := new(mocks.MockAuthService)
 
-	mockTransactionRepo := new(mocks.MockTransactionRepository)
-	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, mockTransactionRepo, mockEmailSvc, mockAuthService)
+	MockOAuthTransactionRepo := new(mocks.MockOAuthTransactionRepository)
+	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, MockOAuthTransactionRepo, mockEmailSvc, mockAuthService)
 
 	existingUser := &UserModel.User{Username: "johndoe"}
 
@@ -74,9 +74,9 @@ func TestUserService_CreateUser_FindByUsernameOrEmail_Error(t *testing.T) {
 	mockUserTokenRepo := new(mocks.MockUserTokenRepository)
 	mockEmailSvc := new(mocks.MockEmailService)
 	mockAuthService := new(mocks.MockAuthService)
-	mockTransactionRepo := new(mocks.MockTransactionRepository)
+	MockOAuthTransactionRepo := new(mocks.MockOAuthTransactionRepository)
 
-	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, mockTransactionRepo, mockEmailSvc, mockAuthService)
+	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, MockOAuthTransactionRepo, mockEmailSvc, mockAuthService)
 
 	mockUserRepo.On("FindByUsernameOrEmail", mock.Anything, mock.Anything).Return(nil, errors.New("db error"))
 
@@ -96,9 +96,9 @@ func TestUserService_CreateUser_Save_Error(t *testing.T) {
 	mockUserTokenRepo := new(mocks.MockUserTokenRepository)
 	mockEmailSvc := new(mocks.MockEmailService)
 	mockAuthService := new(mocks.MockAuthService)
-	mockTransactionRepo := new(mocks.MockTransactionRepository)
+	MockOAuthTransactionRepo := new(mocks.MockOAuthTransactionRepository)
 
-	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, mockTransactionRepo, mockEmailSvc, mockAuthService)
+	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, MockOAuthTransactionRepo, mockEmailSvc, mockAuthService)
 
 	mockUserRepo.On("FindByUsernameOrEmail", mock.Anything, mock.Anything).Return(nil, nil)
 	mockUserRepo.On("Save", mock.AnythingOfType("*models.User")).Return(errors.New("save error"))
@@ -119,9 +119,9 @@ func TestUserService_GetUserByUUID_Success(t *testing.T) {
 	mockUserTokenRepo := new(mocks.MockUserTokenRepository)
 	mockEmailSvc := new(mocks.MockEmailService)
 	mockAuthService := new(mocks.MockAuthService)
-	mockTransactionRepo := new(mocks.MockTransactionRepository)
+	MockOAuthTransactionRepo := new(mocks.MockOAuthTransactionRepository)
 
-	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, mockTransactionRepo, mockEmailSvc, mockAuthService)
+	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, MockOAuthTransactionRepo, mockEmailSvc, mockAuthService)
 
 	expectedUser := &UserModel.User{UUID: "uuid-1234"}
 
@@ -141,8 +141,8 @@ func TestUserService_GetUserByUUID_Error(t *testing.T) {
 	mockUserTokenRepo := new(mocks.MockUserTokenRepository)
 	mockEmailSvc := new(mocks.MockEmailService)
 	mockAuthService := new(mocks.MockAuthService)
-	mockTransactionRepo := new(mocks.MockTransactionRepository)
-	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, mockTransactionRepo, mockEmailSvc, mockAuthService)
+	MockOAuthTransactionRepo := new(mocks.MockOAuthTransactionRepository)
+	userSvc := UserService.NewUserService(mockUserRepo, mockUserTokenRepo, MockOAuthTransactionRepo, mockEmailSvc, mockAuthService)
 
 	mockUserRepo.On("FindByUUID", "uuid-1234").Return(nil, errors.New("db error"))
 

@@ -6,11 +6,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockTransactionRepository struct {
+type MockOAuthTransactionRepository struct {
 	mock.Mock
 }
 
-func (m *MockTransactionRepository) CreateUserByOAuth(user *Models.User, oauthAccount *Models.Oauth_Accounts) error {
+func (m *MockOAuthTransactionRepository) CreateUserByOAuth(user *Models.User, oauthAccount *Models.Oauth_Accounts) error {
 	args := m.Called(user, oauthAccount)
 	return args.Error(0)
 }
