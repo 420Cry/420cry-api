@@ -6,10 +6,12 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	controller "cry-api/app/controllers/users"
 	UserModel "cry-api/app/models"
+	JwtServices "cry-api/app/services/jwt"
 	SignInError "cry-api/app/types/errors"
 	UserTypes "cry-api/app/types/users"
 	TestUtils "cry-api/app/utils/tests"
@@ -18,6 +20,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
+
+func init() {
+	// Set JWT secret for all tests in this package
+	_ = os.Setenv("APP_ENV", "test")
+	_ = os.Setenv("JWT_SECRET", "testsecretkey123456789012345678901234567890")
+	JwtServices.SetJWTSecret([]byte("testsecretkey123456789012345678901234567890"))
+}
 
 func TestSignIn_Success(t *testing.T) {
 	mockAuthService := new(testmocks.MockAuthService)

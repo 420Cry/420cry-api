@@ -61,8 +61,8 @@ func (h *TwoFactorController) VerifySetUpOTP(c *gin.Context) {
 		}
 	}
 
-	// Generate JWT
-	jwt, err := JWT.GenerateJWT(user.UUID, user.Email, user.TwoFAEnabled, false)
+	// Generate JWT with 2FA verified after successful setup
+	jwt, err := JWT.GenerateJWT(user.UUID, user.Email, user.TwoFAEnabled, true)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate JWT"})
 		return

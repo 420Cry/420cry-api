@@ -16,11 +16,8 @@ type CoinMarketCapController struct {
 
 // NewCoinMarketCapController initializes a new CoinMarketCapController with dependencies from the container.
 func NewCoinMarketCapController(container *container.Container) *CoinMarketCapController {
-	// Get config from container
-	cfg := container.Get("config").(*EnvTypes.EnvConfig)
-
 	return &CoinMarketCapController{
-		Cfg:                  cfg,
-		CoinMarketCapService: coinMarketCapService.NewCoinMarketCapServiceService(cfg),
+		Cfg:                  container.GetConfig(),
+		CoinMarketCapService: container.GetCoinMarketCapService(),
 	}
 }

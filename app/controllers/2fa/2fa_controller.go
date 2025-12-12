@@ -21,20 +21,11 @@ type TwoFactorController struct {
 
 // NewTwoFactorController initializes a new TwoFactorController with dependencies from the container.
 func NewTwoFactorController(container *container.Container) *TwoFactorController {
-	// Get services from container
-	userService := container.GetUserService()
-	userTokenService := container.GetUserTokenService()
-	authService := container.GetAuthService()
-	emailService := container.GetEmailService()
-
-	// Create 2FA service
-	twoFactorService := TwoFactorService.NewTwoFactorService()
-
 	return &TwoFactorController{
-		UserService:      userService,
-		UserTokenService: userTokenService,
-		AuthService:      authService,
-		TwoFactorService: twoFactorService,
-		EmailService:     emailService,
+		UserService:      container.GetUserService(),
+		UserTokenService: container.GetUserTokenService(),
+		AuthService:      container.GetAuthService(),
+		TwoFactorService: container.GetTwoFactorService(),
+		EmailService:     container.GetEmailService(),
 	}
 }
