@@ -66,7 +66,7 @@ var GenerateJWT = func(uuid, email string, twoFAEnabled bool, twoFAVerified bool
 		TwoFAVerified: twoFAVerified,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(getJWTSecret())
+	return token.SignedString(GetJWTSecret())
 }
 
 // SetJWTSecret is a setter for the JWT secret (used for testing ONLY)
