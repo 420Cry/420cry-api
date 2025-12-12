@@ -40,6 +40,12 @@ func (h *TwoFactorController) VerifyOTP(c *gin.Context) {
 		return
 	}
 
+	// Ensure secret exists before verifying
+	if user.TwoFASecret == nil || *user.TwoFASecret == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "2FA is not set up for this user"})
+		return
+	}
+
 	// Verify OTP using provided secret
 	isValid, err := h.AuthService.VerifyOTP(*user.TwoFASecret, req.OTP)
 	if err != nil || !isValid {
@@ -56,7 +62,7 @@ func (h *TwoFactorController) VerifyOTP(c *gin.Context) {
 		}
 	}
 
-	// Generate JWT
+	// Generate JWT with 2FA verified
 	jwt, err := JWT.GenerateJWT(user.UUID, user.Email, user.TwoFAEnabled, true)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate JWT"})

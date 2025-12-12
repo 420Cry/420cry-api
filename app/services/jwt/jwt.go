@@ -2,6 +2,7 @@
 package services
 
 import (
+	"log"
 	"os"
 	"time"
 
@@ -9,6 +10,12 @@ import (
 )
 
 var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
+
+func init() {
+	if len(jwtSecret) == 0 {
+		log.Fatal("JWT_SECRET is not set; refusing to start")
+	}
+}
 
 // Claims defines the custom JWT claims used for authentication,
 // embedding standard registered claims along with user-specific fields
