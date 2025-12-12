@@ -43,14 +43,21 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Store claims in context for later use
-		if claims, ok := token.Claims.(*services.Claims); ok {
-			c.Set("user", claims)
-		} else {
+		// Store claims in context for later use and enforce 2FA completion when enabled
+		claims, ok := token.Claims.(*services.Claims)
+		if !ok {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
 			c.Abort()
 			return
 		}
+
+		if claims.TwoFAEnabled && !claims.TwoFAVerified {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Two-factor authentication required"})
+			c.Abort()
+			return
+		}
+
+		c.Set("user", claims)
 
 		c.Next()
 	}

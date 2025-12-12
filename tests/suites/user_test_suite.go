@@ -2,13 +2,14 @@
 package suites
 
 import (
+	"os"
+	"testing"
+
 	"cry-api/app/config"
 	"cry-api/app/container"
 	"cry-api/app/logger"
 	"cry-api/app/models"
 	EnvTypes "cry-api/app/types/env"
-	"os"
-	"testing"
 
 	"github.com/stretchr/testify/suite"
 	"gorm.io/driver/sqlite"
@@ -25,9 +26,10 @@ type UserTestSuite struct {
 
 // SetupSuite initializes the test suite
 func (suite *UserTestSuite) SetupSuite() {
-	// Set test environment variables first
+	// Set test environment variables first (JWT_SECRET must be set before any JWT package imports)
 	_ = os.Setenv("APP_ENV", "test")
-	_ = os.Setenv("LOG_LEVEL", "error") // Reduce log noise during tests
+	_ = os.Setenv("JWT_SECRET", "testsecretkey123456789012345678901234567890") // Set before JWT package init
+	_ = os.Setenv("LOG_LEVEL", "error")                                        // Reduce log noise during tests
 	_ = os.Setenv("DB_HOST", "localhost")
 	_ = os.Setenv("DB_PORT", "3306")
 	_ = os.Setenv("DB_DATABASE", "test_db")
